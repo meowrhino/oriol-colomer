@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="oriol colomer — dirección, cámara y montaje. Barcelona.">
+  <title>oriol colomer</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- la escena entera es una hoja que gira sobre su eje vertical -->
+  <div class="scene">
+    <div class="book" id="book">
+
+      <!-- ---------- cara A: los proyectos ---------- -->
+      <section class="face front" id="front">
+        <header class="topbar">
+          <button class="name" id="author" type="button" aria-expanded="false" aria-controls="about">oriol colomer</button>
+          <span class="hint hint-d">scroll · drag · ←/→</span>
+          <span class="hint hint-m">desliza · toca</span>
+        </header>
+
+        <!-- el tunel de profundidad -->
+        <main id="stage" class="stage">
+          <div id="tunnel" class="tunnel"></div>
+        </main>
+
+        <!-- velo + ficha tecnica -->
+        <div id="veil" class="veil"></div>
+        <aside id="sheet" class="sheet" aria-hidden="true">
+          <button id="close" class="close" type="button" aria-label="cerrar">×</button>
+          <h1 id="sheet-title"></h1>
+          <p id="sheet-date" class="sheet-date"></p>
+          <dl id="sheet-credits" class="credits"></dl>
+          <p id="sheet-text" class="sheet-text"></p>
+        </aside>
+
+        <!-- linea del tiempo: fecha inicial, marcadores clicables, fecha final -->
+        <footer class="scrubber" id="scrubber">
+          <div class="track" id="track">
+            <div class="fill" id="fill"></div>
+            <div class="marks" id="marks"></div>
+            <div class="knob" id="knob"></div>
+          </div>
+          <div class="meta">
+            <span class="end" id="end-a"></span>
+            <span class="current" id="current"></span>
+            <span class="end" id="end-b"></span>
+          </div>
+        </footer>
+      </section>
+
+      <!-- ---------- cara B: el about ---------- -->
+      <section class="face back" id="about" aria-hidden="true">
+        <header class="topbar">
+          <button class="name" id="author-back" type="button">oriol colomer</button>
+          <span class="hint">volver</span>
+        </header>
+        <div class="about-scroll">
+          <article class="about" id="about-body"></article>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- sonda: mide 100dvw/100dvh de verdad, fuera de cualquier transform -->
+  <span class="unit" id="unit" aria-hidden="true"></span>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+{
+  "author": "oriol colomer",
+  "note": "AVISO: fechas, fichas técnicas y el texto del about son INVENTADOS (placeholder) — hay que sustituirlos por los reales. Orden del array = orden cronológico = orden en profundidad. Las posiciones x/y ya no viven aquí: main.js las sortea en cada carga y las convierte a dvw/dvh.",
+  "projects": [
+    {
+      "slug": "lechatelier",
+      "title": "Le Chatelier",
+      "year": "2023",
+      "date": "mar 2023",
+      "thumb": "assets/thumbs/lechatelier.jpg",
+      "credits": {
+        "rol": "dirección / cámara",
+        "formato": "serie fotográfica, 24 piezas",
+        "lugar": "Barcelona",
+        "con": "Marta Riu"
+      },
+      "text": "Serie sobre equilibrios que no se sostienen: escenas montadas en interiores prestados y desmontadas el mismo día. Rodada en dos fines de semana con una sola lente."
+    },
+    {
+      "slug": "amore",
+      "title": "AMORE",
+      "year": "2024",
+      "date": "feb 2024",
+      "thumb": "assets/thumbs/amore.jpg",
+      "credits": {
+        "rol": "vídeo / show",
+        "formato": "vídeo, 3 piezas",
+        "lugar": "Sala Apolo, Barcelona",
+        "con": "Virginia"
+      },
+      "text": "Tres piezas de vídeo para el directo: proyección detrás de la banda, montadas para aguantar el tempo del concierto sin robarle el foco. Material rodado en Súper 8 y digital, mezclado en montaje."
+    },
+    {
+      "slug": "tristan",
+      "title": "TRISTAN",
+      "year": "2024",
+      "date": "sep 2024",
+      "thumb": "assets/thumbs/tristan.jpg",
+      "credits": {
+        "rol": "dirección",
+        "formato": "vídeo + foto",
+        "lugar": "Cadaqués",
+        "con": "Pau Serrat"
+      },
+      "text": "Una semana siguiendo a una persona que no quería que la siguieran. Acabó siendo un ejercicio sobre la distancia: casi todo está rodado desde demasiado lejos, y ese es el tema."
+    },
+    {
+      "slug": "ouineta",
+      "title": "Ouineta",
+      "year": "2025",
+      "date": "ene 2025",
+      "thumb": "assets/thumbs/ouineta.jpg",
+      "credits": {
+        "rol": "vídeo / edición",
+        "formato": "3 vídeos",
+        "lugar": "Girona",
+        "con": "Ouineta"
+      },
+      "text": "Tres vídeos cortos para el primer disco. La idea era que parecieran encontrados y no hechos: se rodó todo en localizaciones que ya estaban ahí, sin tocar nada."
+    },
+    {
+      "slug": "cabiria",
+      "title": "Cabiria la Nau",
+      "year": "2025",
+      "date": "jun 2025",
+      "thumb": "assets/thumbs/cabiria.jpg",
+      "credits": {
+        "rol": "documentación",
+        "formato": "foto + vídeo",
+        "lugar": "La Nau, Barcelona",
+        "con": "Cia. Cabiria"
+      },
+      "text": "Registro de las tres funciones y de los ensayos previos. Documentar escena obliga a decidir muy rápido dónde ponerse: la mitad del trabajo estaba hecha antes de encender la cámara."
+    },
+    {
+      "slug": "xicu",
+      "title": "xicu",
+      "year": "2026",
+      "date": "nov 2025 — mar 2026",
+      "thumb": "assets/thumbs/xicu.jpg",
+      "credits": {
+        "rol": "dirección / edición",
+        "formato": "promo, vídeo",
+        "lugar": "Barcelona / Menorca",
+        "con": "LISTEN"
+      },
+      "text": "Cuatro meses de rodaje intermitente entre ciudad e isla para una pieza de cinco minutos. El montaje se rehízo tres veces; la versión buena es la que menos material usa."
+    },
+    {
+      "slug": "llum",
+      "title": "LLUM",
+      "year": "2026",
+      "date": "jul 2026",
+      "thumb": "assets/thumbs/llum.jpg",
+      "credits": {
+        "rol": "dirección",
+        "formato": "instalación / vídeo",
+        "lugar": "Fabra i Coats, Barcelona",
+        "con": "Núria Bosch"
+      },
+      "text": "Instalación de dos canales sobre lo que queda de una imagen cuando le quitas casi toda la luz. En curso: las proyecciones se calibran en sala la semana antes de abrir."
+    }
+  ],
+  "about": {
+    "title": "oriol colomer",
+    "lead": "dirección · cámara · montaje — barcelona",
+    "paragraphs": [
+      "Trabajo con imagen en movimiento y fotografía en algún sitio entre el documento y el montaje: material rodado casi siempre solo, con el equipo mínimo que quepa en una mochila, y decidido después, en la mesa.",
+      "Vengo del vídeo de conciertos y de la documentación de piezas escénicas. De ahí me he quedado dos manías: rodar sin interrumpir lo que está pasando, y no fiarme nunca del primer montaje.",
+      "Ahora alterno encargos —promos, registro de escena, series fotográficas— con proyectos propios de formato más largo. Me interesa más lo que se sostiene mal que lo que está resuelto."
+    ],
+    "facts": {
+      "hace": "dirección, cámara, montaje, color",
+      "trabaja con": "músicos, compañías de escena, artistas visuales",
+      "base": "Barcelona",
+      "desde": "2019"
+    },
+    "links": [
+      { "label": "correo", "href": "mailto:hola@oriolcolomer.com" },
+      { "label": "instagram", "href": "https://instagram.com/" },
+      { "label": "vimeo", "href": "https://vimeo.com/" }
+    ],
+    "note": "Texto de ejemplo — pendiente de escribir el de verdad."
+  }
+}
