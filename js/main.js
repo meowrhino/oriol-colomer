@@ -44,8 +44,9 @@ const state = {
   target:0,       // camara, pedida
   focus:-1,       // proyecto pedido (-1 = cerrado)
   shown:-1,       // proyecto que se esta pintando abierto; sobrevive al cierre
-  focusT:0,       // 0 en su sitio → 1 centrado, interpolado
-  sheetOn:false,  // segundo tiempo: la ficha esta fuera
+  focusT:0,       // 1er tiempo: 0 en su sitio → 1 centrada en pantalla
+  slideT:0,       // 2o tiempo: 0 centrada → 1 apartada, dejando salir la ficha
+  sheetOn:false,  // si la ficha esta pedida (es lo que dispara slideT)
   max:0,
   shift:0,        // desplazamiento para centrar carta+ficha
   lastInput:0,
@@ -276,6 +277,7 @@ function tick(now){
   }
   state.depth  = lerp(state.depth,  state.target, .10);
   state.focusT = lerp(state.focusT, state.focus >= 0 ? 1 : 0, EASE);
+  state.slideT = lerp(state.slideT, state.sheetOn ? 1 : 0, EASE);
 
   // la carta que se cierra sigue siendo "la abierta" hasta terminar de volver;
   // si no, cae al else de abajo con focusT aun alto y pega un parpadeo
@@ -284,12 +286,16 @@ function tick(now){
     state.shown = -1;
   }
 
-  // Segundo tiempo de la apertura: la ficha no sale hasta que la carta ha
-  // terminado de centrarse (al cerrar es al reves, lo lleva close()).
-  // El `!pending` no es un detalle: durante el primer tiempo del cierre focus
-  // sigue siendo >= 0 y focusT sigue en 1, asi que sin el, un frame despues de
-  // cerrar la ficha volvia a salir sola y el proyecto no se cerraba nunca.
-  if (state.focus >= 0 && !state.sheetOn && !pending && state.focusT > SETTLED) showSheet();
+  // Segundo tiempo de la apertura: la carta no se aparta ni sale la ficha
+  // hasta que ha terminado de centrarse.
+  // El `!state.closing` no es un detalle: durante el primer tiempo del cierre
+  // focus sigue siendo >= 0 y focusT sigue en 1, asi que sin el, un frame
+  // despues de cerrar la ficha volvia a salir sola y no se cerraba nunca.
+  if (state.focus >= 0 && !state.sheetOn && !state.closing && state.focusT > SETTLED) showSheet();
+
+  // Y el segundo tiempo del cierre: la carta no vuelve a su sitio hasta que ha
+  // acabado de recogerse la ficha y de volver al centro.
+  if (state.closing && state.slideT < .004){ state.slideT = 0; release(); }
 
   const f = state.focusT;
 
@@ -314,17 +320,24 @@ function tick(now){
     let capOp = 1 - Math.min(1, Math.abs(rel) * 1.6);
 
     if (it.p >= 0 && it.p === state.shown && f > .001){
-      // carta abierta (o cerrandose): al centro, nitida, delante de todo
+      // Carta abierta (o cerrandose), en dos tiempos: `f` la trae al centro de
+      // la pantalla, y solo despues `s` la aparta para dejar salir la ficha de
+      // detras. Al cerrar, `s` la devuelve al centro y `f` a su sitio.
       const fz = focusZ();
+      const s = state.slideT;
       // la perspectiva magnifica x/y igual que el tamano: hay que dividir por
       // el aumento para que el desplazamiento en pantalla sea el pedido
       const mag = P / (P - fz);
-      x     = lerp(x, -state.shift / mag, f);
-      y     = lerp(y, mobile() ? -0.10 * dvh() / mag : 0, f);
+      x     = lerp(x, -state.shift * s / mag, f);
+      y     = lerp(y, (mobile() ? -0.10 * dvh() : 0) * s / mag, f);
       tz    = lerp(tz, fz, f);
       op    = lerp(op, 1, f);
       bl    = lerp(bl, 0, f);
       capOp = lerp(capOp, 0, f);
+      // canto derecho de la carta en pantalla, medido desde el centro del
+      // viewport: es donde tiene que empezar a asomar la ficha
+      const sc = P / (P - tz);
+      state.cardRight = x * sc + el.offsetWidth * sc / 2;
     } else {
       op *= 1 - f;
     }
@@ -342,8 +355,35 @@ function tick(now){
     if (it.p >= 0) el.querySelector('.cap').style.opacity = (capOp * op).toFixed(3);
   });
 
+  paintSheet();
   paintScrubber();
   requestAnimationFrame(tick);
+}
+
+/* La ficha sale de detras de la carta. No se puede hacer con z-index: la carta
+   vive dentro del contexto 3d del tunel y no hay forma de meter la ficha entre
+   ella y el resto. Lo que se hace es recortarla por la izquierda justo en el
+   canto derecho de la carta, asi que solo se ve el trozo que ya ha asomado.
+   El recorte tambien recorta los clicks, que es justo lo que interesa. */
+function paintSheet(){
+  if (state.shown < 0){
+    if (dom.sheet.style.opacity !== '0') dom.sheet.style.opacity = '0';
+    return;
+  }
+  const s = state.slideT;
+  dom.sheet.style.opacity = '1';
+
+  if (mobile()){                         // panel inferior: nada que esconder
+    dom.sheet.style.clipPath = 'none';
+    dom.sheet.style.transform = `translateY(${((1 - s) * 100).toFixed(2)}%)`;
+    return;
+  }
+  const w = dom.sheet.offsetWidth;
+  // en reposo se queda centrada sobre la carta, que es lo que la esconde
+  const left = lerp(-w / 2, state.sheetX, s);
+  dom.sheet.style.transform = `translate(0,-50%) translateX(${left.toFixed(1)}px)`;
+  const clip = clamp(state.cardRight - left, 0, w);
+  dom.sheet.style.clipPath = clip > .5 ? `inset(-40px 0 -40px ${clip.toFixed(1)}px)` : 'none';
 }
 
 let painted = -1;
@@ -393,7 +433,11 @@ function goTo(i){
   state.lastInput = 0;                        // encaja ya, sin esperar
 }
 
-dom.stage.addEventListener('wheel', e => {
+/* En window y no en el escenario: con un proyecto abierto el escenario deja de
+   capturar el puntero, asi que ahi ya no llegaria la rueda. La ficha se salva
+   sola, que es lo unico que tiene scroll propio. */
+addEventListener('wheel', e => {
+  if (dom.sheet.contains(e.target)) return;
   e.preventDefault();
   nudge(e.deltaY * .0022);
 }, { passive:false });
@@ -491,32 +535,22 @@ dom.track.addEventListener('pointerup', endScrub);
 dom.track.addEventListener('pointercancel', endScrub);
 
 /* ---------- ficha tecnica ---------- */
-// la ficha sale por el lado justo del borde de la carta ampliada.
-// En movil no aplica: el css la convierte en panel inferior.
+// donde acaba la ficha: justo al lado del canto de la carta ya ampliada.
+// En movil no se usa, el css la convierte en panel inferior.
 function sheetOffset(i){
   const w = state.cards[i].offsetWidth * (P / (P - focusZ()));
-  dom.sheet.style.setProperty('--sheet-x', (w / 2 + GAP - state.shift) + 'px');
+  state.sheetX = w / 2 + GAP - state.shift;
 }
 
 /* Abrir y cerrar van en dos tiempos encadenados, nunca a la vez:
-     abrir  → 1) la carta se centra   2) cuando ha llegado, sale la ficha
-     cerrar → 1) la ficha se recoge   2) cuando ha entrado, la carta vuelve
-   El primer tiempo lo mide tick() con focusT; el segundo, el transitionend de
-   la propia ficha, para no tener que repetir aqui la duracion que hay en css.
-   `pending` es un cierre a medias: hay que poder cancelarlo si vuelves a
-   abrir antes de que termine. */
-let pending = null;
-
-function cancelPending(){
-  if (!pending) return;
-  clearTimeout(pending.timer);
-  dom.sheet.removeEventListener('transitionend', pending.done);
-  pending = null;
-}
-
+     abrir  → 1) la carta se centra    2) se aparta y sale la ficha de detras
+     cerrar → 1) la ficha se mete y la carta vuelve al centro
+              2) la carta vuelve a su sitio en la profundidad
+   Los dos tiempos son los dos interpoladores, focusT y slideT, y los encadena
+   tick(). `closing` marca que estamos en el primer tiempo del cierre. */
 function open(i){
   if (flipped()) return;
-  cancelPending();
+  state.closing = false;
   state.focus = state.shown = i;
   state.target = i;
   const p = state.data[i];
@@ -540,29 +574,20 @@ function showSheet(){
 }
 
 function close(){
-  if (state.focus < 0 || pending) return;
+  if (state.focus < 0 || state.closing) return;
   if (!state.sheetOn) return release();   // aun se estaba centrando: vuelve ya
 
+  // primer tiempo: la ficha se mete y la carta vuelve al centro. tick() suelta
+  // el segundo cuando slideT llega a cero
   state.sheetOn = false;
+  state.closing = true;
   dom.sheet.classList.remove('on');
   dom.sheet.setAttribute('aria-hidden', 'true');
-
-  // Solo vale el transform de la propia ficha: es el que dura lo que dura el
-  // recogido. La opacidad acaba antes, y engancharse a ella soltaba la carta
-  // con la ficha todavia a medio entrar.
-  const done = e => {
-    if (e && (e.target !== dom.sheet || e.propertyName !== 'transform')) return;
-    cancelPending();
-    release();
-  };
-  // el timeout es el plan b: si la transicion no llega a correr (pestana
-  // oculta, motion reducido) la carta se quedaria centrada para siempre
-  pending = { done, timer: setTimeout(done, 900) };
-  dom.sheet.addEventListener('transitionend', done);
 }
 
 function release(){
   state.focus = -1;                 // shown se mantiene hasta que focusT llega a 0
+  state.closing = false;
   document.body.classList.remove('open');
   dom.veil.classList.remove('on');
   hash('');

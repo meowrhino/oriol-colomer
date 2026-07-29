@@ -7,7 +7,7 @@
   /* fuerza de la sombra. 0 = ninguna, 1 = todo lo que da el degradado de
      .card::before. Es el unico sitio donde tocarla. Los stickers la llevan
      mas fuerte todavia, ver --halo en .sticker. */
-  --halo:1;
+  --halo:.5;
   --safe-b:env(safe-area-inset-bottom, 0px);
   --flip:1.15s cubic-bezier(.62,.02,.2,1);
 }
@@ -49,6 +49,12 @@ body.flipped .book{transform:rotateY(-180deg)}
   position:absolute; inset:0;
   background:var(--bg);
   backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  /* Imprescindible para el mix-blend-mode de los textos. Al colgar de un
+     contenedor con preserve-3d, la cara entra en un contexto de render 3d y
+     el blend se queda sin fondo contra el que mezclar: el texto blanco salia
+     blanco sobre blanco, o sea invisible. `isolate` la convierte en grupo de
+     mezcla propio y ya cuenta su fondo. */
+  isolation:isolate;
 }
 .face.back{transform:rotateY(180deg)}
 /* la cara que no miras no recibe clicks aunque el navegador la pinte */
@@ -61,20 +67,24 @@ body:not(.flipped) .face.back{pointer-events:none}
   display:flex; justify-content:space-between; align-items:center;
   padding:18px 22px;
   pointer-events:none;
-  /* con las sombras tan cargadas el texto puede caer sobre una nube oscura:
-     un halo blanco lo despega sin meter una caja de fondo */
-  text-shadow:0 0 14px #fff, 0 0 7px #fff, 0 0 3px #fff;
+  /* Igual que el menu de mokakopa: difference con el texto en blanco. Sobre el
+     blanco del fondo sale negro, y segun se le pone debajo una nube oscura o
+     una foto se va aclarando solo. Se lee siempre y no hace falta ni caja ni
+     halo blanco por detras. */
+  mix-blend-mode:difference;
+  color:#fff;
 }
 .name{
   pointer-events:auto;
   appearance:none; border:0; background:none; padding:0;
-  font:inherit; color:var(--ink); letter-spacing:.01em;
+  font:inherit; color:inherit; letter-spacing:.01em;
   cursor:pointer;
   border-bottom:1px solid transparent;
   transition:border-color .25s ease;
 }
-.name:hover,.name:focus-visible{border-bottom-color:var(--ink)}
-.hint{color:var(--muted); font-size:11px; letter-spacing:.04em}
+.name:hover,.name:focus-visible{border-bottom-color:currentColor}
+/* en difference, el gris de la pista sale de bajar el blanco, no de --muted */
+.hint{color:#757575; font-size:11px; letter-spacing:.04em}
 .hint-m{display:none}
 
 /* ---------- stage / tunel ---------- */
@@ -157,10 +167,11 @@ body.open .stage{z-index:25}
   left:0; top:calc(100% + 8px);
   white-space:nowrap;
   font-size:12px; letter-spacing:.02em;
-  color:var(--ink);
-  text-shadow:0 0 12px #fff, 0 0 6px #fff, 0 0 3px #fff;
+  /* mismo difference que el nombre de arriba */
+  mix-blend-mode:difference;
+  color:#fff;
 }
-.card .cap .yr{color:var(--muted); margin-left:8px}
+.card .cap .yr{color:#757575; margin-left:8px}
 
 /* ---------- velo ---------- */
 .veil{
@@ -174,20 +185,20 @@ body.open .stage{z-index:25}
 .veil.on{opacity:1; pointer-events:auto}
 
 /* ---------- ficha tecnica ---------- */
+/* La ficha no tiene transiciones css: la mueve tick() en el mismo frame que la
+   carta. Tiene que ser asi porque lo que la esconde "detras" de la carta no es
+   el z-index —la carta esta en otro contexto 3d y no se puede intercalar— sino
+   un recorte contra el canto derecho de la carta, y ese recorte hay que
+   recalcularlo a la vez que se mueven las dos cosas o se despega. */
 .sheet{
   position:absolute; z-index:30;
   top:46%; left:50%;
   width:300px;
   padding:0 0 0 26px;
-  /* nace detras de la carta y sale por el lado, ya con la carta centrada */
-  transform:translate(0,-50%) translateX(0px);
+  transform:translate(0,-50%);
   opacity:0; pointer-events:none;
-  transition:transform .5s cubic-bezier(.2,.7,.2,1), opacity .34s ease;
 }
-.sheet.on{
-  opacity:1; pointer-events:auto;
-  transform:translate(0,-50%) translateX(var(--sheet-x, 300px));
-}
+.sheet.on{pointer-events:auto}
 .sheet h1{margin:0 0 2px; font-size:18px; font-weight:500; letter-spacing:.01em}
 .sheet-date{margin:0 0 18px; color:var(--muted); font-size:12px}
 .sheet-text{margin:0; font-size:12px; color:#444; max-width:34ch}
@@ -278,11 +289,12 @@ body.open .stage{z-index:25}
   margin-bottom:11px;
   transform:translateX(-50%);
   white-space:nowrap;
-  font-size:11px; letter-spacing:.02em; color:var(--ink);
-  text-shadow:0 0 12px #fff, 0 0 6px #fff, 0 0 3px #fff;
+  font-size:11px; letter-spacing:.02em;
+  mix-blend-mode:difference;
+  color:#fff;
   transition:left .35s cubic-bezier(.2,.7,.2,1);
 }
-.current .cd{color:var(--muted); margin-left:8px}
+.current .cd{color:#757575; margin-left:8px}
 
 /* ---------- about (cara B) ---------- */
 .about-scroll{
@@ -328,10 +340,10 @@ body.open .stage{z-index:25}
     padding:20px 20px calc(26px + var(--safe-b));
     background:rgba(255,255,255,.94);
     backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+    /* aqui no hay nada detras de lo que salir: sube desde abajo, sin recorte.
+       La `y` tambien la pone tick() */
     transform:translateY(100%);
-    transition:transform .45s cubic-bezier(.2,.7,.2,1), opacity .28s ease;
   }
-  .sheet.on{transform:translateY(0)}
   .sheet-text{max-width:none}
   .close{top:14px; right:14px; font-size:24px}
   .credits{grid-template-columns:74px 1fr}

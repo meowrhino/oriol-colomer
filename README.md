@@ -96,7 +96,7 @@ Los parámetros, todos en `.card::before` salvo el primero:
 
 | qué | dónde | ahora | qué hace |
 |---|---|---|---|
-| **fuerza** | `--halo` en `:root` | `1` | multiplica toda la sombra. `0` la quita, `1` es todo lo que da el degradado. **Es la perilla del día a día**: `.5` deja el ambiente a la mitad sin tocar nada más. Para pasar de `1` hay que subir los alfas del degradado. |
+| **fuerza** | `--halo` en `:root` | `.5` | multiplica toda la sombra. `0` la quita, `1` es todo lo que da el degradado. **Es la perilla del día a día**, y ahora está a la mitad. Para pasar de `1` hay que subir los alfas del degradado. |
 | **tamaño** | `inset:-130% -85%` | | cuánto desborda la carta: `-130%` arriba y abajo (unas 3,6 veces el alto de la foto), `-85%` a los lados. Más negativo = mancha más grande y difusa. Si lo subes hacia `0` la sombra se pega al borde y parece un collar sucio en vez de un hueco. |
 | **forma** | `border-radius:50%` | | la hace elipse. Quitándolo sale un rectángulo con las esquinas duras. |
 | **caída** | las paradas del `radial-gradient` | `.70 → .30` | siete paradas. Las primeras quedan **tapadas por la foto** (con este `inset`, el borde de la imagen cae sobre el 28% del radio en vertical y el 37% en horizontal), así que las que se ven de verdad son de ahí para fuera. Ahí es donde se ajusta si la quieres más cerrada o más abierta. |
@@ -108,9 +108,15 @@ resultado sí baja de .30 en la escala, porque son capas translúcidas apiladas.
 
 Los stickers llevan su propia versión, más cerrada y más oscura, en `.sticker::before`.
 
-Con la sombra tan cargada el blanco del fondo casi desaparece, así que el nombre de arriba, los
-pies de foto y la nota al pie llevan un `text-shadow` blanco: es lo que los mantiene legibles
-cuando les cae encima una nube. Si bajas `--halo` bastante, ese halo deja de hacer falta.
+El nombre de arriba, los pies de foto y la nota al pie van con **`mix-blend-mode: difference` y
+el texto en blanco**, igual que el menú de mokakopa: sobre el blanco del fondo salen negros, y
+según se les pone debajo una nube oscura o una foto se van aclarando solos. Se leen siempre sin
+necesidad de caja ni de halo blanco por detrás. Los grises de acompañamiento (`.hint`, el año,
+la fecha) no usan `--muted`: en difference el gris sale de bajar el blanco, de ahí el `#757575`.
+
+Para que eso funcione, `.face` lleva **`isolation: isolate`**, y no es opcional: al colgar de un
+contenedor con `preserve-3d`, la cara entra en un contexto de render 3d y el blend se queda sin
+fondo contra el que mezclar — el texto blanco salía blanco sobre blanco, o sea invisible.
 
 `pointer-events:none` no es decorativo: la mancha ocupa casi tres veces la carta y, si fuese
 clicable, abrirías proyectos apuntando al vacío y las sombras de unas cartas se robarían los
@@ -127,17 +133,24 @@ clicks de otras.
   de tiempo de verdad. `posAt()` y `depthAt()` traducen entre los dos ejes en los dos sentidos.
 - **La zona de toque de cada marcador se calcula sola** (`sizeHits()`): cada uno se queda con la
   mitad del hueco que tiene al lado, o dos proyectos del mismo mes se robarían el toque.
-- **Abrir y cerrar van en dos tiempos encadenados, nunca a la vez.** Al abrir, primero la carta
-  se centra y sólo cuando ha llegado sale la ficha; al cerrar, primero se recoge la ficha y
-  cuando ha entrado del todo la carta vuelve a su sitio. El primer tiempo lo mide `tick()` con
-  `focusT` (`SETTLED` es el umbral a partir del cual se da por centrada); el segundo lo dispara
-  el `transitionend` de la propia ficha, para no repetir en el js la duración que está en el
-  css. Hay un `setTimeout` de respaldo por si la transición no llega a correr.
-  Dos detalles que parecen de más y no lo son: el `!pending` en la condición de `tick()` (sin él,
-  durante el primer tiempo del cierre `focus` sigue ≥ 0 y `focusT` sigue en 1, así que un frame
-  después de cerrar la ficha volvía a salir sola y el proyecto no se cerraba nunca), y que sólo
-  cuente el `transitionend` de `transform` (la opacidad acaba antes, y engancharse a ella
-  soltaba la carta con la ficha a medio entrar).
+- **Abrir y cerrar van en dos tiempos encadenados, nunca a la vez.** Son los dos
+  interpoladores, y los encadena `tick()`:
+  - `focusT` — la carta viene desde su sitio en la profundidad **hasta el centro de la
+    pantalla**. `SETTLED` es el umbral a partir del cual se da por centrada.
+  - `slideT` — sólo entonces la carta **se aparta** hacia la izquierda y, a la vez, la ficha
+    sale de detrás de ella.
+
+  Al cerrar es exactamente al revés: `slideT` mete la ficha y devuelve la carta al centro, y
+  cuando llega a cero `tick()` suelta `focusT` para que la carta vuelva a su sitio.
+  El `!state.closing` de la condición de `tick()` parece de más y no lo es: durante el primer
+  tiempo del cierre `focus` sigue ≥ 0 y `focusT` sigue en 1, así que sin él, un frame después
+  de cerrar la ficha volvía a salir sola y el proyecto no se cerraba nunca.
+- **La ficha no tiene transiciones css: la mueve `tick()`.** No es capricho. Lo que la esconde
+  "detrás" de la carta no es el z-index —la carta vive en el contexto 3d del túnel y no hay
+  forma de intercalar la ficha entre ella y el resto— sino un **recorte** (`clip-path`) por la
+  izquierda, justo en el canto derecho de la carta. Ese recorte hay que recalcularlo en el mismo
+  frame en que se mueven las dos cosas, o se despega. Ventaja de propina: el recorte también
+  recorta los clicks, así que la parte todavía escondida no los intercepta.
 - **Al cerrar, la animación es simétrica.** `state.shown` sobrevive al cierre: la carta sigue
   siendo "la abierta" hasta que `focusT` llega a 0. Sin eso caía de golpe a opacidad 0 y volvía
   a aparecer, que era un parpadeo feo.
