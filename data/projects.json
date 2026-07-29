@@ -108,6 +108,15 @@
       "text": "Instalación de dos canales sobre lo que queda de una imagen cuando le quitas casi toda la luz. En curso: las proyecciones se calibran en sala la semana antes de abrir."
     }
   ],
+  "stickersNote": "Decorado. No son proyectos: no se abren ni se clican, sólo ocupan un sitio en el túnel y una marquita en la barra según su 'iso', para que entre proyecto y proyecto haya algo que mirar. 'scale' es el tamaño respecto a una carta de proyecto. Añade, quita o cambia las fechas sin tocar nada más.",
+  "stickers": [
+    { "id": "b1", "iso": "2023-07", "thumb": "assets/stickers/blob-01.png", "scale": 0.46 },
+    { "id": "b2", "iso": "2023-11", "thumb": "assets/stickers/blob-02.png", "scale": 0.3 },
+    { "id": "b3", "iso": "2024-06", "thumb": "assets/stickers/blob-03.png", "scale": 0.52 },
+    { "id": "b4", "iso": "2024-10", "thumb": "assets/stickers/blob-04.png", "scale": 0.34 },
+    { "id": "b5", "iso": "2025-03", "thumb": "assets/stickers/blob-05.png", "scale": 0.42 },
+    { "id": "b6", "iso": "2026-02", "thumb": "assets/stickers/blob-06.png", "scale": 0.28 }
+  ],
   "about": {
     "title": "oriol colomer",
     "lead": "dirección · cámara · montaje — barcelona",

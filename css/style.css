@@ -4,9 +4,10 @@
   --muted:#8a8a8a;
   --line:#e6e6e6;
   --card-w:min(420px, 46dvw);
-  /* fuerza de la sombra de cada proyecto. 0 = ninguna, 1 = todo lo que da el
-     degradado de .card::before. Es el unico sitio donde tocarla. */
-  --halo:.9;
+  /* fuerza de la sombra. 0 = ninguna, 1 = todo lo que da el degradado de
+     .card::before. Es el unico sitio donde tocarla. Los stickers la llevan
+     mas fuerte todavia, ver --halo en .sticker. */
+  --halo:1;
   --safe-b:env(safe-area-inset-bottom, 0px);
   --flip:1.15s cubic-bezier(.62,.02,.2,1);
 }
@@ -60,7 +61,9 @@ body:not(.flipped) .face.back{pointer-events:none}
   display:flex; justify-content:space-between; align-items:center;
   padding:18px 22px;
   pointer-events:none;
-  mix-blend-mode:multiply;
+  /* con las sombras tan cargadas el texto puede caer sobre una nube oscura:
+     un halo blanco lo despega sin meter una caja de fondo */
+  text-shadow:0 0 14px #fff, 0 0 7px #fff, 0 0 3px #fff;
 }
 .name{
   pointer-events:auto;
@@ -106,7 +109,7 @@ body.open .stage{z-index:25}
    se lee como un borde sucio en vez de como sombra. */
 .card::before{
   content:'';
-  position:absolute; inset:-95% -62%;
+  position:absolute; inset:-130% -85%;
   z-index:0;
   border-radius:50%;
   /* la sombra desborda muchisimo la carta: si fuese clicable, abririas
@@ -114,11 +117,29 @@ body.open .stage{z-index:25}
   pointer-events:none;
   opacity:var(--halo);
   background:radial-gradient(50% 50% at 50% 50%,
-    rgba(17,17,17,.26) 0%,
-    rgba(17,17,17,.23) 34%,
-    rgba(17,17,17,.155) 54%,
-    rgba(17,17,17,.07) 72%,
-    rgba(17,17,17,.018) 88%,
+    rgba(17,17,17,.60) 0%,
+    rgba(17,17,17,.55) 36%,
+    rgba(17,17,17,.44) 52%,
+    rgba(17,17,17,.30) 66%,
+    rgba(17,17,17,.16) 79%,
+    rgba(17,17,17,.055) 90%,
+    rgba(17,17,17,0) 100%);
+}
+
+/* ---------- stickers ----------
+   Decorado que se cuela entre proyecto y proyecto. Ni pie de foto ni click:
+   solo forma y sombra, y la sombra aun mas cerrada que la de las cartas. */
+.sticker{cursor:default}
+.sticker::before{
+  inset:-105% -105%;
+  --halo:1;
+  background:radial-gradient(50% 50% at 50% 50%,
+    rgba(17,17,17,.80) 0%,
+    rgba(17,17,17,.74) 34%,
+    rgba(17,17,17,.56) 50%,
+    rgba(17,17,17,.36) 64%,
+    rgba(17,17,17,.18) 78%,
+    rgba(17,17,17,.06) 90%,
     rgba(17,17,17,0) 100%);
 }
 .card img{
@@ -132,6 +153,7 @@ body.open .stage{z-index:25}
   white-space:nowrap;
   font-size:12px; letter-spacing:.02em;
   color:var(--ink);
+  text-shadow:0 0 12px #fff, 0 0 6px #fff, 0 0 3px #fff;
 }
 .card .cap .yr{color:var(--muted); margin-left:8px}
 
@@ -230,6 +252,14 @@ body.open .stage{z-index:25}
 .mark:focus{outline:none}
 .mark:focus-visible::before{box-shadow:0 0 0 3px rgba(17,17,17,.14)}
 
+/* marquita de sticker: se ve que hay algo ahi, pero no se toca */
+.stick{
+  position:absolute; top:6px; bottom:6px; width:1px;
+  background:#cfcfcf;
+  transform:translateX(-.5px);
+  pointer-events:none;
+}
+
 .knob{
   position:absolute; top:-3px; bottom:-3px; width:2px;
   background:var(--ink);
@@ -244,6 +274,7 @@ body.open .stage{z-index:25}
   transform:translateX(-50%);
   white-space:nowrap;
   font-size:11px; letter-spacing:.02em; color:var(--ink);
+  text-shadow:0 0 12px #fff, 0 0 6px #fff, 0 0 3px #fff;
   transition:left .35s cubic-bezier(.2,.7,.2,1);
 }
 .current .cd{color:var(--muted); margin-left:8px}

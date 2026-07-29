@@ -49,9 +49,13 @@ const state = {
   max:0,
   shift:0,        // desplazamiento para centrar carta+ficha
   lastInput:0,
-  cards:[],       // elementos
-  pos:[],         // {x,y} en px, recalculado en cada measure()
-  scatter:[],     // {nx,ny} normalizado −1..1, sorteado una vez por carga
+  // Todo lo que vive en el tunel, proyectos y stickers, ordenado por
+  // profundidad: { el, d, p, pos:{x,y}, scatter:{nx,ny} }. `d` es la
+  // profundidad en unidades de proyecto (fraccionaria en los stickers) y `p`
+  // el indice del proyecto, o -1 si es un sticker.
+  items:[],
+  cards:[],       // solo los proyectos, por indice de proyecto
+  marks:[],       // botones de la barra, por indice de proyecto
   data:[]
 };
 
@@ -72,14 +76,23 @@ const hash = h => history.replaceState(null, '', h || location.pathname + locati
    proyectos del mismo mes salen pegados y un ano en blanco deja un hueco.
    state.t[i] = donde cae el proyecto i, 0..1. Las dos funciones de abajo
    traducen entre los dos ejes en los dos sentidos. */
+const months = iso => {
+  const [y, mo] = String(iso).split('-').map(Number);
+  return y * 12 + ((mo || 1) - 1);
+};
+
 function timeline(){
-  const m = state.data.map(p => {
-    const [y, mo] = String(p.iso || p.year).split('-').map(Number);
-    return y * 12 + ((mo || 1) - 1);
-  });
-  const a = m[0], span = m[state.max] - a;
-  state.t = span > 0 ? m.map(v => (v - a) / span) : m.map((_, i) => (state.max ? i / state.max : 0));
+  const m = state.data.map(p => months(p.iso || p.year));
+  state.t0 = m[0];
+  state.span = m[state.max] - state.t0;
+  state.t = state.span > 0
+    ? m.map(v => (v - state.t0) / state.span)
+    : m.map((_, i) => (state.max ? i / state.max : 0));
 }
+
+// una fecha cualquiera -> su sitio en la barra, 0..1
+const when = iso => state.span > 0
+  ? clamp((months(iso) - state.t0) / state.span, 0, 1) : 0;
 
 // indice (fraccionario) -> posicion 0..1 en la barra
 function posAt(d){
@@ -98,15 +111,16 @@ function depthAt(t){
 }
 
 /* Reparto en espiral de angulo aureo con un giro inicial al azar: cada carga
-   coloca las cartas en sitios distintos, pero dos consecutivas nunca caen en
-   la misma zona de la pantalla (137.5° de separacion) ni sobre el centro. */
-function scatter(n){
+   coloca las cosas en sitios distintos, pero dos consecutivas en profundidad
+   nunca caen en la misma zona de la pantalla (137.5° de separacion) ni sobre
+   el centro. Los stickers se van mas afuera, que son decorado y no molestan. */
+function scatter(items){
   const GOLDEN = Math.PI * (3 - Math.sqrt(5));
   const a0 = Math.random() * Math.PI * 2;
-  return Array.from({length:n}, (_, i) => {
+  items.forEach((it, i) => {
     const a = a0 + i * GOLDEN + (Math.random() - .5) * .5;
-    const r = .55 + .45 * Math.random();
-    return { nx: Math.cos(a) * r, ny: Math.sin(a) * r };
+    const r = it.p < 0 ? .80 + .45 * Math.random() : .55 + .45 * Math.random();
+    it.scatter = { nx: Math.cos(a) * r, ny: Math.sin(a) * r };
   });
 }
 
@@ -121,7 +135,6 @@ fetch('data/projects.json')
 function build(json){
   state.data = json.projects;
   state.max = state.data.length - 1;
-  state.scatter = scatter(state.data.length);
   timeline();
   dom.author.textContent = dom.authorBack.textContent = json.author;
 
@@ -133,6 +146,7 @@ function build(json){
       `<figcaption class="cap">${p.title}<span class="yr">${p.year}</span></figcaption>`;
     dom.tunnel.appendChild(el);
     state.cards.push(el);
+    state.items.push({ el, d: i, p: i });
 
     const m = document.createElement('button');
     m.className = 'mark';
@@ -144,7 +158,15 @@ function build(json){
     m.addEventListener('pointerdown', e => e.stopPropagation());
     m.addEventListener('click', () => goTo(i));
     dom.marks.appendChild(m);
+    state.marks.push(m);
   });
+
+  buildStickers(json.stickers);
+
+  // el tunel se recorre en profundidad: ordenar aqui hace que el reparto en
+  // espiral separe lo que vas a ver seguido, no lo que esta seguido en el json
+  state.items.sort((a, b) => a.d - b.d);
+  scatter(state.items);
 
   // extremos de la linea del tiempo: solo la primera y la ultima fecha
   dom.endA.textContent = state.data[0].date;
@@ -153,11 +175,31 @@ function build(json){
   buildAbout(json.about);
 
   // las imagenes llegan tarde y la medida depende de su alto real
-  state.cards.forEach(el => el.querySelector('img').addEventListener('load', measure));
+  state.items.forEach(it => it.el.querySelector('img').addEventListener('load', measure));
   addEventListener('load', measure);
   measure();
   route();
   requestAnimationFrame(tick);
+}
+
+/* Los stickers son decorado: no se abren, no se clican y no cuentan como
+   proyecto. Sólo ocupan un sitio en el túnel —y una marquita en la barra—
+   segun su fecha, para que entre proyecto y proyecto haya algo que mirar. */
+function buildStickers(list){
+  (list || []).forEach(s => {
+    const t = when(s.iso);
+    const el = document.createElement('figure');
+    el.className = 'card sticker';
+    el.style.width = `calc(var(--card-w) * ${s.scale || .4})`;
+    el.innerHTML = `<img src="${s.thumb}" alt="" draggable="false">`;
+    dom.tunnel.appendChild(el);
+    state.items.push({ el, d: depthAt(t), p: -1 });
+
+    const m = document.createElement('i');
+    m.className = 'stick';
+    m.style.left = t * 100 + '%';
+    dom.marks.appendChild(m);
+  });
 }
 
 function buildAbout(a){
@@ -194,12 +236,13 @@ function measure(){
   const band = Math.min(cy, h - dom.scrubber.offsetHeight - cy);  // media altura util
   const bleed = mobile() ? BLEED * w : 0;
 
-  state.pos = state.cards.map((el, i) => {
-    const cw = el.offsetWidth, ch = el.offsetHeight || cw * .6;
-    const s = state.scatter[i];
-    return {
+  state.items.forEach(it => {
+    const cw = it.el.offsetWidth, ch = it.el.offsetHeight || cw * .6;
+    const s = it.scatter;
+    const cap = it.p < 0 ? 0 : CAP_H;     // los stickers no llevan pie de foto
+    it.pos = {
       x: s.nx * Math.max(0, w / 2 - cw / 2 - EDGE + bleed),
-      y: s.ny * Math.max(0, band - ch / 2 - CAP_H - EDGE)
+      y: s.ny * Math.max(0, band - ch / 2 - cap - EDGE)
     };
   });
 
@@ -216,7 +259,7 @@ function measure(){
    el de al lado se come el toque y siempre abres el mismo proyecto. */
 function sizeHits(){
   const tw = dom.track.offsetWidth;
-  [...dom.marks.children].forEach((m, i) => {
+  state.marks.forEach((m, i) => {
     const l = i > 0 ? state.t[i] - state.t[i-1] : 1;
     const r = i < state.max ? state.t[i+1] - state.t[i] : 1;
     m.style.setProperty('--hit', clamp(Math.min(l, r) * tw / 2, 5, 16) + 'px');
@@ -247,8 +290,9 @@ function tick(now){
 
   const f = state.focusT;
 
-  state.cards.forEach((el, i) => {
-    const rel = state.depth - i;             // >0 = ya lo has pasado
+  state.items.forEach(it => {
+    const el = it.el;
+    const rel = state.depth - it.d;          // >0 = ya lo has pasado
     let tz = clamp(rel * SPACING, -FAR * SPACING - 400, NEAR);
 
     let op, bl;
@@ -263,10 +307,10 @@ function tick(now){
       bl = smooth(0, .66 * P, tz) * 22;
     }
 
-    let { x, y } = state.pos[i] || { x:0, y:0 };
+    let { x, y } = it.pos || { x:0, y:0 };
     let capOp = 1 - Math.min(1, Math.abs(rel) * 1.6);
 
-    if (i === state.shown && f > .001){
+    if (it.p >= 0 && it.p === state.shown && f > .001){
       // carta abierta (o cerrandose): al centro, nitida, delante de todo
       const fz = focusZ();
       // la perspectiva magnifica x/y igual que el tamano: hay que dividir por
@@ -285,12 +329,14 @@ function tick(now){
     el.style.transform = `translate3d(calc(-50% + ${x}px), calc(-50% + ${y}px), ${tz}px)`;
     el.style.opacity = op.toFixed(3);
     el.style.filter = bl > .15 ? `blur(${bl.toFixed(2)}px)` : 'none';
-    el.style.zIndex = Math.round(1000 + tz) + (i === state.shown ? 5000 : 0);
+    el.style.zIndex = Math.round(1000 + tz) + (it.p >= 0 && it.p === state.shown ? 5000 : 0);
     // Lo que tienes delante se puede clicar aunque este lejos y borroso: te
     // acerca hasta el. Lo que ya has pasado no: es enorme y esta encima, si
-    // fuese clicable se comeria el click de la que estas mirando.
-    el.style.pointerEvents = (tz <= 0 ? op > .12 : op > .5 && bl < 3) ? 'auto' : 'none';
-    el.querySelector('.cap').style.opacity = (capOp * op).toFixed(3);
+    // fuese clicable se comeria el click de la que estas mirando. Los stickers
+    // son decorado y no se clican nunca.
+    el.style.pointerEvents =
+      it.p >= 0 && (tz <= 0 ? op > .12 : op > .5 && bl < 3) ? 'auto' : 'none';
+    if (it.p >= 0) el.querySelector('.cap').style.opacity = (capOp * op).toFixed(3);
   });
 
   paintScrubber();
@@ -304,7 +350,7 @@ function paintScrubber(){
   const near = clamp(Math.round(state.depth), 0, state.max);
   if (near === painted) return;
   painted = near;
-  [...dom.marks.children].forEach((m, i) => m.classList.toggle('now', i === near));
+  state.marks.forEach((m, i) => m.classList.toggle('now', i === near));
   const p = state.data[near];
   dom.current.innerHTML = `${p.title}<span class="cd">${p.date}</span>`;
   placeCurrent();
@@ -361,12 +407,12 @@ dom.stage.addEventListener('wheel', e => {
    traslada —no gira— el rect proyectado es exacto. Gana la mas cercana. */
 function cardAt(x, y){
   let hit = null, best = -Infinity;
-  state.cards.forEach(el => {
-    if (el.style.pointerEvents === 'none') return;
-    const r = el.getBoundingClientRect();
+  state.items.forEach(it => {
+    if (it.el.style.pointerEvents === 'none') return;   // stickers incluidos
+    const r = it.el.getBoundingClientRect();
     if (x < r.left || x > r.right || y < r.top || y > r.bottom) return;
-    const z = +el.style.zIndex || 0;
-    if (z > best){ best = z; hit = el; }
+    const z = +it.el.style.zIndex || 0;
+    if (z > best){ best = z; hit = it.el; }
   });
   return hit;
 }

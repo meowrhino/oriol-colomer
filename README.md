@@ -37,6 +37,31 @@ cronológico, del más antiguo al más reciente.
 
 **Las fechas, las fichas técnicas y el about son inventados.** Hay que sustituirlos.
 
+### `stickers`, en el mismo json
+
+Decorado. No son proyectos: no se abren, no se clican, no cuentan para la navegación y no
+aparecen en el pie de foto. Sólo ocupan un sitio en el túnel —y una marquita fina en la barra—
+según su `iso`, para que entre proyecto y proyecto haya algo que mirar.
+
+```json
+{ "id": "b1", "iso": "2023-07", "thumb": "assets/stickers/blob-01.png", "scale": 0.46 }
+```
+
+- `iso` — dónde cae. Al ser una fecha intermedia, el túnel lo coloca a una profundidad
+  fraccionaria: `depthAt()` traduce la fecha al eje de índices, así que un sticker de junio de
+  2024 aparece de verdad entre TRISTAN y Ouineta.
+- `scale` — tamaño respecto a una carta de proyecto.
+
+Añadir, quitar o mover stickers es sólo tocar este array. Los PNG actuales son **provisionales**:
+formas abstractas en escala de grises con transparencia, generadas con
+
+```bash
+python3 tools/blobs.py
+```
+
+(necesita `pillow`; cambiando las semillas del final del script salen formas distintas). Sirve
+cualquier PNG transparente, así que se pueden sustituir por recortes, texturas o lo que sea.
+
 ### `js/main.js`, constantes de arriba
 
 - `SPACING` — distancia en z entre proyectos (más grande = más recorrido entre uno y otro).
@@ -64,11 +89,17 @@ Los parámetros, todos en `.card::before` salvo el primero:
 
 | qué | dónde | ahora | qué hace |
 |---|---|---|---|
-| **fuerza** | `--halo` en `:root` | `.9` | multiplica toda la sombra. `0` la quita, `1` es el máximo que da el degradado. Es la perilla del día a día. |
-| **tamaño** | `inset:-95% -62%` | | cuánto desborda la carta: `-95%` arriba y abajo (casi el triple de alto que la foto), `-62%` a los lados. Más negativo = mancha más grande y más difusa. Si lo subes hacia `0` la sombra se pega al borde y parece suciedad. |
+| **fuerza** | `--halo` en `:root` | `1` | multiplica toda la sombra. `0` la quita, `1` es todo lo que da el degradado. **Es la perilla del día a día**: `.5` deja el ambiente a la mitad sin tocar nada más. Para pasar de `1` hay que subir los alfas del degradado. |
+| **tamaño** | `inset:-130% -85%` | | cuánto desborda la carta: `-130%` arriba y abajo (unas 3,6 veces el alto de la foto), `-85%` a los lados. Más negativo = mancha más grande y difusa. Si lo subes hacia `0` la sombra se pega al borde y parece un collar sucio en vez de un hueco. |
 | **forma** | `border-radius:50%` | | la hace elipse. Quitándolo sale un rectángulo con las esquinas duras. |
-| **caída** | las paradas del `radial-gradient` | `.26 → 0` | seis paradas de negro con alfa decreciente. Las primeras (0–34%) quedan **tapadas por la foto**, así que sólo tocan si cambias también el `inset`; las que se ven de verdad son las de 54% a 88%. Ahí es donde se ajusta si quieres la sombra más cerrada o más abierta. |
+| **caída** | las paradas del `radial-gradient` | `.60 → 0` | siete paradas de negro con alfa decreciente. Las primeras quedan **tapadas por la foto** (con este `inset`, el borde de la imagen cae sobre el 28% del radio en vertical y el 37% en horizontal), así que las que se ven de verdad son de ahí para fuera. Ahí es donde se ajusta si la quieres más cerrada o más abierta. |
 | **color** | `rgba(17,17,17,…)` | | el mismo negro que `--ink`. Con un color se tiñe el fondo en vez de oscurecerlo. |
+
+Los stickers llevan su propia versión, más cerrada y más oscura, en `.sticker::before`.
+
+Con la sombra tan cargada el blanco del fondo casi desaparece, así que el nombre de arriba, los
+pies de foto y la nota al pie llevan un `text-shadow` blanco: es lo que los mantiene legibles
+cuando les cae encima una nube. Si bajas `--halo` bastante, ese halo deja de hacer falta.
 
 `pointer-events:none` no es decorativo: la mancha ocupa casi tres veces la carta y, si fuese
 clicable, abrirías proyectos apuntando al vacío y las sombras de unas cartas se robarían los
