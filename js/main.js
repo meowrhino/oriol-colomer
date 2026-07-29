@@ -18,6 +18,11 @@ const BLEED    = .07;        // en movil la carta puede salirse este % de dvw:
 const SNAP_MS  = 420;        // quietud antes de encajar en el proyecto cercano
 const OVER     = 0.35;       // cuanto te puedes pasar de los extremos
 const SLOP     = 10;         // px antes de considerar que arrastras
+const REACH    = .4;         // mas lejos de esto en unidades de proyecto, un
+                             // click te acerca en vez de abrir la ficha
+const EASE     = .14;        // suavizado del centrado al abrir/cerrar
+const SETTLED  = .97;        // a partir de aqui el centrado se da por acabado
+                             // y empieza el segundo tiempo (sale la ficha)
 
 /* ---------- dom ---------- */
 const $ = id => document.getElementById(id);
@@ -39,7 +44,8 @@ const state = {
   target:0,       // camara, pedida
   focus:-1,       // proyecto pedido (-1 = cerrado)
   shown:-1,       // proyecto que se esta pintando abierto; sobrevive al cierre
-  focusT:0,       // 0 cerrado → 1 abierto, interpolado
+  focusT:0,       // 0 en su sitio → 1 centrado, interpolado
+  sheetOn:false,  // segundo tiempo: la ficha esta fuera
   max:0,
   shift:0,        // desplazamiento para centrar carta+ficha
   lastInput:0,
@@ -56,10 +62,40 @@ const smooth = (e0,e1,x) => { const t = clamp((x - e0)/(e1 - e0), 0, 1); return 
 const mobile = () => innerWidth <= 760;
 const flipped = () => document.body.classList.contains('flipped');
 const focusZ = () => mobile() ? FOCUS_ZM : FOCUS_Z;
-const pct = i => (state.max ? (i / state.max) * 100 : 50);
 const dvw = () => dom.unit.offsetWidth  || innerWidth;
 const dvh = () => dom.unit.offsetHeight || innerHeight;
 const hash = h => history.replaceState(null, '', h || location.pathname + location.search);
+
+/* ---------- linea del tiempo ----------
+   El tunel avanza de proyecto en proyecto (indices), pero la barra es una
+   linea de tiempo de verdad: cada marcador cae segun su fecha, asi que dos
+   proyectos del mismo mes salen pegados y un ano en blanco deja un hueco.
+   state.t[i] = donde cae el proyecto i, 0..1. Las dos funciones de abajo
+   traducen entre los dos ejes en los dos sentidos. */
+function timeline(){
+  const m = state.data.map(p => {
+    const [y, mo] = String(p.iso || p.year).split('-').map(Number);
+    return y * 12 + ((mo || 1) - 1);
+  });
+  const a = m[0], span = m[state.max] - a;
+  state.t = span > 0 ? m.map(v => (v - a) / span) : m.map((_, i) => (state.max ? i / state.max : 0));
+}
+
+// indice (fraccionario) -> posicion 0..1 en la barra
+function posAt(d){
+  if (!state.max) return 0;
+  const i = clamp(Math.floor(d), 0, state.max - 1);
+  return clamp(lerp(state.t[i], state.t[i + 1], d - i), 0, 1);
+}
+
+// posicion 0..1 en la barra -> indice (fraccionario)
+function depthAt(t){
+  t = clamp(t, 0, 1);
+  let i = 0;
+  while (i < state.max - 1 && state.t[i + 1] < t) i++;
+  const a = state.t[i], b = state.t[i + 1];
+  return b > a ? i + (t - a) / (b - a) : i;
+}
 
 /* Reparto en espiral de angulo aureo con un giro inicial al azar: cada carga
    coloca las cartas en sitios distintos, pero dos consecutivas nunca caen en
@@ -86,6 +122,7 @@ function build(json){
   state.data = json.projects;
   state.max = state.data.length - 1;
   state.scatter = scatter(state.data.length);
+  timeline();
   dom.author.textContent = dom.authorBack.textContent = json.author;
 
   state.data.forEach((p, i) => {
@@ -100,7 +137,7 @@ function build(json){
     const m = document.createElement('button');
     m.className = 'mark';
     m.type = 'button';
-    m.style.left = pct(i) + '%';
+    m.style.left = state.t[i] * 100 + '%';
     m.title = `${p.title} · ${p.date}`;
     m.setAttribute('aria-label', `ir a ${p.title}, ${p.date}`);
     // sin esto el pointerdown llega al track y empieza a arrastrar la barra
@@ -154,11 +191,7 @@ function route(){
 function measure(){
   const w = dvw(), h = dvh();
   const cy = 0.46 * h;                                   // centro optico (= css)
-  const scrub = dom.scrubber.offsetHeight;
-  const band = Math.min(cy, h - scrub - cy);             // media altura util
-  // la ficha en movil es un panel a pie de pagina: tiene que dejar libre la
-  // barra, que crece o mengua segun quepan las fechas en una linea o en dos
-  document.documentElement.style.setProperty('--scrub-h', scrub + 'px');
+  const band = Math.min(cy, h - dom.scrubber.offsetHeight - cy);  // media altura util
   const bleed = mobile() ? BLEED * w : 0;
 
   state.pos = state.cards.map((el, i) => {
@@ -174,6 +207,20 @@ function measure(){
   // la ficha se sale por la derecha en cualquier pantalla < ~1120px
   state.shift = mobile() ? 0 : (dom.sheet.offsetWidth + GAP) / 2;
   if (state.shown >= 0) sheetOffset(state.shown);
+  placeCurrent();
+  sizeHits();
+}
+
+/* Los marcadores van por fecha, asi que pueden caer a pocos pixeles unos de
+   otros. Cada uno se queda con la mitad del hueco que tiene al lado: sin esto
+   el de al lado se come el toque y siempre abres el mismo proyecto. */
+function sizeHits(){
+  const tw = dom.track.offsetWidth;
+  [...dom.marks.children].forEach((m, i) => {
+    const l = i > 0 ? state.t[i] - state.t[i-1] : 1;
+    const r = i < state.max ? state.t[i+1] - state.t[i] : 1;
+    m.style.setProperty('--hit', clamp(Math.min(l, r) * tw / 2, 5, 16) + 'px');
+  });
 }
 addEventListener('resize', measure);
 addEventListener('orientationchange', measure);
@@ -185,7 +232,7 @@ function tick(now){
     state.target = lerp(state.target, Math.round(state.target), .08);
   }
   state.depth  = lerp(state.depth,  state.target, .10);
-  state.focusT = lerp(state.focusT, state.focus >= 0 ? 1 : 0, .12);
+  state.focusT = lerp(state.focusT, state.focus >= 0 ? 1 : 0, EASE);
 
   // la carta que se cierra sigue siendo "la abierta" hasta terminar de volver;
   // si no, cae al else de abajo con focusT aun alto y pega un parpadeo
@@ -193,6 +240,10 @@ function tick(now){
     state.focusT = 0;
     state.shown = -1;
   }
+
+  // segundo tiempo de la apertura: la ficha no sale hasta que la carta ha
+  // terminado de centrarse (al cerrar es al reves, lo lleva close())
+  if (state.focus >= 0 && !state.sheetOn && state.focusT > SETTLED) showSheet();
 
   const f = state.focusT;
 
@@ -235,9 +286,10 @@ function tick(now){
     el.style.opacity = op.toFixed(3);
     el.style.filter = bl > .15 ? `blur(${bl.toFixed(2)}px)` : 'none';
     el.style.zIndex = Math.round(1000 + tz) + (i === state.shown ? 5000 : 0);
-    // las que ya pasaron son enormes y estan delante: si siguen clicables se
-    // comen el click de la que estas mirando. Solo clicas lo que ves nitido.
-    el.style.pointerEvents = (op > .5 && bl < 3) ? 'auto' : 'none';
+    // Lo que tienes delante se puede clicar aunque este lejos y borroso: te
+    // acerca hasta el. Lo que ya has pasado no: es enorme y esta encima, si
+    // fuese clicable se comeria el click de la que estas mirando.
+    el.style.pointerEvents = (tz <= 0 ? op > .12 : op > .5 && bl < 3) ? 'auto' : 'none';
     el.querySelector('.cap').style.opacity = (capOp * op).toFixed(3);
   });
 
@@ -247,8 +299,7 @@ function tick(now){
 
 let painted = -1;
 function paintScrubber(){
-  const t = state.max ? clamp(state.depth / state.max, 0, 1) : 0;
-  dom.knob.style.left = dom.fill.style.width = (t * 100) + '%';
+  dom.knob.style.left = dom.fill.style.width = (posAt(state.depth) * 100) + '%';
 
   const near = clamp(Math.round(state.depth), 0, state.max);
   if (near === painted) return;
@@ -256,14 +307,33 @@ function paintScrubber(){
   [...dom.marks.children].forEach((m, i) => m.classList.toggle('now', i === near));
   const p = state.data[near];
   dom.current.innerHTML = `${p.title}<span class="cd">${p.date}</span>`;
+  placeCurrent();
+}
+
+// la nota al pie va centrada sobre su marcador, pero recortada contra los
+// extremos de la barra: si no, en el primer y el ultimo proyecto se sale
+function placeCurrent(){
+  if (painted < 0) return;
+  const tw = dom.track.offsetWidth, w = dom.current.offsetWidth;
+  dom.current.style.left = clamp(state.t[painted] * tw, w / 2, tw - w / 2) + 'px';
 }
 
 /* ---------- input ---------- */
 const clampT = v => clamp(v, -OVER, state.max + OVER);
 
+/* Con un proyecto abierto el gesto no mueve el tunel. En escritorio el primer
+   scroll cierra; en movil no cierra nada, porque ahi el unico scroll que tiene
+   sentido es el del propio panel del proyecto (que va por su cuenta, el .sheet
+   tiene su overflow) y la barra de abajo se ha ido. */
+function busy(){
+  if (flipped()) return true;
+  if (state.focus < 0) return false;
+  if (!mobile()) close();
+  return true;
+}
+
 function nudge(d){
-  if (flipped()) return;
-  if (state.focus >= 0){ close(); return; }   // el primer gesto solo cierra
+  if (busy()) return;
   state.target = clampT(state.target + d);
   state.lastInput = performance.now();
 }
@@ -283,10 +353,23 @@ dom.stage.addEventListener('wheel', e => {
    click y sin setPointerCapture (la captura retargetea el click al stage y las
    cartas dejan de recibirlo). Un click de trackpad se mueve unos pixeles:
    hasta SLOP no es un arrastre. */
-const cardAt = (x, y) => {
-  const el = document.elementFromPoint(x, y);
-  return el ? el.closest('.card') : null;
-};
+/* El impacto se calcula a mano en vez de con elementFromPoint. Metidas en dos
+   contextos 3d anidados (.book preserve-3d > .stage perspective > .tunnel
+   preserve-3d), Chrome no acierta a hacer hit-test de las cartas desplazadas
+   en z: devuelve el tunel aunque la carta este justo debajo del raton, y sin
+   esto no se podria clicar nada del fondo. Como la proyeccion solo escala y
+   traslada —no gira— el rect proyectado es exacto. Gana la mas cercana. */
+function cardAt(x, y){
+  let hit = null, best = -Infinity;
+  state.cards.forEach(el => {
+    if (el.style.pointerEvents === 'none') return;
+    const r = el.getBoundingClientRect();
+    if (x < r.left || x > r.right || y < r.top || y > r.bottom) return;
+    const z = +el.style.zIndex || 0;
+    if (z > best){ best = z; hit = el; }
+  });
+  return hit;
+}
 
 let drag = null, dragging = false;
 dom.stage.addEventListener('pointerdown', e => {
@@ -300,7 +383,7 @@ addEventListener('pointermove', e => {
   if (!drag) return;
   const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
   if (!dragging && Math.hypot(dx, dy) < SLOP) return;
-  if (!dragging && state.focus >= 0){ close(); drag = null; return; }
+  if (!dragging && busy()){ drag = null; return; }
   dragging = true;
   state.target = clampT(drag.t + (-dy - dx * .4) * .006);
   state.lastInput = performance.now();
@@ -316,7 +399,11 @@ addEventListener('pointerup', e => {
   const up = cardAt(e.clientX, e.clientY);
   if (up && up === d.card){                   // abajo y arriba en la misma carta
     const i = state.cards.indexOf(up);
-    state.focus === i ? close() : open(i);
+    // clicar algo que esta al fondo no lo abre: te lleva hasta el. Una vez
+    // delante, el segundo click ya saca la ficha
+    if (state.focus === i) close();
+    else if (Math.abs(state.depth - i) > REACH) goTo(i);
+    else open(i);
   } else if (state.focus >= 0){
     close();                                  // click en el fondo
   }
@@ -340,7 +427,7 @@ addEventListener('keydown', e => {
 let scrubbing = false;
 const scrubTo = clientX => {
   const r = dom.track.getBoundingClientRect();
-  state.target = clamp((clientX - r.left) / r.width, 0, 1) * state.max;
+  state.target = depthAt((clientX - r.left) / r.width);
   state.lastInput = performance.now();
 };
 dom.track.addEventListener('pointerdown', e => {
@@ -362,8 +449,25 @@ function sheetOffset(i){
   dom.sheet.style.setProperty('--sheet-x', (w / 2 + GAP - state.shift) + 'px');
 }
 
+/* Abrir y cerrar van en dos tiempos encadenados, nunca a la vez:
+     abrir  → 1) la carta se centra   2) cuando ha llegado, sale la ficha
+     cerrar → 1) la ficha se recoge   2) cuando ha entrado, la carta vuelve
+   El primer tiempo lo mide tick() con focusT; el segundo, el transitionend de
+   la propia ficha, para no tener que repetir aqui la duracion que hay en css.
+   `pending` es un cierre a medias: hay que poder cancelarlo si vuelves a
+   abrir antes de que termine. */
+let pending = null;
+
+function cancelPending(){
+  if (!pending) return;
+  clearTimeout(pending.timer);
+  dom.sheet.removeEventListener('transitionend', pending.done);
+  pending = null;
+}
+
 function open(i){
   if (flipped()) return;
+  cancelPending();
   state.focus = state.shown = i;
   state.target = i;
   const p = state.data[i];
@@ -376,19 +480,39 @@ function open(i){
 
   sheetOffset(i);
   document.body.classList.add('open');
-  dom.veil.classList.add('on');
-  dom.sheet.classList.add('on');
-  dom.sheet.setAttribute('aria-hidden', 'false');
+  dom.veil.classList.add('on');     // el velo acompana al centrado
   hash('#' + p.slug);
 }
 
+function showSheet(){
+  state.sheetOn = true;
+  dom.sheet.classList.add('on');
+  dom.sheet.setAttribute('aria-hidden', 'false');
+}
+
 function close(){
-  if (state.focus < 0) return;
+  if (state.focus < 0 || pending) return;
+  if (!state.sheetOn) return release();   // aun se estaba centrando: vuelve ya
+
+  state.sheetOn = false;
+  dom.sheet.classList.remove('on');
+  dom.sheet.setAttribute('aria-hidden', 'true');
+
+  const done = e => {
+    if (e && e.target !== dom.sheet) return;   // no nos valen las de dentro
+    cancelPending();
+    release();
+  };
+  // el timeout es el plan b: si la transicion no llega a correr (pestana
+  // oculta, motion reducido) la carta se quedaria centrada para siempre
+  pending = { done, timer: setTimeout(done, 900) };
+  dom.sheet.addEventListener('transitionend', done);
+}
+
+function release(){
   state.focus = -1;                 // shown se mantiene hasta que focusT llega a 0
   document.body.classList.remove('open');
   dom.veil.classList.remove('on');
-  dom.sheet.classList.remove('on');
-  dom.sheet.setAttribute('aria-hidden', 'true');
   hash('');
 }
 

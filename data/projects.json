@@ -1,11 +1,12 @@
 {
   "author": "oriol colomer",
-  "note": "AVISO: fechas, fichas técnicas y el texto del about son INVENTADOS (placeholder) — hay que sustituirlos por los reales. Orden del array = orden cronológico = orden en profundidad. Las posiciones x/y ya no viven aquí: main.js las sortea en cada carga y las convierte a dvw/dvh.",
+  "note": "AVISO: fechas, fichas tecnicas y el texto del about son INVENTADOS (placeholder) — hay que sustituirlos por los reales. Orden del array = orden cronologico = orden en profundidad, y tiene que ir de mas antiguo a mas reciente: 'iso' (AAAA-MM) es lo que reparte los marcadores por la linea del tiempo, asi que dos proyectos del mismo mes salen pegados. 'date' es solo el texto que se ensena. Las posiciones x/y ya no viven aqui: main.js las sortea en cada carga y las resuelve contra dvw/dvh.",
   "projects": [
     {
       "slug": "lechatelier",
       "title": "Le Chatelier",
       "year": "2023",
+      "iso": "2023-03",
       "date": "mar 2023",
       "thumb": "assets/thumbs/lechatelier.jpg",
       "credits": {
@@ -20,7 +21,8 @@
       "slug": "amore",
       "title": "AMORE",
       "year": "2024",
-      "date": "feb 2024",
+      "iso": "2024-01",
+      "date": "ene 2024",
       "thumb": "assets/thumbs/amore.jpg",
       "credits": {
         "rol": "vídeo / show",
@@ -34,7 +36,8 @@
       "slug": "tristan",
       "title": "TRISTAN",
       "year": "2024",
-      "date": "sep 2024",
+      "iso": "2024-02",
+      "date": "feb 2024",
       "thumb": "assets/thumbs/tristan.jpg",
       "credits": {
         "rol": "dirección",
@@ -48,6 +51,7 @@
       "slug": "ouineta",
       "title": "Ouineta",
       "year": "2025",
+      "iso": "2025-01",
       "date": "ene 2025",
       "thumb": "assets/thumbs/ouineta.jpg",
       "credits": {
@@ -62,6 +66,7 @@
       "slug": "cabiria",
       "title": "Cabiria la Nau",
       "year": "2025",
+      "iso": "2025-06",
       "date": "jun 2025",
       "thumb": "assets/thumbs/cabiria.jpg",
       "credits": {
@@ -76,6 +81,7 @@
       "slug": "xicu",
       "title": "xicu",
       "year": "2026",
+      "iso": "2025-11",
       "date": "nov 2025 — mar 2026",
       "thumb": "assets/thumbs/xicu.jpg",
       "credits": {
@@ -90,6 +96,7 @@
       "slug": "llum",
       "title": "LLUM",
       "year": "2026",
+      "iso": "2026-07",
       "date": "jul 2026",
       "thumb": "assets/thumbs/llum.jpg",
       "credits": {
@@ -116,9 +123,18 @@
       "desde": "2019"
     },
     "links": [
-      { "label": "correo", "href": "mailto:hola@oriolcolomer.com" },
-      { "label": "instagram", "href": "https://instagram.com/" },
-      { "label": "vimeo", "href": "https://vimeo.com/" }
+      {
+        "label": "correo",
+        "href": "mailto:hola@oriolcolomer.com"
+      },
+      {
+        "label": "instagram",
+        "href": "https://instagram.com/"
+      },
+      {
+        "label": "vimeo",
+        "href": "https://vimeo.com/"
+      }
     ],
     "note": "Texto de ejemplo — pendiente de escribir el de verdad."
   }

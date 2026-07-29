@@ -37,18 +37,18 @@
           <p id="sheet-text" class="sheet-text"></p>
         </aside>
 
-        <!-- linea del tiempo: fecha inicial, marcadores clicables, fecha final -->
+        <!-- linea del tiempo. Los marcadores no van a intervalos iguales: cada
+             uno cae donde le toca por fecha, asi que dos proyectos del mismo
+             mes salen pegados. Las fechas de los extremos van en vertical. -->
         <footer class="scrubber" id="scrubber">
+          <span class="end end-a" id="end-a"></span>
           <div class="track" id="track">
+            <span class="current" id="current"></span>
             <div class="fill" id="fill"></div>
             <div class="marks" id="marks"></div>
             <div class="knob" id="knob"></div>
           </div>
-          <div class="meta">
-            <span class="end" id="end-a"></span>
-            <span class="current" id="current"></span>
-            <span class="end" id="end-b"></span>
-          </div>
+          <span class="end end-b" id="end-b"></span>
         </footer>
       </section>
 
