@@ -34,9 +34,11 @@ const dom = {
   scrubber:$('scrubber'), track:$('track'), fill:$('fill'),
   marks:$('marks'), knob:$('knob'),
   endA:$('end-a'), endB:$('end-b'), current:$('current'),
-  author:$('author'), authorBack:$('author-back'),
-  about:$('about'), aboutBody:$('about-body')
+  author:$('author'), authorBack:$('author-back'), backHint:$('back-hint'),
+  front:$('front'), about:$('about'), aboutBody:$('about-body')
 };
+
+const TITLE0 = document.title;
 
 /* ---------- estado ---------- */
 const state = {
@@ -47,6 +49,7 @@ const state = {
   focusT:0,       // 1er tiempo: 0 en su sitio → 1 centrada en pantalla
   slideT:0,       // 2o tiempo: 0 centrada → 1 apartada, dejando salir la ficha
   sheetOn:false,  // si la ficha esta pedida (es lo que dispara slideT)
+  closing:false,  // primer tiempo del cierre en marcha (ver close y tick)
   max:0,
   shift:0,        // desplazamiento para centrar carta+ficha
   lastInput:0,
@@ -70,6 +73,10 @@ const focusZ = () => mobile() ? FOCUS_ZM : FOCUS_Z;
 const dvw = () => dom.unit.offsetWidth  || innerWidth;
 const dvh = () => dom.unit.offsetHeight || innerHeight;
 const hash = h => history.replaceState(null, '', h || location.pathname + location.search);
+
+/* con reduce activado no se anima nada: los interpoladores saltan al destino */
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ease = v => REDUCED ? 1 : v;
 
 /* ---------- linea del tiempo ----------
    El tunel avanza de proyecto en proyecto (indices), pero la barra es una
@@ -129,8 +136,13 @@ function scatter(items){
 fetch('data/projects.json')
   .then(r => r.json())
   .then(build)
-  .catch(() => {
-    dom.author.textContent = 'sirve la carpeta con un servidor local (python3 -m http.server)';
+  .catch(err => {
+    console.error(err);
+    // abierto a pelo desde el Finder el fetch no puede cargar el json; servido,
+    // lo unico que puede fallar de verdad es el propio json
+    dom.author.textContent = location.protocol === 'file:'
+      ? 'sirve la carpeta con un servidor local (python3 -m http.server)'
+      : 'error leyendo data/projects.json (mira la consola)';
   });
 
 function build(json){
@@ -140,11 +152,19 @@ function build(json){
   dom.author.textContent = dom.authorBack.textContent = json.author;
 
   state.data.forEach((p, i) => {
+    // a mano y no con innerHTML: un titulo con comillas romperia el alt
     const el = document.createElement('figure');
     el.className = 'card';
-    el.innerHTML =
-      `<img src="${p.thumb}" alt="${p.title}" draggable="false">` +
-      `<figcaption class="cap">${p.title}<span class="yr">${p.year}</span></figcaption>`;
+    const img = document.createElement('img');
+    img.src = p.thumb; img.alt = p.title; img.draggable = false;
+    const cap = document.createElement('figcaption');
+    cap.className = 'cap';
+    cap.textContent = p.title;
+    const yr = document.createElement('span');
+    yr.className = 'yr';
+    yr.textContent = p.year;
+    cap.appendChild(yr);
+    el.append(img, cap);
     dom.tunnel.appendChild(el);
     state.cards.push(el);
     state.items.push({ el, d: i, p: i });
@@ -179,7 +199,7 @@ function build(json){
   state.items.forEach(it => it.el.querySelector('img').addEventListener('load', measure));
   addEventListener('load', measure);
   measure();
-  route();
+  route(true);
   requestAnimationFrame(tick);
 }
 
@@ -218,14 +238,23 @@ function buildAbout(a){
     (a.note ? `<p class="note">${a.note}</p>` : '');
 }
 
-/* abrir con #slug o #about en la url */
-function route(){
+/* abrir con #slug o #about en la url. Tambien responde al hash cambiado en
+   caliente (hashchange): los cambios internos van por replaceState y no
+   disparan el evento, asi que no hay bucle. */
+function route(initial){
   const h = decodeURIComponent(location.hash.slice(1));
-  if (!h) return;
+  if (initial && !h) return;
   if (h === 'about') return flip(true);
+  if (flipped()) flip(false);
   const i = state.data.findIndex(p => p.slug === h);
-  if (i >= 0){ state.depth = state.target = i; open(i); }
+  if (i >= 0){
+    if (initial) state.depth = i;   // en la carga no hay viaje: ya estas alli
+    open(i);                        // open ya pone target = i
+  } else if (state.focus >= 0){
+    close();
+  }
 }
+addEventListener('hashchange', () => route(false));
 
 /* ---------- medida ----------
    Los x/y ya no vienen del json: se sortean normalizados y aqui se convierten
@@ -273,11 +302,11 @@ addEventListener('orientationchange', measure);
 function tick(now){
   // snap suave al proyecto mas cercano cuando dejas de tocar
   if (state.focus < 0 && now - state.lastInput > SNAP_MS){
-    state.target = lerp(state.target, Math.round(state.target), .08);
+    state.target = lerp(state.target, Math.round(state.target), ease(.08));
   }
-  state.depth  = lerp(state.depth,  state.target, .10);
-  state.focusT = lerp(state.focusT, state.focus >= 0 ? 1 : 0, EASE);
-  state.slideT = lerp(state.slideT, state.sheetOn ? 1 : 0, EASE);
+  state.depth  = lerp(state.depth,  state.target, ease(.10));
+  state.focusT = lerp(state.focusT, state.focus >= 0 ? 1 : 0, ease(EASE));
+  state.slideT = lerp(state.slideT, state.sheetOn ? 1 : 0, ease(EASE));
 
   // la carta que se cierra sigue siendo "la abierta" hasta terminar de volver;
   // si no, cae al else de abajo con focusT aun alto y pega un parpadeo
@@ -395,7 +424,14 @@ function paintScrubber(){
   painted = near;
   state.marks.forEach((m, i) => m.classList.toggle('now', i === near));
   const p = state.data[near];
-  dom.current.innerHTML = `${p.title}<span class="cd">${p.date}</span>`;
+  dom.current.textContent = p.title;
+  // en los extremos la fecha ya esta al lado, en vertical: no la dupliques
+  if (near > 0 && near < state.max){
+    const cd = document.createElement('span');
+    cd.className = 'cd';
+    cd.textContent = p.date;
+    dom.current.appendChild(cd);
+  }
   placeCurrent();
 }
 
@@ -434,10 +470,11 @@ function goTo(i){
 }
 
 /* En window y no en el escenario: con un proyecto abierto el escenario deja de
-   capturar el puntero, asi que ahi ya no llegaria la rueda. La ficha se salva
-   sola, que es lo unico que tiene scroll propio. */
+   capturar el puntero, asi que ahi ya no llegaria la rueda. La ficha y el about
+   se salvan enteros: son lo unico que tiene scroll propio, y el preventDefault
+   de aqui se lo mataria. */
 addEventListener('wheel', e => {
-  if (dom.sheet.contains(e.target)) return;
+  if (flipped() || dom.sheet.contains(e.target)) return;
   e.preventDefault();
   nudge(e.deltaY * .0022);
 }, { passive:false });
@@ -510,6 +547,13 @@ addEventListener('pointercancel', () => {
 addEventListener('keydown', e => {
   if (e.key === 'Escape') return flipped() ? flip(false) : close();
   if (flipped()) return;
+  // Enter abre el proyecto que tienes delante (y con la ficha abierta, cierra):
+  // sin esto no habia forma de leer una ficha solo con teclado
+  if (e.key === 'Enter' && !dom.sheet.contains(e.target) && e.target.tagName !== 'BUTTON'){
+    if (state.focus >= 0) return close();
+    const i = clamp(Math.round(state.depth), 0, state.max);
+    if (Math.abs(state.depth - i) <= REACH) return open(i);
+  }
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goTo(Math.round(state.target) + 1);
   if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   goTo(Math.round(state.target) - 1);
   if (e.key === 'Home') goTo(0);
@@ -564,6 +608,7 @@ function open(i){
   sheetOffset(i);
   document.body.classList.add('open');
   dom.veil.classList.add('on');     // el velo acompana al centrado
+  document.title = `${p.title} — ${TITLE0}`;
   hash('#' + p.slug);
 }
 
@@ -571,6 +616,7 @@ function showSheet(){
   state.sheetOn = true;
   dom.sheet.classList.add('on');
   dom.sheet.setAttribute('aria-hidden', 'false');
+  dom.sheet.inert = false;
 }
 
 function close(){
@@ -583,6 +629,7 @@ function close(){
   state.closing = true;
   dom.sheet.classList.remove('on');
   dom.sheet.setAttribute('aria-hidden', 'true');
+  dom.sheet.inert = true;
 }
 
 function release(){
@@ -590,7 +637,9 @@ function release(){
   state.closing = false;
   document.body.classList.remove('open');
   dom.veil.classList.remove('on');
-  hash('');
+  // el cierre puede llegar tarde (encadenado por tick) con el about ya girado
+  document.title = flipped() ? `about — ${TITLE0}` : TITLE0;
+  hash(flipped() ? '#about' : '');
 }
 
 dom.veil.addEventListener('click', close);
@@ -603,8 +652,16 @@ function flip(on){
   document.body.classList.toggle('flipped', to);
   dom.author.setAttribute('aria-expanded', String(to));
   dom.about.setAttribute('aria-hidden', String(!to));
+  // la cara que no miras tampoco existe para el teclado: sin esto, con aria-
+  // hidden puesto, sus botones seguian en el orden de tabulacion
+  dom.front.inert = to;
+  dom.about.inert = !to;
+  document.title = to ? `about — ${TITLE0}` : TITLE0;
   hash(to ? '#about' : '');
 }
+dom.about.inert = true;   // estado inicial: se mira la cara A
+dom.sheet.inert = true;   // y la ficha esta recogida
 
 dom.author.addEventListener('click', () => flip(true));
 dom.authorBack.addEventListener('click', () => flip(false));
+dom.backHint.addEventListener('click', () => flip(false));

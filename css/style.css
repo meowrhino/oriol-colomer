@@ -86,6 +86,15 @@ body:not(.flipped) .face.back{pointer-events:none}
 /* en difference, el gris de la pista sale de bajar el blanco, no de --muted */
 .hint{color:#757575; font-size:11px; letter-spacing:.04em}
 .hint-m{display:none}
+/* el "volver" de la cara B es un boton de verdad: parecia uno y no lo era */
+.hint-btn{
+  pointer-events:auto;
+  appearance:none; border:0; background:none; padding:0;
+  font:inherit; cursor:pointer;
+  border-bottom:1px solid transparent;
+  transition:border-color .25s ease;
+}
+.hint-btn:hover,.hint-btn:focus-visible{border-bottom-color:currentColor}
 
 /* ---------- stage / tunel ---------- */
 .stage{
@@ -359,8 +368,10 @@ body.open .stage{z-index:25}
   .about{padding-top:70px}
 }
 
-/* ---------- accesibilidad ---------- */
+/* ---------- accesibilidad ----------
+   Las interpolaciones de tick() tambien saltan al destino con reduce: ver la
+   constante REDUCED en main.js. */
 @media (prefers-reduced-motion:reduce){
   .book{transition-duration:.01ms}
-  .veil,.sheet{transition-duration:.01ms}
+  .veil,.sheet,.scrubber,.current,.mark::before{transition-duration:.01ms}
 }

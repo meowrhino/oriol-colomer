@@ -18,9 +18,15 @@ proyectos. El proyecto `i` está enfocado cuando `depth === i`. Scroll, arrastre
 
 - **Clic en una carta** la trae al centro y saca la ficha técnica. En escritorio la ficha sale
   por el lado y se centra el conjunto carta+ficha; en móvil sube desde abajo como panel.
+  **`Enter` abre el proyecto que tienes delante** (y lo cierra si ya está abierto): la ficha
+  entera se puede leer sólo con teclado.
 - **Clic en el nombre** gira la página entera sobre su eje vertical, hacia la izquierda, y
-  enseña el about por detrás.
-- **`#slug` y `#about`** en la url abren directamente ese proyecto o el about.
+  enseña el about por detrás. La cara que no miras queda `inert`: ni clicks ni tabulador.
+- **`#slug` y `#about`** en la url abren directamente ese proyecto o el about, también si el
+  hash cambia con la página ya cargada. Los cambios internos van por `replaceState`, así que
+  no ensucian el historial ni disparan el `hashchange` propio.
+- Con `prefers-reduced-motion`, las interpolaciones de `tick()` saltan al destino y las
+  transiciones css quedan en nada: mismo sitio, sin viaje.
 
 ## Cómo tocarlo
 
