@@ -116,14 +116,18 @@ body.open .stage{z-index:25}
      proyectos apuntando al vacio y las sombras se robarian los clicks */
   pointer-events:none;
   opacity:var(--halo);
+  /* Nunca a negro: todas las paradas son grises dentro de la banda .30–.70
+     (0 = blanco, 1 = negro). El gris va aclarando hacia fuera a la vez que
+     baja el alfa, asi que la nube se apaga sin llegar a tinta en ningun punto.
+     Al lado de cada parada, su gris en esa escala. */
   background:radial-gradient(50% 50% at 50% 50%,
-    rgba(17,17,17,.60) 0%,
-    rgba(17,17,17,.55) 36%,
-    rgba(17,17,17,.44) 52%,
-    rgba(17,17,17,.30) 66%,
-    rgba(17,17,17,.16) 79%,
-    rgba(17,17,17,.055) 90%,
-    rgba(17,17,17,0) 100%);
+    rgba(77,77,77,1)      0%,    /* .70 */
+    rgba(89,89,89,.95)    36%,   /* .65 */
+    rgba(107,107,107,.82) 52%,   /* .58 */
+    rgba(128,128,128,.62) 66%,   /* .50 */
+    rgba(153,153,153,.38) 79%,   /* .40 */
+    rgba(173,173,173,.16) 90%,   /* .32 */
+    rgba(179,179,179,0)   100%); /* .30 */
 }
 
 /* ---------- stickers ----------
@@ -133,14 +137,15 @@ body.open .stage{z-index:25}
 .sticker::before{
   inset:-105% -105%;
   --halo:1;
+  /* misma banda .30–.70 que las cartas, pero mas cerrada */
   background:radial-gradient(50% 50% at 50% 50%,
-    rgba(17,17,17,.80) 0%,
-    rgba(17,17,17,.74) 34%,
-    rgba(17,17,17,.56) 50%,
-    rgba(17,17,17,.36) 64%,
-    rgba(17,17,17,.18) 78%,
-    rgba(17,17,17,.06) 90%,
-    rgba(17,17,17,0) 100%);
+    rgba(77,77,77,1)      0%,    /* .70 */
+    rgba(84,84,84,.97)    34%,   /* .67 */
+    rgba(99,99,99,.88)    50%,   /* .61 */
+    rgba(120,120,120,.70) 64%,   /* .53 */
+    rgba(145,145,145,.45) 78%,   /* .43 */
+    rgba(168,168,168,.19) 90%,   /* .34 */
+    rgba(179,179,179,0)   100%); /* .30 */
 }
 .card img{
   position:relative; z-index:1;

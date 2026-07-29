@@ -107,16 +107,19 @@ def lobes(seed):
 
 
 os.makedirs(OUT, exist_ok=True)
-# Los tonos van claros a proposito: cada sticker se pinta dentro de su propia
-# sombra, que es muy oscura, asi que una forma oscura se perderia dentro. En
-# claro se lee como algo que flota en el hueco.
+# Los rellenos son casi planos —una rampa de unos 20 niveles, lo justo para que
+# no parezcan recortes de papel— y viven en la misma banda de grises que el
+# halo, entre .30 y .70 en la escala 0=blanco 1=negro (o sea, entre 179 y 77).
+# Van por la mitad clara de la banda a proposito: cada sticker se pinta dentro
+# de su propia sombra, que es lo mas oscuro de la banda, y en oscuro se perderia.
+GREY = (77, 179)     # los dos extremos de la banda, para no salirse
 made = [
-    save("blob-01.png", blob(11, (2, 3, 5), .36, .78), 108, 205, 1.1),
-    save("blob-02.png", lobes(24), 86, 182, 2.4),
-    save("blob-03.png", ring(37), 126, 222, .3),
-    save("blob-04.png", blob(52, (3, 4, 7), .28, 1.0, .38), 146, 236, 1.9),
-    save("blob-05.png", blob(68, (2, 5), .40, 1.15, .36), 78, 190, .6),
-    save("blob-06.png", lobes(83), 132, 228, 3.0),
+    save("blob-01.png", blob(11, (2, 3, 5), .36, .78), 150, 170, 1.1),
+    save("blob-02.png", lobes(24), 132, 152, 2.4),
+    save("blob-03.png", ring(37), 158, 176, .3),
+    save("blob-04.png", blob(52, (3, 4, 7), .28, 1.0, .38), 164, 179, 1.9),
+    save("blob-05.png", blob(68, (2, 5), .40, 1.15, .36), 122, 142, .6),
+    save("blob-06.png", lobes(83), 155, 174, 3.0),
 ]
 for p in made:
     print(os.path.basename(p), os.path.getsize(p), "bytes")

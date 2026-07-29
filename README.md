@@ -53,7 +53,10 @@ según su `iso`, para que entre proyecto y proyecto haya algo que mirar.
 - `scale` — tamaño respecto a una carta de proyecto.
 
 Añadir, quitar o mover stickers es sólo tocar este array. Los PNG actuales son **provisionales**:
-formas abstractas en escala de grises con transparencia, generadas con
+formas abstractas de relleno casi plano (una rampa de unos 20 niveles, lo justo para que no
+parezcan recortes de papel), en la misma banda de grises .30–.70 que el halo y por su mitad
+clara, porque cada sticker se pinta dentro de su propia sombra y en oscuro se perdería. Se
+generan con
 
 ```bash
 python3 tools/blobs.py
@@ -92,8 +95,12 @@ Los parámetros, todos en `.card::before` salvo el primero:
 | **fuerza** | `--halo` en `:root` | `1` | multiplica toda la sombra. `0` la quita, `1` es todo lo que da el degradado. **Es la perilla del día a día**: `.5` deja el ambiente a la mitad sin tocar nada más. Para pasar de `1` hay que subir los alfas del degradado. |
 | **tamaño** | `inset:-130% -85%` | | cuánto desborda la carta: `-130%` arriba y abajo (unas 3,6 veces el alto de la foto), `-85%` a los lados. Más negativo = mancha más grande y difusa. Si lo subes hacia `0` la sombra se pega al borde y parece un collar sucio en vez de un hueco. |
 | **forma** | `border-radius:50%` | | la hace elipse. Quitándolo sale un rectángulo con las esquinas duras. |
-| **caída** | las paradas del `radial-gradient` | `.60 → 0` | siete paradas de negro con alfa decreciente. Las primeras quedan **tapadas por la foto** (con este `inset`, el borde de la imagen cae sobre el 28% del radio en vertical y el 37% en horizontal), así que las que se ven de verdad son de ahí para fuera. Ahí es donde se ajusta si la quieres más cerrada o más abierta. |
-| **color** | `rgba(17,17,17,…)` | | el mismo negro que `--ink`. Con un color se tiñe el fondo en vez de oscurecerlo. |
+| **caída** | las paradas del `radial-gradient` | `.70 → .30` | siete paradas. Las primeras quedan **tapadas por la foto** (con este `inset`, el borde de la imagen cae sobre el 28% del radio en vertical y el 37% en horizontal), así que las que se ven de verdad son de ahí para fuera. Ahí es donde se ajusta si la quieres más cerrada o más abierta. |
+| **color** | los grises del `radial-gradient` | `.70 → .30` | **nunca negro.** Todas las paradas son grises dentro de la banda .30–.70 en la escala 0 = blanco, 1 = negro (o sea, entre `rgb(179)` y `rgb(77)`). El gris va aclarando hacia fuera a la vez que baja el alfa: la nube se apaga sin llegar a tinta en ningún punto. Cada parada lleva su valor apuntado al lado en el css. |
+
+Un matiz: la banda vale para **cada** halo por separado. Donde se solapan dos o tres nubes el
+resultado sí baja de .30 en la escala, porque son capas translúcidas apiladas. Si eso molesta,
+`--halo` es otra vez el sitio: bajarlo aclara todos los solapes a la vez.
 
 Los stickers llevan su propia versión, más cerrada y más oscura, en `.sticker::before`.
 
