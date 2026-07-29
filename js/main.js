@@ -284,9 +284,12 @@ function tick(now){
     state.shown = -1;
   }
 
-  // segundo tiempo de la apertura: la ficha no sale hasta que la carta ha
-  // terminado de centrarse (al cerrar es al reves, lo lleva close())
-  if (state.focus >= 0 && !state.sheetOn && state.focusT > SETTLED) showSheet();
+  // Segundo tiempo de la apertura: la ficha no sale hasta que la carta ha
+  // terminado de centrarse (al cerrar es al reves, lo lleva close()).
+  // El `!pending` no es un detalle: durante el primer tiempo del cierre focus
+  // sigue siendo >= 0 y focusT sigue en 1, asi que sin el, un frame despues de
+  // cerrar la ficha volvia a salir sola y el proyecto no se cerraba nunca.
+  if (state.focus >= 0 && !state.sheetOn && !pending && state.focusT > SETTLED) showSheet();
 
   const f = state.focusT;
 
@@ -544,8 +547,11 @@ function close(){
   dom.sheet.classList.remove('on');
   dom.sheet.setAttribute('aria-hidden', 'true');
 
+  // Solo vale el transform de la propia ficha: es el que dura lo que dura el
+  // recogido. La opacidad acaba antes, y engancharse a ella soltaba la carta
+  // con la ficha todavia a medio entrar.
   const done = e => {
-    if (e && e.target !== dom.sheet) return;   // no nos valen las de dentro
+    if (e && (e.target !== dom.sheet || e.propertyName !== 'transform')) return;
     cancelPending();
     release();
   };

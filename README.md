@@ -39,6 +39,10 @@ cronológico, del más antiguo al más reciente.
 
 ### `stickers`, en el mismo json
 
+**Apagados de momento**: `"stickers": []`. Los seis de ejemplo están aparcados en
+`"stickersOff"`; para volver a encenderlos, mover ese contenido a `"stickers"`. El motor sigue
+montado y los PNG siguen en `assets/stickers`.
+
 Decorado. No son proyectos: no se abren, no se clican, no cuentan para la navegación y no
 aparecen en el pie de foto. Sólo ocupan un sitio en el túnel —y una marquita fina en la barra—
 según su `iso`, para que entre proyecto y proyecto haya algo que mirar.
@@ -129,6 +133,11 @@ clicks de otras.
   `focusT` (`SETTLED` es el umbral a partir del cual se da por centrada); el segundo lo dispara
   el `transitionend` de la propia ficha, para no repetir en el js la duración que está en el
   css. Hay un `setTimeout` de respaldo por si la transición no llega a correr.
+  Dos detalles que parecen de más y no lo son: el `!pending` en la condición de `tick()` (sin él,
+  durante el primer tiempo del cierre `focus` sigue ≥ 0 y `focusT` sigue en 1, así que un frame
+  después de cerrar la ficha volvía a salir sola y el proyecto no se cerraba nunca), y que sólo
+  cuente el `transitionend` de `transform` (la opacidad acaba antes, y engancharse a ella
+  soltaba la carta con la ficha a medio entrar).
 - **Al cerrar, la animación es simétrica.** `state.shown` sobrevive al cierre: la carta sigue
   siendo "la abierta" hasta que `focusT` llega a 0. Sin eso caía de golpe a opacidad 0 y volvía
   a aparecer, que era un parpadeo feo.

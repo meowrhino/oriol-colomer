@@ -108,8 +108,9 @@
       "text": "Instalación de dos canales sobre lo que queda de una imagen cuando le quitas casi toda la luz. En curso: las proyecciones se calibran en sala la semana antes de abrir."
     }
   ],
-  "stickersNote": "Decorado. No son proyectos: no se abren ni se clican, sólo ocupan un sitio en el túnel y una marquita en la barra según su 'iso', para que entre proyecto y proyecto haya algo que mirar. 'scale' es el tamaño respecto a una carta de proyecto. Añade, quita o cambia las fechas sin tocar nada más.",
-  "stickers": [
+  "stickersNote": "Decorado, APAGADO de momento. No son proyectos: no se abren ni se clican, sólo ocupan un sitio en el túnel y una marquita en la barra según su 'iso'. 'scale' es el tamaño respecto a una carta de proyecto. Para volver a encenderlos: mover el contenido de 'stickersOff' a 'stickers'. El motor sigue montado y los PNG siguen en assets/stickers.",
+  "stickers": [],
+  "stickersOff": [
     { "id": "b1", "iso": "2023-07", "thumb": "assets/stickers/blob-01.png", "scale": 0.46 },
     { "id": "b2", "iso": "2023-11", "thumb": "assets/stickers/blob-02.png", "scale": 0.3 },
     { "id": "b3", "iso": "2024-06", "thumb": "assets/stickers/blob-03.png", "scale": 0.52 },
