@@ -78,6 +78,26 @@ const hash = h => history.replaceState(null, '', h || location.pathname + locati
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const ease = v => REDUCED ? 1 : v;
 
+/* Etiqueta a dos capas: la de abajo en difference (la magia sobre blanco y
+   sobre foto) y encima la misma en tinta tenue. Difference se anula sobre
+   gris medio, que es justo la banda del halo: la tinta pone el suelo de
+   contraste que le falta ahi, y sobre blanco o foto casi ni se nota. */
+function twinLabel(el, title, sub, subCls){
+  el.replaceChildren();
+  ['diff', 'ink'].forEach(cls => {
+    const s = document.createElement('span');
+    s.className = cls;
+    s.textContent = title;
+    if (sub){
+      const t = document.createElement('span');
+      t.className = subCls;
+      t.textContent = sub;
+      s.appendChild(t);
+    }
+    el.appendChild(s);
+  });
+}
+
 /* ---------- linea del tiempo ----------
    El tunel avanza de proyecto en proyecto (indices), pero la barra es una
    linea de tiempo de verdad: cada marcador cae segun su fecha, asi que dos
@@ -159,11 +179,7 @@ function build(json){
     img.src = p.thumb; img.alt = p.title; img.draggable = false;
     const cap = document.createElement('figcaption');
     cap.className = 'cap';
-    cap.textContent = p.title;
-    const yr = document.createElement('span');
-    yr.className = 'yr';
-    yr.textContent = p.year;
-    cap.appendChild(yr);
+    twinLabel(cap, p.title, p.year, 'yr');
     el.append(img, cap);
     dom.tunnel.appendChild(el);
     state.cards.push(el);
@@ -175,8 +191,10 @@ function build(json){
     m.style.left = state.t[i] * 100 + '%';
     m.title = `${p.title} · ${p.date}`;
     m.setAttribute('aria-label', `ir a ${p.title}, ${p.date}`);
-    // sin esto el pointerdown llega al track y empieza a arrastrar la barra
-    m.addEventListener('pointerdown', e => e.stopPropagation());
+    // el click solo lo dispara el teclado (Enter sobre el boton): los toques
+    // de puntero los resuelve el track entero, que capturara el pointerup y
+    // se quedara tambien con el click. Asi la zona util es toda la barra y
+    // dos proyectos del mismo mes no se roban el toque
     m.addEventListener('click', () => goTo(i));
     dom.marks.appendChild(m);
     state.marks.push(m);
@@ -281,19 +299,6 @@ function measure(){
   state.shift = mobile() ? 0 : (dom.sheet.offsetWidth + GAP) / 2;
   if (state.shown >= 0) sheetOffset(state.shown);
   placeCurrent();
-  sizeHits();
-}
-
-/* Los marcadores van por fecha, asi que pueden caer a pocos pixeles unos de
-   otros. Cada uno se queda con la mitad del hueco que tiene al lado: sin esto
-   el de al lado se come el toque y siempre abres el mismo proyecto. */
-function sizeHits(){
-  const tw = dom.track.offsetWidth;
-  state.marks.forEach((m, i) => {
-    const l = i > 0 ? state.t[i] - state.t[i-1] : 1;
-    const r = i < state.max ? state.t[i+1] - state.t[i] : 1;
-    m.style.setProperty('--hit', clamp(Math.min(l, r) * tw / 2, 5, 16) + 'px');
-  });
 }
 addEventListener('resize', measure);
 addEventListener('orientationchange', measure);
@@ -424,14 +429,8 @@ function paintScrubber(){
   painted = near;
   state.marks.forEach((m, i) => m.classList.toggle('now', i === near));
   const p = state.data[near];
-  dom.current.textContent = p.title;
   // en los extremos la fecha ya esta al lado, en vertical: no la dupliques
-  if (near > 0 && near < state.max){
-    const cd = document.createElement('span');
-    cd.className = 'cd';
-    cd.textContent = p.date;
-    dom.current.appendChild(cd);
-  }
+  twinLabel(dom.current, p.title, near > 0 && near < state.max ? p.date : '', 'cd');
   placeCurrent();
 }
 
@@ -564,6 +563,7 @@ addEventListener('keydown', e => {
 let scrubbing = false;
 const scrubTo = clientX => {
   const r = dom.track.getBoundingClientRect();
+  if (!r.width) return;   // sin ancho, la division daria NaN y envenena depth
   state.target = depthAt((clientX - r.left) / r.width);
   state.lastInput = performance.now();
 };

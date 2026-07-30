@@ -120,6 +120,13 @@ según se les pone debajo una nube oscura o una foto se van aclarando solos. Se 
 necesidad de caja ni de halo blanco por detrás. Los grises de acompañamiento (`.hint`, el año,
 la fecha) no usan `--muted`: en difference el gris sale de bajar el blanco, de ahí el `#757575`.
 
+Con un matiz: difference se anula sobre gris medio (blanco sobre `#808080` devuelve `#7f7f7f`),
+y la banda del halo pasa justo por ahí. Por eso los pies de foto y la nota de la barra van **a
+dos capas** (`twinLabel()` en js): debajo la copia en difference y encima la misma en tinta al
+40%. Sobre blanco o sobre foto la tinta apenas se nota; sobre la nube pone el suelo de contraste
+que a difference le falta. El nombre de arriba y los hints van a una sola capa, que viven donde
+la niebla ya casi no llega.
+
 Para que eso funcione, `.face` lleva **`isolation: isolate`**, y no es opcional: al colgar de un
 contenedor con `preserve-3d`, la cara entra en un contexto de render 3d y el blend se queda sin
 fondo contra el que mezclar — el texto blanco salía blanco sobre blanco, o sea invisible.
@@ -137,8 +144,10 @@ clicks de otras.
   `#unit`, menos el tamaño de cada imagen), así que ninguna carta se sale en su momento de foco.
 - **La barra no va a intervalos iguales.** El túnel avanza por índices pero la barra es una línea
   de tiempo de verdad. `posAt()` y `depthAt()` traducen entre los dos ejes en los dos sentidos.
-- **La zona de toque de cada marcador se calcula sola** (`sizeHits()`): cada uno se queda con la
-  mitad del hueco que tiene al lado, o dos proyectos del mismo mes se robarían el toque.
+- **Los toques de la barra los resuelve el track entero**, no cada marcador: tocar en cualquier
+  punto lleva ahí la cámara y al soltar encaja en el proyecto más cercano, así que la zona útil
+  es toda la barra y dos proyectos del mismo mes no se roban el toque. Los botones de los
+  marcadores siguen existiendo para el teclado (tab + Enter) y el tooltip del ratón.
 - **Abrir y cerrar van en dos tiempos encadenados, nunca a la vez.** Son los dos
   interpoladores, y los encadena `tick()`:
   - `focusT` — la carta viene desde su sitio en la profundidad **hasta el centro de la

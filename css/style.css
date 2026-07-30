@@ -176,11 +176,21 @@ body.open .stage{z-index:25}
   left:0; top:calc(100% + 8px);
   white-space:nowrap;
   font-size:12px; letter-spacing:.02em;
-  /* mismo difference que el nombre de arriba */
-  mix-blend-mode:difference;
-  color:#fff;
 }
-.card .cap .yr{color:#757575; margin-left:8px}
+.card .cap .yr{margin-left:8px}
+
+/* Los pies de foto y la nota de la barra van a dos capas (twinLabel en js):
+   debajo la copia en difference —el mismo truco que el nombre de arriba— y
+   encima la misma en tinta al 40%. Difference se anula sobre gris medio, que
+   es justo la banda del halo (.30–.70): la tinta pone ahi el suelo de
+   contraste, y sobre blanco o sobre foto apenas se nota. */
+.cap .diff,.current .diff{mix-blend-mode:difference; color:#fff}
+.cap .diff .yr,.current .diff .cd{color:#757575}
+.cap .ink,.current .ink{
+  position:absolute; left:0; top:0;
+  color:var(--ink); opacity:.4;
+}
+.cap .ink .yr,.current .ink .cd{color:var(--muted)}
 
 /* ---------- velo ---------- */
 .veil{
@@ -257,13 +267,14 @@ body.open .stage{z-index:25}
   transform:translateX(-.5px);
   cursor:pointer;
 }
-/* zona de toque: la linea de 1px no se puede clicar, y menos con el dedo.
-   El ancho lo pone js (--hit) porque dos proyectos del mismo mes caen casi
-   encima y cada marcador solo puede quedarse con su mitad del hueco. */
+/* Zona de hover, no de toque: los toques los resuelve el track entero (gana
+   el marcador mas cercano al soltar), asi que esto solo sirve para que el
+   raton encuentre el tooltip y el puntito sin apuntar a una linea de 1px.
+   Que dos zonas se solapen ya da igual. */
 .mark::after{
   content:''; position:absolute;
   top:-16px; bottom:-16px;
-  left:calc(-1 * var(--hit, 14px)); right:calc(-1 * var(--hit, 14px));
+  left:-8px; right:-8px;
 }
 /* cabeza del marcador, encima de la barra */
 .mark::before{
@@ -299,11 +310,9 @@ body.open .stage{z-index:25}
   transform:translateX(-50%);
   white-space:nowrap;
   font-size:11px; letter-spacing:.02em;
-  mix-blend-mode:difference;
-  color:#fff;
   transition:left .35s cubic-bezier(.2,.7,.2,1);
 }
-.current .cd{color:#757575; margin-left:8px}
+.current .cd{margin-left:8px}
 
 /* ---------- about (cara B) ---------- */
 .about-scroll{
@@ -361,8 +370,12 @@ body.open .stage{z-index:25}
   .about .credits{grid-template-columns:88px 1fr}
 }
 
-/* pantallas muy bajas (movil en horizontal): la barra se come el escenario */
+/* pantallas muy bajas (movil en horizontal): la barra se come el escenario.
+   Las cartas se encogen con el alto (58dvh) para no pisar la barra, y el pie
+   de foto sobra: la nota de la barra ya dice titulo y fecha justo debajo. */
 @media (max-height:480px){
+  :root{--card-w:min(280px, 58dvh)}
+  .card .cap{display:none}
   .scrubber{padding-top:12px; padding-bottom:calc(10px + var(--safe-b))}
   .sheet{max-height:76dvh}
   .about{padding-top:70px}
