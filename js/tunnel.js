@@ -29,12 +29,14 @@
   const lim = (v, a, b) => Math.min(b, Math.max(a, v));
   const mez = (a, b, t) => a + (b - a) * t;
 
-  /* semilla estable por slug: la carta cae siempre en el mismo sitio */
-  const semilla = s => {
-    let h = 2166136261;
-    for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
-    return ((h >>> 0) % 10000) / 10000;
-  };
+  /* Las cartas caen en sitio distinto cada vez que se abre el tunel: no hay
+     semilla fija, se sortea en cada `construir()` (carga, cambio de vista,
+     filtro u orden). Lo unico que no se deja al azar es que dos cartas
+     seguidas no se tapen: si la nueva sale cerca de la anterior en el eje
+     que sea, se manda al lado contrario. */
+  const azar = () => Math.random() * 2 - 1;               // -1 .. 1
+  const aparte = (v, previo) =>
+    previo === null || Math.abs(v - previo) > .55 ? v : -v;
 
   const marcas = document.getElementById('marcas');
   const rotulo = document.getElementById('rotulo');
@@ -57,7 +59,6 @@
       const a = li.querySelector('a');
       return {
         href: a.getAttribute('href'),
-        slug: a.getAttribute('href').replace(/\/$/, '').split('/').pop(),
         img:  a.dataset.peek || '',
         fecha: li.dataset.date,
         rotulo: a.querySelector('.t').childNodes[0].textContent.trim(),
@@ -71,6 +72,7 @@
     t0 = Math.min(...fechas);
     span = Math.max(Math.max(...fechas) - t0, 1);
 
+    let dx = null, dy = null;
     cartas = datos.map((d, i) => {
       const el = document.createElement('a');
       el.className = 'carta';
@@ -82,8 +84,9 @@
       el.innerHTML = d.img ? `<img src="${d.img}" alt="" draggable="false">`
                            : '<span class="sin"></span>';
       el.setAttribute('aria-label', `${d.rotulo}, ${d.pie}`);
-      el.style.setProperty('--dx', (semilla(d.slug) * 2 - 1).toFixed(3));
-      el.style.setProperty('--dy', (semilla(d.slug + '·y') * 2 - 1).toFixed(3));
+      dx = aparte(azar(), dx); dy = aparte(azar(), dy);
+      el.style.setProperty('--dx', dx.toFixed(3));
+      el.style.setProperty('--dy', dy.toFixed(3));
       zona.append(el);
       return el;
     });
