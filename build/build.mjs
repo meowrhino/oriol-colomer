@@ -199,8 +199,10 @@ function landing(lang) {
 
 function workIndex(lang) {
   const tags = [...new Set(live.flatMap(p => p.tags))];
-  // La lista va en el HTML siempre: es lo que lee Google y lo que queda
-  // si no corre JavaScript. El tunel se construye a partir de ella.
+
+  // La lista va en el HTML siempre: es lo que lee Google y lo que queda si
+  // no corre JavaScript. El tunel se construye leyendo esta misma lista,
+  // asi que filtro y orden valen igual en las dos vistas.
   const rows = live.map(p => `      <li data-tags="${esc(p.tags.join(' '))}"
           data-date="${p.date}" data-client="${esc(p.client.toLowerCase())}" data-title="${esc(p.title.toLowerCase())}">
         <a href="${url(lang, 'work/' + p.slug + '/')}"${cover(p) ? ` data-peek="/${esc(cover(p))}"` : ''}>
@@ -210,7 +212,21 @@ function workIndex(lang) {
         </a>
       </li>`).join('\n');
 
-  const sorts = [['date', site.ui.byDate], ['client', site.ui.byClient], ['title', site.ui.byTitle]];
+  /** Menu desplegable. El boton ensena el valor puesto; al abrirlo salen
+      todas las opciones, incluida la activa, que va marcada. */
+  const menu = (id, etiqueta, opciones) => `      <div class="menu" data-menu="${id}">
+        <button type="button" class="cabeza" aria-expanded="false" aria-haspopup="true">
+          <span class="et">${esc(etiqueta)}</span><span class="val"></span>
+        </button>
+        <div class="opciones" role="menu" hidden>
+${opciones.map(([v, l], i) => `          <button type="button" role="menuitemradio" data-v="${esc(v)}"
+            aria-checked="${i === 0}">${esc(l)}</button>`).join('\n')}
+        </div>
+      </div>`;
+
+  const orden  = [['date', t(site.ui.byDate, lang)], ['client', t(site.ui.byClient, lang)],
+                  ['title', t(site.ui.byTitle, lang)]];
+  const filtro = [['', t(site.ui.all, lang)], ...tags.map(g => [g, g])];
 
   return head({
     lang, path: 'work/', anim: false,
@@ -223,11 +239,18 @@ function workIndex(lang) {
       hasPart: live.map(p => ({ '@type':'CreativeWork', name:p.title, url: abs(url(lang,'work/'+p.slug+'/')) })),
     },
   })
-  + `${nav(lang, 'work')}
-
-<div class="vistas" role="group" aria-label="vista">
-  <button type="button" data-vista="tunel" aria-pressed="true">${esc(t(site.ui.tunnel, lang))}</button>
-  <button type="button" data-vista="lista" aria-pressed="false">${esc(t(site.ui.list, lang))}</button>
+  + `<div class="topbar">
+  ${nav(lang, 'work')}
+  <!-- Los mismos controles en las dos vistas: solo cambia como se pinta
+       la lista debajo, no como se manda sobre ella. -->
+  <div class="controles">
+    <div class="vistas" role="group" aria-label="vista">
+      <button type="button" data-vista="tunel" aria-pressed="true">${esc(t(site.ui.tunnel, lang))}</button>
+      <button type="button" data-vista="lista" aria-pressed="false">${esc(t(site.ui.list, lang))}</button>
+    </div>
+${menu('sort', t(site.ui.sort, lang), orden)}
+${menu('tag', '', filtro)}
+  </div>
 </div>
 
 <main class="wrap">
@@ -235,30 +258,20 @@ function workIndex(lang) {
   <div class="escena" id="escena">
     <div class="tunel" id="tunel"></div>
   </div>
-  <footer class="tiempo">
-    <div class="barra" id="barra">
-      <span class="rotulo" id="rotulo"></span>
-      <div class="marcas" id="marcas"></div>
-      <div class="pomo" id="pomo"></div>
-    </div>
-  </footer>
 
   <!-- vista lista -->
-  <div class="controls">
-    <div class="filters" role="group" aria-label="tags">
-      <button type="button" data-tag="" aria-pressed="true">${esc(t(site.ui.all, lang))}</button>
-      ${tags.map(g => `<button type="button" data-tag="${esc(g)}" aria-pressed="false">${esc(g)}</button>`).join('\n      ')}
-    </div>
-    <div class="sorts" role="group" aria-label="${esc(t(site.ui.sort, lang))}">
-      <span class="lbl">${esc(t(site.ui.sort, lang))}</span>
-      ${sorts.map(([k, l], i) =>
-        `<button type="button" data-sort="${k}" aria-pressed="${i === 0}">${esc(t(l, lang))}</button>`).join('\n      ')}
-    </div>
-  </div>
   <ul class="index" id="index">
 ${rows}
   </ul>
 </main>
+
+<!-- Linea del tiempo: sin raya, solo los proyectos. Cada uno cae donde
+     le toca por fecha, no a intervalos iguales. -->
+<footer class="tiempo" id="tiempo">
+  <span class="rotulo" id="rotulo"></span>
+  <div class="barra" id="barra"><div class="marcas" id="marcas"></div></div>
+</footer>
+
 <div class="peek" id="peek" aria-hidden="true"><img src="" alt=""></div>
 ${pageFoot(lang, 'work/')}
 <script src="/js/work.js" defer></script>

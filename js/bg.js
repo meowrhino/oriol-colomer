@@ -62,8 +62,13 @@
   /* ---- los cinco campos ------------------------------------
      Cada uno recibe el punto y el tiempo y devuelve 0..1.     */
   const CAMPOS = {
-    // relieve que deriva: montanas que entran por un lado
-    terreno: (x, y, t) => fbm((x + t * 90) * .0032, y * .0032, t * .16, 3),
+    // Relieve que deriva. Cuatro octavas y frecuencia mas alta: mas
+    // cumbres y mas juntas. La curva final separa cima de ladera, para
+    // que las montanas tengan filo y no sean lomas.
+    terreno: (x, y, t) => {
+      const h = fbm((x + t * 105) * .0052, y * .0052, t * .22, 4);
+      return h < .5 ? 2 * h * h : 1 - 2 * (1 - h) * (1 - h);   // contraste en S
+    },
 
     // crestas diagonales; el ruido curva la ola para que no sea una regla
     olas: (x, y, t) => {
@@ -108,7 +113,7 @@
     },
   };
 
-  const NIVEL = { terreno:.46, olas:.52, remolino:.47, celular:.55, gotas:.5 };
+  const NIVEL = { terreno:.54, olas:.52, remolino:.47, celular:.55, gotas:.5 };
 
   let campo = new URLSearchParams(location.search).get('bg');
   if (!CAMPOS[campo]) campo = cv.dataset.campo || 'terreno';
