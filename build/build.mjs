@@ -274,7 +274,7 @@ ${rows}
 <!-- Linea del tiempo: sin raya, solo los proyectos. Cada uno cae donde
      le toca por fecha, no a intervalos iguales. -->
 <footer class="tiempo" id="tiempo">
-  <span class="rotulo" id="rotulo"></span>
+  <a class="rotulo" id="rotulo" href=""></a>
   <div class="barra" id="barra"><div class="marcas" id="marcas"></div></div>
 </footer>
 

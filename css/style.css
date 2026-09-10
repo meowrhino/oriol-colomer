@@ -35,6 +35,12 @@
   --fs-title: clamp(30px, 4.4vw, 62px);
 
   --lh: 1.45;
+
+  /* La entrada al tunel: el ojo se cierra y despues se va hacia dentro.
+     welcome.js lee estos dos valores para saber cuando navegar. */
+  --parpadeo: 300ms;
+  --zoom:     460ms;
+
   font-size: 16px;
 }
 
@@ -146,18 +152,42 @@ img{ max-width:100%; display:block; }
 }
 @keyframes asomar{ to{ opacity:1; } }
 
-/* Salida: el parpado baja, el ojo se va hacia dentro y arrastra la
-   pagina con el. Al llegar a work la camara sigue el movimiento. */
+/* Salida: primero se cierra el ojo, y solo despues se va hacia dentro y
+   arrastra la pagina con el. Van seguidos, no a la vez: si el zoom arranca
+   con el parpadeo no da tiempo a ver el ojo cerrarse.
+   Al llegar a work la camara sigue el movimiento. */
 .landing .lens{ overflow:hidden; }
+/* Dos parpados que se juntan en el centro: se lee como un ojo cerrandose,
+   no como una cortina que baja. Solo quedan las puntas del contorno.
+   Se cierran con scaleY y no con `height`, porque .lens se dimensiona por
+   aspect-ratio y ahi un porcentaje de altura resuelve a 0: el parpado
+   nunca llegaba a verse. */
+.landing .lens::before,
 .landing .lens::after{
-  content:''; position:absolute; inset:-2px -2px auto -2px; height:0;
-  background: var(--bg); transition: height .17s ease-in;
+  content:''; position:absolute; inset:-2px; z-index:1;
+  background: var(--bg); transform: scaleY(0);
+  transition: transform var(--parpadeo) cubic-bezier(.45,0,.55,1);
 }
-body.entrando .lens::after{ height:104%; }
-body.entrando .eye{ animation: adentro .6s cubic-bezier(.6,0,.85,.3) forwards; }
+.landing .lens::after { transform-origin: top; }
+/* El parpado de abajo lleva la raya del ojo cerrado en su borde superior:
+   cae justo donde se juntan los dos, asi que al cerrarse queda una linea
+   y no un hueco vacio. Va gruesa porque el scaleY la aplasta. */
+.landing .lens::before{
+  transform-origin: bottom;
+  border-top: 3px solid transparent;
+  transition: transform var(--parpadeo) cubic-bezier(.45,0,.55,1),
+              border-color var(--parpadeo) ease-in;
+}
+body.entrando .lens::before,
+body.entrando .lens::after{ transform: scaleY(.505); }
+body.entrando .lens::before{ border-top-color: var(--ink-soft); }
+
+body.entrando .eye{
+  animation: adentro var(--zoom) cubic-bezier(.6,0,.85,.3) var(--parpadeo) forwards;
+}
 body.entrando .pista, body.entrando .langs{ opacity:0; transition: opacity .2s; }
 @keyframes adentro{
-  40%  { transform: scale(.94); }
+  25%  { transform: scale(.94); }
   100% { transform: scale(7); opacity:0; }
 }
 
@@ -455,11 +485,14 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
 }
 .marca:focus-visible{ outline:1px solid var(--ink-hard); }
 
+/* La ficha es un enlace al proyecto que tienes delante en el tunel. */
 .rotulo{
-  display:block; padding-bottom:.35em;
+  display:block; width:max-content; max-width:100%; padding-bottom:.35em;
   font-size: var(--fs-meta); color: var(--ink-faint); white-space:nowrap;
   overflow:hidden; text-overflow:ellipsis;
 }
+a.rotulo{ cursor:pointer; }
+a.rotulo:hover b{ color: var(--ink-hard); }
 .rotulo b{ font-weight:400; color: var(--ink-soft); }
 .rotulo i{ font-style:normal; margin-left:1ch; }
 

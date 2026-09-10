@@ -28,6 +28,13 @@
     }, { passive: true });
   }
 
+  /* Los tiempos viven en el CSS (--parpadeo, --zoom): aqui solo se leen,
+     para que la navegacion caiga justo al final del zoom y no antes. */
+  const ms = nombre => {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(nombre).trim();
+    return v.endsWith('ms') ? parseFloat(v) : parseFloat(v) * 1000 || 0;
+  };
+
   let yendo = false;
   function entrar(e) {
     if (yendo) return;
@@ -35,8 +42,8 @@
     yendo = true;
     sessionStorage.setItem('entrando', '1');          // lo lee el tunel
     if (seco) { location.href = destino; return; }
-    document.body.classList.add('entrando');          // parpadeo + zoom
-    setTimeout(() => { location.href = destino; }, 620);
+    document.body.classList.add('entrando');          // primero cierra, luego zoom
+    setTimeout(() => { location.href = destino; }, ms('--parpadeo') + ms('--zoom') - 40);
   }
 
   addEventListener('pointerdown', entrar);

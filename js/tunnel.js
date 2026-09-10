@@ -145,7 +145,11 @@
     if (cerca !== visto) {
       visto = cerca;
       puntos.forEach((b, i) => b && b.classList.toggle('aqui', i === cerca));
-      if (rotulo) rotulo.innerHTML = `<b>${datos[cerca].rotulo}</b><i>${datos[cerca].pie}</i>`;
+      if (rotulo) {
+        rotulo.innerHTML = `<b>${datos[cerca].rotulo}</b><i>${datos[cerca].pie}</i>`;
+        // La ficha es el proyecto de delante: tambien se puede entrar por ella.
+        if (rotulo.tagName === 'A') rotulo.href = datos[cerca].href;
+      }
     }
 
   }
@@ -171,12 +175,11 @@
     mover((Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX) * .0022);
   }, { passive: false });
 
-  let x0 = 0, y0 = 0, p0 = 0, movido = 0;
+  let x0 = 0, y0 = 0, p0 = 0, movido = 0, capturado = 0;
   escena.addEventListener('pointerdown', e => {
     if (e.button) return;
-    agarrado = true; movido = 0;
+    agarrado = true; movido = 0; capturado = 0;
     x0 = e.clientX; y0 = e.clientY; p0 = meta;
-    escena.setPointerCapture(e.pointerId);
   });
   escena.addEventListener('pointermove', e => {
     if (!agarrado) return;
@@ -185,6 +188,9 @@
     if (movido > ARRASTRE) {
       arrastrando = true;
       escena.classList.add('arrastrando');
+      // Se captura aqui, no en pointerdown: con la captura puesta el click
+      // se dispara sobre .escena y el enlace de la carta nunca se abre.
+      if (!capturado) { capturado = 1; escena.setPointerCapture(e.pointerId); }
       meta = lim(p0 - (dx + dy) / 190, -FUERA, ultimo + FUERA);
     }
   });
@@ -196,11 +202,19 @@
   };
   escena.addEventListener('pointerup', soltar);
   escena.addEventListener('pointercancel', soltar);
+  // Si sueltas fuera de la escena antes de llegar al umbral no hay captura
+  // y el pointerup no llega aqui: sin esto te quedarias agarrado.
+  addEventListener('pointerup', soltar);
 
   // El clic entra al proyecto. Solo se anula si venias arrastrando, que
   // entonces no era un clic sino el final de un gesto.
   escena.addEventListener('click', e => {
-    if (arrastrando && e.target.closest('.carta')) e.preventDefault();
+    const carta = e.target.closest('.carta');
+    if (!carta) return;
+    if (arrastrando) { e.preventDefault(); return; }
+    // Red de seguridad: si algo se comio la navegacion del enlace (captura
+    // de puntero, un padre que traga el evento), la hacemos a mano.
+    if (!e.defaultPrevented) { e.preventDefault(); location.href = carta.href; }
   });
 
   addEventListener('keydown', e => {
