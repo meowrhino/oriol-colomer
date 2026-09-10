@@ -57,15 +57,26 @@ const ogImage = p => p.media.find(m => !isVideo(m)) || null;
 const linkHandles = txt => esc(txt).replace(/@[\w.\-_]+/g,
   h => `<a href="${igUrl(h)}" target="_blank" rel="noopener">${h}</a>`);
 
-/** Un item de media: imagen o video en bucle, mudo, sin controles. */
-const mediaTag = (m, p, sub, i) => isVideo(m)
-  ? `<video src="/${esc(m)}" autoplay muted loop playsinline
-      preload="${i < 2 ? 'auto' : 'none'}" aria-label="${esc(p.title)} — ${esc(sub)}"></video>`
-  : `<img src="/${esc(m)}" alt="${esc(p.title)} — ${esc(sub)}"
+/** Un item de media: imagen, o video en bucle mudo sin controles.
+    Del video se ofrecen los dos formatos y elige el navegador: primero
+    el webm, que casi siempre pesa menos, y el mp4 como respaldo. El JSON
+    solo guarda el mp4 — el webm se detecta aqui si el fichero existe. */
+const mediaTag = (m, p, sub, i) => {
+  const label = `${esc(p.title)} — ${esc(sub)}`;
+  if (!isVideo(m)) {
+    return `<img src="/${esc(m)}" alt="${label}"
       loading="${i < 2 ? 'eager' : 'lazy'}" decoding="async">`;
+  }
+  const webm = m.replace(/\.mp4$/i, '.webm');
+  const has  = existsSync(join(ROOT, webm));
+  return `<video autoplay muted loop playsinline
+      preload="${i < 2 ? 'auto' : 'none'}" aria-label="${label}">`
+    + (has ? `<source src="/${esc(webm)}" type="video/webm">` : '')
+    + `<source src="/${esc(m)}" type="video/mp4"></video>`;
+};
 
 /* ---------- parciales ----------------------------------- */
-function head({ lang, title, desc, path, image, jsonld }) {
+function head({ lang, title, desc, path, image, jsonld, anim }) {
   const alts = LANGS.map(l =>
     `<link rel="alternate" hreflang="${l === 'cat' ? 'ca' : l}" href="${abs(url(l, path))}">`
   ).join('\n  ');
@@ -94,7 +105,8 @@ function head({ lang, title, desc, path, image, jsonld }) {
   ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld)}</script>` : ''}
 </head>
 <body>
-<div class="dots" aria-hidden="true"></div>`;
+<canvas class="dots" id="bg" data-anim="${anim ? 1 : 0}" aria-hidden="true"></canvas>
+<script src="/js/bg.js"></script>`;
 }
 
 function nav(lang, current, variant = 'inline') {
@@ -125,16 +137,23 @@ function langs(lang, path) {
     + `<span class="ding" aria-hidden="true">&#128;&#61;</span></nav>`;
 }
 
-const sig = (flow = false) =>
-  `<p class="sig${flow ? ' sig--flow' : ''}">${esc(site.credit.label)}: `
+const sig = () =>
+  `<p class="sig">${esc(site.credit.label)}: `
   + `<a href="${site.credit.url}" target="_blank" rel="noopener">${esc(site.credit.name)}</a></p>`;
+
+/** Pie de pagina: idiomas y firma.
+    En la landing van anclados a las esquinas, que la pagina cabe entera.
+    En las que scrollean van al final, o se comen el contenido. */
+const pageFoot = (lang, path, fixed = false) => fixed
+  ? langs(lang, path) + sig()
+  : `<footer class="foot">${sig()}${langs(lang, path)}</footer>`;
 
 const foot = () => `</body>\n</html>\n`;
 
 /* ---------- paginas ------------------------------------- */
 function landing(lang) {
   return head({
-    lang, path: '',
+    lang, path: '', anim: true,
     title: `${site.name} — ${t(site.tagline, lang)}`,
     desc: t(site.tagline, lang),
     image: ogImage(live[0]),
@@ -150,14 +169,15 @@ function landing(lang) {
   <div class="hero">
     <div class="eye" id="eye">
       <div class="lens">
-        <img class="shape" src="/assets/eye_shape.png" alt="" width="160" height="102">
+        <!-- El contorno viene en blanco sobre transparente, asi que va de
+             mascara y el color lo pone el CSS. -->
+        <span class="shape" aria-hidden="true"></span>
         <img class="pupil" id="pupil" src="/assets/eye_pupil.png" alt="" width="70" height="70">
       </div>
       <h1 class="name">${esc(site.name)}</h1>
     </div>
   </div>
-  ${langs(lang, '')}
-  ${sig()}
+  ${pageFoot(lang, '', true)}
 </main>
 <script src="/js/eye.js" defer></script>`
   + foot();
@@ -205,8 +225,7 @@ ${rows}
   </ul>
 </main>
 <div class="peek" id="peek" aria-hidden="true"><img src="" alt=""></div>
-${langs(lang, 'work/')}
-${sig()}
+${pageFoot(lang, 'work/')}
 <script src="/js/work.js" defer></script>`
   + foot();
 }
@@ -278,8 +297,7 @@ ${media || '      <!-- sin material grafico todavia -->'}
     ${next ? `<a class="r" href="${url(lang,'work/'+next.slug+'/')}">${esc(next.title)} →</a>` : '<span></span>'}
   </nav>
 </main>
-${langs(lang, `work/${p.slug}/`)}
-${sig()}`
+${pageFoot(lang, `work/${p.slug}/`)}`
   + foot();
 }
 
@@ -303,8 +321,7 @@ ${ps.map(x => `  <p>${esc(x)}</p>`).join('\n')}
   <p class="contact"><a href="mailto:${esc(site.email)}">${esc(site.email)}</a> ·
      <a href="${igUrl(site.instagram)}" target="_blank" rel="noopener">${esc(site.instagram)}</a></p>
 </main>
-${langs(lang, 'about/')}
-${sig()}`
+${pageFoot(lang, 'about/')}`
   + foot();
 }
 

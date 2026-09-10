@@ -55,12 +55,12 @@ img{ max-width:100%; display:block; }
 .sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 
 /* ---------- fondo de puntos ------------------------------- */
-/* Va como capa fija detras de todo para que no se mueva al
-   scrollear: en la referencia el halftone es papel, no contenido. */
+/* Lo pinta js/bg.js: una trama de puntos sobre blanco cuyo radio sale
+   de un mapa de altura que se desplaza. Capa fija detras de todo: en
+   la referencia el halftone es papel, no contenido. */
 .dots{
   position:fixed; inset:0; z-index:-1; pointer-events:none;
-  background:url('../assets/bg.png') center/cover no-repeat;
-  opacity:.55;
+  --dot-rgb: 226,226,226;
 }
 
 /* ============================================================
@@ -110,7 +110,12 @@ img{ max-width:100%; display:block; }
   width: clamp(120px, 11vw, 168px);
   aspect-ratio: 160 / 102;
 }
-.eye .shape{ position:absolute; inset:0; width:100%; height:100%; }
+.eye .shape{
+  position:absolute; inset:0;
+  background: var(--ink-soft);
+  -webkit-mask: url('../assets/eye_shape.png') center/contain no-repeat;
+          mask: url('../assets/eye_shape.png') center/contain no-repeat;
+}
 .eye .pupil{
   position:absolute; left:50%; top:50%;
   width:43.75%;                       /* 70/160, la proporcion real de los png */
@@ -254,12 +259,20 @@ img{ max-width:100%; display:block; }
    ============================================================ */
 .sig{
   position:fixed; left:var(--pad); bottom:var(--pad); z-index:3;
-  font-size: var(--fs-meta); color: var(--ink-faint);
+  margin:0; font-size: var(--fs-meta); color: var(--ink-faint);
 }
 .sig a{ color: var(--ink-soft); }
 .sig a:hover{ color: var(--ink-hard); }
-/* en paginas largas la firma vive al final, no fija */
-.sig--flow{ position:static; padding: 0 var(--pad) var(--pad); }
+
+/* Pie de las paginas que scrollean: los dos elementos dejan de estar
+   anclados y pasan a ser una fila al final del documento. */
+.foot{
+  display:flex; justify-content:space-between; align-items:baseline;
+  gap:2ch; flex-wrap:wrap;
+  padding: var(--pad) var(--pad) calc(var(--pad) * 1.2);
+}
+.foot .sig, .foot .langs{ position:static; padding:0; }
+.foot .langs{ margin-left:auto; }
 
 /* ============================================================
    RESPONSIVE
@@ -292,6 +305,7 @@ img{ max-width:100%; display:block; }
   .peek{ display:none; }
   .langs, .sig{ position:static; }
   .langs{ justify-content:flex-end; padding: 0 var(--pad) var(--pad); }
+  .foot .langs{ padding:0; }
   .meta{ grid-template-columns: 1fr; gap:.15em; }
   .meta .c, .meta .g{ text-align:left; }
 }
