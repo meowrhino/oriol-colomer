@@ -27,3 +27,12 @@ find media -type f -name '*.mp4' -print0 | while IFS= read -r -d '' m; do
   printf '%-46s mp4 %7s  webm %7s\n' "$(basename "$m")" \
     "$(du -h "$m"|cut -f1)" "$(du -h "$out"|cut -f1)"
 done
+
+# 3. un fotograma de cada video como poster: lo usa <video poster> y, si el
+#    proyecto no tiene ninguna foto, tambien la carta del tunel
+find media -type f -name '*.mp4' -print0 | while IFS= read -r -d '' m; do
+  out="${m%.mp4}.poster.jpg"
+  [ -f "$out" ] && continue
+  ffmpeg -nostdin -loglevel error -y -i "$m" -frames:v 1 -q:v 5 "$out"
+  echo "poster    $(basename "$out")  $(du -h "$out"|cut -f1)"
+done

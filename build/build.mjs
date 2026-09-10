@@ -48,8 +48,17 @@ const metaDesc = txt => {
 const igUrl = h => `https://instagram.com/${h.replace(/^@/,'')}`;
 
 const isVideo = m => /\.(mp4|webm)$/i.test(m);
-/** Primer fichero del proyecto: es la portada, sin campo aparte. */
-const cover   = p => p.media[0] || null;
+/** Fotograma de un video, generado por build/video.sh. */
+const poster  = m => m.replace(/\.mp4$/i, '.poster.jpg');
+/** Primer fichero del proyecto: es la portada, sin campo aparte.
+    Si es un video se usa su poster, que es lo que cabe en un <img>. */
+const cover   = p => {
+  const m = p.media[0];
+  if (!m) return null;
+  if (!isVideo(m)) return m;
+  const pj = poster(m);
+  return existsSync(join(ROOT, pj)) ? pj : (p.media.find(x => !isVideo(x)) || null);
+};
 /** Para og:image hace falta una imagen de verdad, no un mp4. */
 const ogImage = p => p.media.find(m => !isVideo(m)) || null;
 
@@ -69,14 +78,16 @@ const mediaTag = (m, p, sub, i) => {
   }
   const webm = m.replace(/\.mp4$/i, '.webm');
   const has  = existsSync(join(ROOT, webm));
+  const pj = poster(m);
   return `<video autoplay muted loop playsinline
+      ${existsSync(join(ROOT, pj)) ? `poster="/${esc(pj)}"` : ''}
       preload="${i < 2 ? 'auto' : 'none'}" aria-label="${label}">`
     + (has ? `<source src="/${esc(webm)}" type="video/webm">` : '')
     + `<source src="/${esc(m)}" type="video/mp4"></video>`;
 };
 
 /* ---------- parciales ----------------------------------- */
-function head({ lang, title, desc, path, image, jsonld, anim }) {
+function head({ lang, title, desc, path, image, jsonld, anim, entrar }) {
   const alts = LANGS.map(l =>
     `<link rel="alternate" hreflang="${l === 'cat' ? 'ca' : l}" href="${abs(url(l, path))}">`
   ).join('\n  ');
@@ -104,7 +115,7 @@ function head({ lang, title, desc, path, image, jsonld, anim }) {
   <link rel="stylesheet" href="/css/style.css">
   ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld)}</script>` : ''}
 </head>
-<body>
+<body${entrar ? ` data-entrar="${entrar}"` : ''}>
 <canvas class="dots" id="bg" data-anim="${anim ? 1 : 0}" aria-hidden="true"></canvas>
 <script src="/js/bg.js"></script>`;
 }
@@ -129,12 +140,15 @@ function nav(lang, current, variant = 'inline') {
 }
 
 function langs(lang, path) {
+  // Sin separadores y sin adornos: los separa el espacio y el activo se
+  // distingue por peso. El dingbat de la referencia se cae — en el png
+  // se lee como un icono, pero como texto sale como un simbolo suelto.
   return `<nav class="langs" aria-label="idioma">`
     + LANGS.map(l => l === lang
         ? `<span aria-current="true">${l}</span>`
         : `<a href="${url(l, path)}" hreflang="${l === 'cat' ? 'ca' : l}">${l}</a>`
-      ).join('<span class="sep">/</span>')
-    + `<span class="ding" aria-hidden="true">&#128;&#61;</span></nav>`;
+      ).join('')
+    + `</nav>`;
 }
 
 const sig = () =>
@@ -153,7 +167,7 @@ const foot = () => `</body>\n</html>\n`;
 /* ---------- paginas ------------------------------------- */
 function landing(lang) {
   return head({
-    lang, path: '', anim: true,
+    lang, path: '', anim: true, entrar: url(lang, 'work/'),
     title: `${site.name} — ${t(site.tagline, lang)}`,
     desc: t(site.tagline, lang),
     image: ogImage(live[0]),
@@ -165,7 +179,6 @@ function landing(lang) {
     },
   })
   + `<main class="landing">
-  ${nav(lang, null, 'spread')}
   <div class="hero">
     <div class="eye" id="eye">
       <div class="lens">
@@ -176,15 +189,18 @@ function landing(lang) {
       </div>
       <h1 class="name">${esc(site.name)}</h1>
     </div>
+    <p class="pista">${esc(t(site.ui.enter, lang))}</p>
   </div>
-  ${pageFoot(lang, '', true)}
+  ${langs(lang, '')}
 </main>
-<script src="/js/eye.js" defer></script>`
+<script src="/js/welcome.js" defer></script>`
   + foot();
 }
 
 function workIndex(lang) {
   const tags = [...new Set(live.flatMap(p => p.tags))];
+  // La lista va en el HTML siempre: es lo que lee Google y lo que queda
+  // si no corre JavaScript. El tunel se construye a partir de ella.
   const rows = live.map(p => `      <li data-tags="${esc(p.tags.join(' '))}"
           data-date="${p.date}" data-client="${esc(p.client.toLowerCase())}" data-title="${esc(p.title.toLowerCase())}">
         <a href="${url(lang, 'work/' + p.slug + '/')}"${cover(p) ? ` data-peek="/${esc(cover(p))}"` : ''}>
@@ -197,7 +213,7 @@ function workIndex(lang) {
   const sorts = [['date', site.ui.byDate], ['client', site.ui.byClient], ['title', site.ui.byTitle]];
 
   return head({
-    lang, path: 'work/',
+    lang, path: 'work/', anim: false,
     title: `work — ${site.shortName}`,
     desc: t(site.tagline, lang),
     image: ogImage(live[0]),
@@ -208,7 +224,26 @@ function workIndex(lang) {
     },
   })
   + `${nav(lang, 'work')}
+
+<div class="vistas" role="group" aria-label="vista">
+  <button type="button" data-vista="tunel" aria-pressed="true">${esc(t(site.ui.tunnel, lang))}</button>
+  <button type="button" data-vista="lista" aria-pressed="false">${esc(t(site.ui.list, lang))}</button>
+</div>
+
 <main class="wrap">
+  <!-- vista tunel -->
+  <div class="escena" id="escena">
+    <div class="tunel" id="tunel"></div>
+  </div>
+  <footer class="tiempo">
+    <div class="barra" id="barra">
+      <span class="rotulo" id="rotulo"></span>
+      <div class="marcas" id="marcas"></div>
+      <div class="pomo" id="pomo"></div>
+    </div>
+  </footer>
+
+  <!-- vista lista -->
   <div class="controls">
     <div class="filters" role="group" aria-label="tags">
       <button type="button" data-tag="" aria-pressed="true">${esc(t(site.ui.all, lang))}</button>
@@ -226,7 +261,8 @@ ${rows}
 </main>
 <div class="peek" id="peek" aria-hidden="true"><img src="" alt=""></div>
 ${pageFoot(lang, 'work/')}
-<script src="/js/work.js" defer></script>`
+<script src="/js/work.js" defer></script>
+<script src="/js/tunnel.js" defer></script>`
   + foot();
 }
 

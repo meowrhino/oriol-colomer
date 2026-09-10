@@ -136,6 +136,21 @@
       "en": "title",
       "es": "título",
       "cat": "títol"
+    },
+    "enter": {
+      "en": "click anywhere",
+      "es": "clica donde sea",
+      "cat": "clica on sigui"
+    },
+    "tunnel": {
+      "en": "tunnel",
+      "es": "túnel",
+      "cat": "túnel"
+    },
+    "list": {
+      "en": "list",
+      "es": "lista",
+      "cat": "llista"
     }
   }
 }
