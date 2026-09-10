@@ -1,0 +1,301 @@
+/* ============================================================
+   oriol colomer — hoja de estilo unica
+   Todo en Helvetica. Escala de grises. Sin sombras, sin bordes,
+   sin radios: la jerarquia la hace el tamano y el gris.
+   ============================================================ */
+
+@font-face { font-family: 'Helvetica Local'; src: url('../assets/fonts/helvetica.ttf') format('truetype');
+             font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Helvetica Local'; src: url('../assets/fonts/helvetica-bold.ttf') format('truetype');
+             font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Helvetica Local'; src: url('../assets/fonts/helvetica-oblique.ttf') format('truetype');
+             font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Helvetica Local'; src: url('../assets/fonts/helvetica-light-587ebe5a59211.ttf') format('truetype');
+             font-weight: 300; font-style: normal; font-display: swap; }
+
+:root{
+  --bg:        #fafafa;
+  --ink:       #7d7d7d;   /* cuerpo de texto */
+  --ink-soft:  #a6a6a6;   /* titulos, secundario */
+  --ink-faint: #c4c4c4;   /* inactivo, lab */
+  --ink-hard:  #4f4f4f;   /* activo, roles en bold */
+
+  --pad:   clamp(20px, 3.2vw, 52px);   /* margen exterior */
+  --gap:   clamp(24px, 4vw, 72px);     /* separacion entre columnas */
+
+  --fs-nav:   clamp(14px, 1.05vw, 17px);
+  --fs-body:  clamp(14px, 1.02vw, 16px);
+  --fs-meta:  clamp(12px, .92vw, 14px);
+  --fs-title: clamp(30px, 4.4vw, 62px);
+
+  --lh: 1.45;
+  font-size: 16px;
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+
+html{ -webkit-text-size-adjust:100%; }
+
+body{
+  margin:0;
+  min-height:100dvh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family:'Helvetica Local', Helvetica, 'Helvetica Neue', Arial, sans-serif;
+  font-weight:400;
+  font-size: var(--fs-body);
+  line-height: var(--lh);
+  -webkit-font-smoothing: antialiased;
+}
+
+a{ color:inherit; text-decoration:none; }
+a:hover{ color: var(--ink-hard); }
+img{ max-width:100%; display:block; }
+
+.sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+
+/* ---------- fondo de puntos ------------------------------- */
+/* Va como capa fija detras de todo para que no se mueva al
+   scrollear: en la referencia el halftone es papel, no contenido. */
+.dots{
+  position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background:url('../assets/bg.png') center/cover no-repeat;
+  opacity:.55;
+}
+
+/* ============================================================
+   NAV
+   Dos variantes de la misma barra:
+   .nav--spread  -> landing: work | about | lab anclados a los bordes
+   .nav--inline  -> interior: • work / about / lab a la izquierda
+   ============================================================ */
+.nav{
+  position:relative; z-index:2;
+  padding: var(--pad);
+  font-size: var(--fs-nav);
+  color: var(--ink-soft);
+}
+.nav a{ color: var(--ink-soft); }
+.nav a:hover{ color: var(--ink-hard); }
+.nav [aria-current="page"]{ color: var(--ink-hard); font-weight:700; }
+.nav .off{ color: var(--ink-faint); cursor:default; }   /* lab, todavia sin destino */
+
+.nav--spread{ display:flex; justify-content:space-between; align-items:baseline; }
+.nav--spread .mid{ position:absolute; left:50%; transform:translateX(-50%); }
+
+.nav--inline{ display:flex; align-items:baseline; gap:.5ch; }
+.nav--inline .dot{ font-size:.7em; line-height:1; margin-right:1.1ch; color:var(--ink-soft); }
+.nav--inline .sep{ color: var(--ink-faint); }
+
+/* ---------- selector de idioma ---------------------------- */
+.langs{
+  position:fixed; right:var(--pad); bottom:var(--pad); z-index:3;
+  display:flex; align-items:baseline; gap:.5ch;
+  font-size: var(--fs-nav); color: var(--ink-soft);
+}
+.langs a[aria-current]{ color: var(--ink-hard); font-weight:700; }
+.langs .sep{ color: var(--ink-faint); }
+.langs .ding{ font-family:'Webdings','Wingdings',sans-serif; margin-left:.6ch; color:var(--ink-faint); }
+
+/* ============================================================
+   LANDING
+   ============================================================ */
+.landing{ min-height:100dvh; display:flex; flex-direction:column; }
+.landing .nav{ flex:0 0 auto; }
+.landing .hero{ flex:1 1 auto; display:grid; place-items:center; padding: var(--pad); }
+
+.eye{ display:grid; place-items:center; gap: clamp(14px,2vw,26px); }
+.eye .lens{
+  position:relative;
+  width: clamp(120px, 11vw, 168px);
+  aspect-ratio: 160 / 102;
+}
+.eye .shape{ position:absolute; inset:0; width:100%; height:100%; }
+.eye .pupil{
+  position:absolute; left:50%; top:50%;
+  width:43.75%;                       /* 70/160, la proporcion real de los png */
+  translate:-50% -50%;
+  transition: translate .12s linear;  /* sigue al cursor, sin rebote */
+}
+.eye .name{
+  margin:0; font-weight:400; color: var(--ink-soft);
+  font-size: clamp(17px, 1.55vw, 24px); letter-spacing:.005em;
+}
+
+/* ============================================================
+   WORK — indice
+   Lista, no rejilla: los titulos son largos y una rejilla los
+   parte. La imagen aparece al pasar por encima.
+   ============================================================ */
+.wrap{ padding: 0 var(--pad) calc(var(--pad) * 3); }
+
+.controls{
+  display:flex; flex-wrap:wrap; align-items:baseline; gap: 1.5rem 3ch;
+  padding: 0 0 calc(var(--pad) * .8);
+  font-size: var(--fs-meta); color: var(--ink-faint);
+}
+.filters, .sorts{ display:flex; flex-wrap:wrap; align-items:baseline; gap:1.4ch; }
+.sorts{ margin-left:auto; }
+.sorts .lbl{ color: var(--ink-faint); }
+.filters button, .sorts button{
+  font:inherit; background:none; border:0; padding:0; cursor:pointer; color:inherit;
+}
+.filters button:hover, .sorts button:hover{ color: var(--ink); }
+.filters button[aria-pressed="true"], .sorts button[aria-pressed="true"]{ color: var(--ink-hard); font-weight:700; }
+.filters button:focus-visible, .sorts button:focus-visible{ outline:1px solid var(--ink-hard); outline-offset:3px; }
+
+.index{ list-style:none; margin:0; padding:0; }
+.index li{ border-top:1px solid #ececec; }
+.index li:last-child{ border-bottom:1px solid #ececec; }
+.index a{
+  display:grid; align-items:baseline; gap: var(--gap);
+  grid-template-columns: 1fr 14ch 6ch;
+  padding: clamp(11px,1.1vw,17px) 0;
+  color: var(--ink-soft);
+}
+.index a:hover{ color: var(--ink-hard); }
+.index .t{ font-size: clamp(16px,1.5vw,22px); }
+.index .t small{ display:block; font-size: var(--fs-meta); color: var(--ink-faint); margin-top:.25em; }
+.index .c,.index .g{ font-size: var(--fs-meta); color: var(--ink-faint); }
+.index .g{ text-align:right; }
+
+/* miniatura flotante al hover, sigue al raton */
+.peek{ top:0; left:0;
+  position:fixed; z-index:5; width: 240px; pointer-events:none;
+  opacity:0; transition: opacity .18s ease;
+}
+.peek img{ width:100%; aspect-ratio:16/9; object-fit:cover; }
+.peek.on{ opacity:1; }
+
+/* ============================================================
+   PROYECTO
+   Dos columnas: media scrollea, texto se queda quieto.
+   ============================================================ */
+.project{
+  display:grid; gap: var(--gap);
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1fr);
+  padding: 0 var(--pad) calc(var(--pad) * 3);
+  align-items:start;
+}
+/* En el DOM van .side (texto + creditos) y luego .media, que es el orden
+   de movil. En escritorio se invierten con grid-column, sin tocar el HTML. */
+.side{ grid-column:2; grid-row:1; position:sticky; top: var(--pad); min-width:0; }
+.media{ grid-column:1; grid-row:1; display:grid; gap: clamp(6px,.7vw,12px); min-width:0; }
+.media figure{ margin:0; }
+.media img, .media video{ width:100%; height:auto; display:block; background:#f0f0f0; }
+
+.info{ min-width:0; }
+
+.title{
+  margin:0 0 .5em;
+  font-weight:400; font-size: var(--fs-title); line-height:1.02;
+  color: var(--ink-soft); letter-spacing:-.012em;
+}
+.title .at{ color: var(--ink-faint); margin:0 .12em; }   /* la @ separada, como en la ref */
+
+/* fila de metadatos: fecha | cliente | tags, justificada al ancho */
+.meta{
+  display:grid; grid-template-columns: 1fr 1fr 1fr; align-items:baseline;
+  font-size: var(--fs-meta); color: var(--ink-soft);
+  padding-bottom: clamp(16px,1.8vw,30px);
+}
+.meta .d{ font-style:italic; }
+.meta .c{ text-align:center; }
+.meta .g{ text-align:right; letter-spacing:.06em; }
+.meta .g a{ color:inherit; }
+
+.body p{ margin:0 0 1em; text-align:justify; hyphens:auto; }
+.body p:last-child{ margin-bottom:0; }
+
+.watch{
+  display:inline-block; margin-top: 1.4em;
+  font-size: var(--fs-meta); color: var(--ink-soft);
+  border-bottom:1px solid var(--ink-faint); padding-bottom:.15em;
+}
+.watch:hover{ color: var(--ink-hard); border-color: var(--ink-hard); }
+
+.credits{ margin-top: clamp(40px,6vw,110px); font-size: var(--fs-meta); min-width:0; }
+.credits h2{
+  margin:0 0 .45em; font-weight:400; color: var(--ink-soft);
+  font-size: clamp(15px,1.25vw,19px);
+}
+.credits dl{ margin:0; }
+.credits .row{ display:block; }
+.credits dt{ display:inline; font-weight:700; color: var(--ink-hard); }
+.credits dd{ display:inline; margin:0; color: var(--ink-soft); }
+.credits dd a{ color:inherit; }
+.credits dd a:hover{ color: var(--ink-hard); }
+
+/* paginacion entre proyectos */
+.pager{
+  display:flex; justify-content:space-between; gap:2ch;
+  grid-column: 1 / -1; grid-row:2;
+  margin-top: clamp(48px,7vw,120px); padding-top: var(--pad);
+  border-top:1px solid #ececec;
+  font-size: var(--fs-meta); color: var(--ink-faint);
+}
+.pager a{ color: var(--ink-soft); max-width:42ch; }
+.pager .r{ text-align:right; margin-left:auto; }
+
+/* ============================================================
+   ABOUT
+   ============================================================ */
+.about{ max-width: 62ch; padding: 0 var(--pad) calc(var(--pad) * 3); }
+.about h1{
+  margin:0 0 .6em; font-weight:400; color: var(--ink-soft);
+  font-size: clamp(26px,3.2vw,44px); line-height:1.05;
+}
+.about p{ margin:0 0 1.1em; text-align:justify; hyphens:auto; }
+.about .contact{ margin-top:2.4em; font-size: var(--fs-meta); }
+.about .contact a{ border-bottom:1px solid var(--ink-faint); }
+
+/* ============================================================
+   PIE — la firma
+   ============================================================ */
+.sig{
+  position:fixed; left:var(--pad); bottom:var(--pad); z-index:3;
+  font-size: var(--fs-meta); color: var(--ink-faint);
+}
+.sig a{ color: var(--ink-soft); }
+.sig a:hover{ color: var(--ink-hard); }
+/* en paginas largas la firma vive al final, no fija */
+.sig--flow{ position:static; padding: 0 var(--pad) var(--pad); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 820px){
+  /* .side deja de ser caja para que sus hijos entren en la misma rejilla
+     que .media: asi el orden es texto -> carrusel -> creditos. */
+  .project{ grid-template-columns: 1fr; gap: clamp(26px,6vw,44px); }
+  .side{ display:contents; }
+  .info   { grid-column:1; grid-row:auto; order:1; }
+  .media  { grid-column:1; grid-row:auto; order:2; }
+  .credits{ grid-column:1; grid-row:auto; order:3; margin-top:0; }
+  .pager  { grid-column:1; grid-row:auto; order:4; }
+
+  /* En movil la tira vertical se vuelve carrusel horizontal con anclaje. */
+  .media{
+    grid-auto-flow:column; grid-auto-columns:88%;
+    overflow-x:auto; scroll-snap-type:x mandatory;
+    gap:8px; margin-inline: calc(var(--pad) * -1); padding-inline: var(--pad);
+    scrollbar-width:none;
+  }
+  .media::-webkit-scrollbar{ display:none; }
+  .media figure{ scroll-snap-align:center; }
+  .media img, .media video{ aspect-ratio:16/9; object-fit:cover; }
+
+  .controls{ gap:.9rem 2ch; }
+  .sorts{ margin-left:0; }
+  .index a{ grid-template-columns: 1fr auto; gap: 1.5ch; }
+  .index .c{ display:none; }
+  .peek{ display:none; }
+  .langs, .sig{ position:static; }
+  .langs{ justify-content:flex-end; padding: 0 var(--pad) var(--pad); }
+  .meta{ grid-template-columns: 1fr; gap:.15em; }
+  .meta .c, .meta .g{ text-align:left; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{ transition:none !important; animation:none !important; }
+}

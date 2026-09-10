@@ -1,0 +1,141 @@
+{
+  "name": "oriol colomer delgado",
+  "shortName": "oriol colomer",
+  "baseUrl": "https://oriolcolomer.com",
+  "defaultLang": "en",
+  "langs": [
+    "cat",
+    "es",
+    "en"
+  ],
+  "email": "hola@oriolcolomer.com",
+  "instagram": "@oriolonbass",
+  "nav": [
+    {
+      "id": "home",
+      "href": "/",
+      "label": {
+        "en": "home",
+        "es": "home",
+        "cat": "home"
+      }
+    },
+    {
+      "id": "work",
+      "href": "/work/",
+      "label": {
+        "en": "work",
+        "es": "work",
+        "cat": "work"
+      }
+    },
+    {
+      "id": "about",
+      "href": "/about/",
+      "label": {
+        "en": "about",
+        "es": "about",
+        "cat": "about"
+      }
+    },
+    {
+      "id": "lab",
+      "href": null,
+      "label": {
+        "en": "lab",
+        "es": "lab",
+        "cat": "lab"
+      }
+    }
+  ],
+  "tagline": {
+    "en": "Lighting design, concert visuals and music videos. Barcelona.",
+    "es": "Diseño de iluminación, visuales de directo y videoclips. Barcelona.",
+    "cat": "Disseny d'il·luminació, visuals de directe i videoclips. Barcelona."
+  },
+  "about": {
+    "en": [
+      "I design light and moving image for live music. Most of what I do happens in the dark, in a venue, for the length of a concert — and then it is gone. The rest of the time I am editing, in front of a screen, trying to make something that survives the night.",
+      "I work between two things that look separate and are not: lighting design and video. A search light aimed at the right person at the right second does the same job as a cut. Both decide where you are supposed to look.",
+      "Since 2025 I have been designing and operating light for gavina.mp3, LeChatelier, Jimena Amarillo, TRISTÁN!, mori, xicu, Ouineta, AMORE and Cabiria, at Apolo, Razzmatazz, La Nau, Upload and around the Catalan festival circuit. Much of it together with Clàudia Aguiló. In parallel I direct and edit music videos and concert visuals, and I build things that do not have an obvious name yet — MetaHumans in Unreal, DMX lamps soldered from scratch, an archive that weaves itself while you talk about it.",
+      "I studied Digital Technology and Scene at the Institut del Teatre (Barcelona). I am based in Barcelona and I travel with the shows.",
+      "For bookings, riders or anything else, write to me."
+    ],
+    "es": [
+      "Diseño luz e imagen en movimiento para música en directo. Casi todo lo que hago pasa a oscuras, en una sala, durante lo que dura un concierto — y después desaparece. El resto del tiempo estoy montando, delante de una pantalla, intentando hacer algo que sobreviva a la noche.",
+      "Trabajo entre dos cosas que parecen separadas y no lo son: el diseño de iluminación y el vídeo. Un cañón de seguimiento apuntando a la persona correcta en el segundo correcto hace el mismo trabajo que un corte de montaje. Los dos deciden dónde tienes que mirar.",
+      "Desde 2025 diseño y opero luz para gavina.mp3, LeChatelier, Jimena Amarillo, TRISTÁN!, mori, xicu, Ouineta, AMORE y Cabiria, en Apolo, Razzmatazz, La Nau, Upload y por el circuito de festivales catalán. Buena parte, junto a Clàudia Aguiló. En paralelo dirijo y monto videoclips y visuales de directo, y construyo cosas que todavía no tienen un nombre claro: MetaHumans en Unreal, lámparas DMX soldadas desde cero, un archivo que se teje solo mientras hablas de él.",
+      "Estudié Tecnología Digital y Escena en el Institut del Teatre (Barcelona). Vivo en Barcelona y viajo con los shows.",
+      "Para bolos, riders o cualquier otra cosa, escríbeme."
+    ],
+    "cat": [
+      "Dissenyo llum i imatge en moviment per a música en directe. Gairebé tot el que faig passa a les fosques, en una sala, durant el que dura un concert — i després desapareix. La resta del temps estic muntant, davant d'una pantalla, intentant fer alguna cosa que sobrevisqui a la nit.",
+      "Treballo entre dues coses que semblen separades i no ho són: el disseny d'il·luminació i el vídeo. Un canó de seguiment apuntant a la persona correcta en el segon correcte fa la mateixa feina que un tall de muntatge. Tots dos decideixen on has de mirar.",
+      "Des del 2025 dissenyo i opero llum per a gavina.mp3, LeChatelier, Jimena Amarillo, TRISTÁN!, mori, xicu, Ouineta, AMORE i Cabiria, a l'Apolo, Razzmatazz, La Nau, Upload i pel circuit de festivals català. Bona part, amb la Clàudia Aguiló. En paral·lel dirigeixo i munto videoclips i visuals de directe, i construeixo coses que encara no tenen un nom clar: MetaHumans a l'Unreal, làmpades DMX soldades des de zero, un arxiu que es teixeix sol mentre en parles.",
+      "Vaig estudiar Tecnologia Digital i Escena a l'Institut del Teatre (Barcelona). Visc a Barcelona i viatjo amb els xous.",
+      "Per a bolos, riders o qualsevol altra cosa, escriu-me."
+    ]
+  },
+  "credit": {
+    "label": "web",
+    "name": "meowrhino estudio",
+    "url": "https://meowrhino.estudio"
+  },
+  "ui": {
+    "credits": {
+      "en": "Credits",
+      "es": "Créditos",
+      "cat": "Crèdits"
+    },
+    "watch": {
+      "en": "Watch",
+      "es": "Ver",
+      "cat": "Veure"
+    },
+    "index": {
+      "en": "Index",
+      "es": "Índice",
+      "cat": "Índex"
+    },
+    "all": {
+      "en": "all",
+      "es": "todo",
+      "cat": "tot"
+    },
+    "next": {
+      "en": "Next",
+      "es": "Siguiente",
+      "cat": "Següent"
+    },
+    "prev": {
+      "en": "Previous",
+      "es": "Anterior",
+      "cat": "Anterior"
+    },
+    "backToWork": {
+      "en": "Back to work",
+      "es": "Volver a work",
+      "cat": "Tornar a work"
+    },
+    "sort": {
+      "en": "sort",
+      "es": "orden",
+      "cat": "ordre"
+    },
+    "byDate": {
+      "en": "date",
+      "es": "fecha",
+      "cat": "data"
+    },
+    "byClient": {
+      "en": "client",
+      "es": "cliente",
+      "cat": "client"
+    },
+    "byTitle": {
+      "en": "title",
+      "es": "título",
+      "cat": "títol"
+    }
+  }
+}

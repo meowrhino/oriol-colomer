@@ -1,0 +1,11 @@
+{
+  "name": "oriol-colomer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build/build.mjs",
+    "dev": "node build/build.mjs && node build/serve.mjs",
+    "import": "python3 build/import-csv.py",
+    "media": "./build/gif2mp4.sh && ./build/optimize-images.sh"
+  }
+}

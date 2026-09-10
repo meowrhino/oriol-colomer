@@ -1,0 +1,355 @@
+/* ============================================================
+   build.mjs — Jamstack sin dependencias.
+   Lee data/*.json y escribe HTML plano, uno por proyecto e idioma.
+   El cliente solo toca los JSON: esto no se abre nunca.
+       node build/build.mjs
+   ============================================================ */
+import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const OUT  = join(ROOT, 'dist');
+const read = f => JSON.parse(readFileSync(join(ROOT, f), 'utf8'));
+
+const site = read('data/site.json');
+const all  = read('data/projects.json');
+const live = all.filter(p => p.published);          // FET? = FALSE no se publica
+const LANGS = site.langs;
+const DEF   = site.defaultLang;
+
+/* ---------- utilidades ---------------------------------- */
+const esc = s => String(s ?? '')
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+const t  = (obj, l) => (obj && (obj[l] || obj[DEF])) || '';
+// prefijo de idioma: el idioma por defecto vive en la raiz, los otros en /es/ y /cat/
+const pre = l => (l === DEF ? '' : `/${l}`);
+const url = (l, path='') => `${pre(l)}/${path}`.replace(/\/{2,}/g,'/');
+const abs = p => site.baseUrl.replace(/\/$/,'') + p;
+
+const fmtDate = (iso, l) => {
+  const [y,m,d] = iso.split('-');
+  return l === 'en' ? `${d}/${m}/${y}` : `${d}/${m}/${y}`;   // mismo formato que la ficha original
+};
+
+/** Corta el texto en parrafos por linea en blanco. */
+const paras = txt => String(txt).split(/\n{2,}/).map(s => s.trim()).filter(Boolean);
+
+/** El titulo lleva la @ en un span para poder darle su propio gris. */
+const titleHtml = tt => esc(tt).replace(/\s@\s/, ' <span class="at">@</span> ');
+
+/** 155 caracteres limpios para la meta description. */
+const metaDesc = txt => {
+  const flat = String(txt).replace(/\s+/g,' ').trim();
+  return flat.length <= 155 ? flat : flat.slice(0, 152).replace(/\s+\S*$/,'') + '…';
+};
+
+const igUrl = h => `https://instagram.com/${h.replace(/^@/,'')}`;
+
+const isVideo = m => /\.(mp4|webm)$/i.test(m);
+/** Primer fichero del proyecto: es la portada, sin campo aparte. */
+const cover   = p => p.media[0] || null;
+/** Para og:image hace falta una imagen de verdad, no un mp4. */
+const ogImage = p => p.media.find(m => !isVideo(m)) || null;
+
+/** Los @handle del texto de creditos se enlazan solos a Instagram. */
+const linkHandles = txt => esc(txt).replace(/@[\w.\-_]+/g,
+  h => `<a href="${igUrl(h)}" target="_blank" rel="noopener">${h}</a>`);
+
+/** Un item de media: imagen o video en bucle, mudo, sin controles. */
+const mediaTag = (m, p, sub, i) => isVideo(m)
+  ? `<video src="/${esc(m)}" autoplay muted loop playsinline
+      preload="${i < 2 ? 'auto' : 'none'}" aria-label="${esc(p.title)} — ${esc(sub)}"></video>`
+  : `<img src="/${esc(m)}" alt="${esc(p.title)} — ${esc(sub)}"
+      loading="${i < 2 ? 'eager' : 'lazy'}" decoding="async">`;
+
+/* ---------- parciales ----------------------------------- */
+function head({ lang, title, desc, path, image, jsonld }) {
+  const alts = LANGS.map(l =>
+    `<link rel="alternate" hreflang="${l === 'cat' ? 'ca' : l}" href="${abs(url(l, path))}">`
+  ).join('\n  ');
+  return `<!doctype html>
+<html lang="${lang === 'cat' ? 'ca' : lang}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>${esc(title)}</title>
+  <meta name="description" content="${esc(desc)}">
+  <link rel="canonical" href="${abs(url(lang, path))}">
+  ${alts}
+  <link rel="alternate" hreflang="x-default" href="${abs(url(DEF, path))}">
+  <meta property="og:type" content="${path.startsWith('work/') && path !== 'work/' ? 'article' : 'website'}">
+  <meta property="og:title" content="${esc(title)}">
+  <meta property="og:description" content="${esc(desc)}">
+  <meta property="og:url" content="${abs(url(lang, path))}">
+  <meta property="og:site_name" content="${esc(site.shortName)}">
+  <meta property="og:locale" content="${lang === 'cat' ? 'ca_ES' : lang === 'es' ? 'es_ES' : 'en_GB'}">
+  ${image ? `<meta property="og:image" content="${abs('/' + image)}">` : ''}
+  <meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}">
+  <meta name="theme-color" content="#fafafa">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='16' fill='%23a6a6a6'/%3E%3C/svg%3E">
+  <link rel="preload" as="font" type="font/ttf" href="/assets/fonts/helvetica.ttf" crossorigin>
+  <link rel="stylesheet" href="/css/style.css">
+  ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld)}</script>` : ''}
+</head>
+<body>
+<div class="dots" aria-hidden="true"></div>`;
+}
+
+function nav(lang, current, variant = 'inline') {
+  const item = n => {
+    const label = esc(t(n.label, lang));
+    if (!n.href) return `<span class="off" title="soon">${label}</span>`;      // lab
+    const href = url(lang, n.href.replace(/^\//,''));
+    return n.id === current
+      ? `<a href="${href}" aria-current="page">${label}</a>`
+      : `<a href="${href}">${label}</a>`;
+  };
+  // En la landing solo van los tres destinos; 'home' es la propia pagina.
+  if (variant === 'spread') {
+    const [, w, a, l] = site.nav;
+    return `<nav class="nav nav--spread">${item(w)}<span class="mid">${item(a)}</span>${item(l)}</nav>`;
+  }
+  return `<nav class="nav nav--inline">`
+       + site.nav.map(item).join('<span class="sep">/</span>')
+       + `</nav>`;
+}
+
+function langs(lang, path) {
+  return `<nav class="langs" aria-label="idioma">`
+    + LANGS.map(l => l === lang
+        ? `<span aria-current="true">${l}</span>`
+        : `<a href="${url(l, path)}" hreflang="${l === 'cat' ? 'ca' : l}">${l}</a>`
+      ).join('<span class="sep">/</span>')
+    + `<span class="ding" aria-hidden="true">&#128;&#61;</span></nav>`;
+}
+
+const sig = (flow = false) =>
+  `<p class="sig${flow ? ' sig--flow' : ''}">${esc(site.credit.label)}: `
+  + `<a href="${site.credit.url}" target="_blank" rel="noopener">${esc(site.credit.name)}</a></p>`;
+
+const foot = () => `</body>\n</html>\n`;
+
+/* ---------- paginas ------------------------------------- */
+function landing(lang) {
+  return head({
+    lang, path: '',
+    title: `${site.name} — ${t(site.tagline, lang)}`,
+    desc: t(site.tagline, lang),
+    image: ogImage(live[0]),
+    jsonld: {
+      '@context':'https://schema.org', '@type':'Person',
+      name: site.name, url: abs(url(lang)),
+      jobTitle: t(site.tagline, lang), email: `mailto:${site.email}`,
+      address: { '@type':'PostalAddress', addressLocality:'Barcelona', addressCountry:'ES' },
+    },
+  })
+  + `<main class="landing">
+  ${nav(lang, null, 'spread')}
+  <div class="hero">
+    <div class="eye" id="eye">
+      <div class="lens">
+        <img class="shape" src="/assets/eye_shape.png" alt="" width="160" height="102">
+        <img class="pupil" id="pupil" src="/assets/eye_pupil.png" alt="" width="70" height="70">
+      </div>
+      <h1 class="name">${esc(site.name)}</h1>
+    </div>
+  </div>
+  ${langs(lang, '')}
+  ${sig()}
+</main>
+<script src="/js/eye.js" defer></script>`
+  + foot();
+}
+
+function workIndex(lang) {
+  const tags = [...new Set(live.flatMap(p => p.tags))];
+  const rows = live.map(p => `      <li data-tags="${esc(p.tags.join(' '))}"
+          data-date="${p.date}" data-client="${esc(p.client.toLowerCase())}" data-title="${esc(p.title.toLowerCase())}">
+        <a href="${url(lang, 'work/' + p.slug + '/')}"${cover(p) ? ` data-peek="/${esc(cover(p))}"` : ''}>
+          <span class="t">${titleHtml(p.title)}<small>${esc(t(p.subheader, lang))}</small></span>
+          <span class="c">${esc(fmtDate(p.date, lang))}</span>
+          <span class="g">${esc(p.tags.join(' '))}</span>
+        </a>
+      </li>`).join('\n');
+
+  const sorts = [['date', site.ui.byDate], ['client', site.ui.byClient], ['title', site.ui.byTitle]];
+
+  return head({
+    lang, path: 'work/',
+    title: `work — ${site.shortName}`,
+    desc: t(site.tagline, lang),
+    image: ogImage(live[0]),
+    jsonld: {
+      '@context':'https://schema.org', '@type':'CollectionPage',
+      name:'work', url: abs(url(lang,'work/')),
+      hasPart: live.map(p => ({ '@type':'CreativeWork', name:p.title, url: abs(url(lang,'work/'+p.slug+'/')) })),
+    },
+  })
+  + `${nav(lang, 'work')}
+<main class="wrap">
+  <div class="controls">
+    <div class="filters" role="group" aria-label="tags">
+      <button type="button" data-tag="" aria-pressed="true">${esc(t(site.ui.all, lang))}</button>
+      ${tags.map(g => `<button type="button" data-tag="${esc(g)}" aria-pressed="false">${esc(g)}</button>`).join('\n      ')}
+    </div>
+    <div class="sorts" role="group" aria-label="${esc(t(site.ui.sort, lang))}">
+      <span class="lbl">${esc(t(site.ui.sort, lang))}</span>
+      ${sorts.map(([k, l], i) =>
+        `<button type="button" data-sort="${k}" aria-pressed="${i === 0}">${esc(t(l, lang))}</button>`).join('\n      ')}
+    </div>
+  </div>
+  <ul class="index" id="index">
+${rows}
+  </ul>
+</main>
+<div class="peek" id="peek" aria-hidden="true"><img src="" alt=""></div>
+${langs(lang, 'work/')}
+${sig()}
+<script src="/js/work.js" defer></script>`
+  + foot();
+}
+
+function projectPage(p, lang, prev, next) {
+  const desc = t(p.description, lang);
+  const sub  = t(p.subheader, lang);
+
+  const media = p.media.map((m, i) =>
+    `      <figure>${mediaTag(m, p, sub, i)}</figure>`).join('\n');
+
+  const roles = Object.entries(p.credits);
+  const credits = roles.length ? `    <section class="credits">
+      <h2>${esc(t(site.ui.credits, lang))}</h2>
+      <dl>
+${roles.map(([role, people]) =>
+  `        <div class="row"><dt>${esc(role)}</dt> <dd>${linkHandles(people)}</dd></div>`).join('\n')}
+      </dl>
+    </section>` : '';
+
+  return head({
+    lang, path: `work/${p.slug}/`,
+    title: `${p.title} — ${sub} — ${site.shortName}`,
+    desc: metaDesc(desc),
+    image: ogImage(p),
+    jsonld: {
+      '@context':'https://schema.org', '@type':'CreativeWork',
+      name: p.title, headline: p.title, abstract: sub,
+      description: metaDesc(desc),
+      datePublished: p.date,
+      url: abs(url(lang, `work/${p.slug}/`)),
+      inLanguage: lang === 'cat' ? 'ca' : lang,
+      creator: { '@type':'Person', name: site.name, url: site.baseUrl },
+      about: p.client,
+      keywords: p.tags.join(', '),
+      ...(ogImage(p) ? { image: abs('/' + ogImage(p)) } : {}),
+      ...(p.link  ? { sameAs: [p.link] } : {}),
+      contributor: roles.flatMap(([, people]) =>
+        (people.match(/@[\w.\-_]+/g) || []).map(h =>
+          ({ '@type':'Person', name: h, sameAs: igUrl(h) }))),
+    },
+  })
+  + `${nav(lang, 'work')}
+<main class="project">
+  <!-- El orden del DOM es el de movil: titulo, media, creditos.
+       En escritorio .side vuelve a ser columna y la media sube al lado. -->
+  <div class="side">
+    <div class="info">
+      <h1 class="title">${titleHtml(p.title)}</h1>
+      <div class="meta">
+        <span class="d">${esc(fmtDate(p.date, lang))}</span>
+        <span class="c">${esc(p.client)}</span>
+        <span class="g">${esc(p.tags.join(' '))}</span>
+      </div>
+      <div class="body">
+${paras(desc).map(x => `        <p>${esc(x)}</p>`).join('\n')}
+      </div>
+      ${p.link ? `<a class="watch" href="${esc(p.link)}" target="_blank" rel="noopener">${esc(t(site.ui.watch, lang))} →</a>` : ''}
+    </div>
+${credits}
+  </div>
+
+  <div class="media">
+${media || '      <!-- sin material grafico todavia -->'}
+  </div>
+
+  <nav class="pager" aria-label="proyectos">
+    ${prev ? `<a href="${url(lang,'work/'+prev.slug+'/')}">← ${esc(prev.title)}</a>` : '<span></span>'}
+    ${next ? `<a class="r" href="${url(lang,'work/'+next.slug+'/')}">${esc(next.title)} →</a>` : '<span></span>'}
+  </nav>
+</main>
+${langs(lang, `work/${p.slug}/`)}
+${sig()}`
+  + foot();
+}
+
+function aboutPage(lang) {
+  const ps = site.about[lang] || site.about[DEF];
+  return head({
+    lang, path: 'about/',
+    title: `about — ${site.shortName}`,
+    desc: metaDesc(ps[0]),
+    jsonld: {
+      '@context':'https://schema.org','@type':'AboutPage',
+      url: abs(url(lang,'about/')),
+      mainEntity: { '@type':'Person', name: site.name, description: metaDesc(ps[0]),
+                    email:`mailto:${site.email}`, url: site.baseUrl },
+    },
+  })
+  + `${nav(lang, 'about')}
+<main class="about">
+  <h1>${esc(site.name)}</h1>
+${ps.map(x => `  <p>${esc(x)}</p>`).join('\n')}
+  <p class="contact"><a href="mailto:${esc(site.email)}">${esc(site.email)}</a> ·
+     <a href="${igUrl(site.instagram)}" target="_blank" rel="noopener">${esc(site.instagram)}</a></p>
+</main>
+${langs(lang, 'about/')}
+${sig()}`
+  + foot();
+}
+
+/* ---------- escribir ------------------------------------ */
+const write = (path, html) => {
+  const file = join(OUT, path, 'index.html');
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, html);
+};
+
+rmSync(OUT, { recursive: true, force: true });
+mkdirSync(OUT, { recursive: true });
+for (const dir of ['css','js','assets','media']) {
+  if (existsSync(join(ROOT, dir))) cpSync(join(ROOT, dir), join(OUT, dir), { recursive: true });
+}
+
+let n = 0;
+for (const lang of LANGS) {
+  const base = lang === DEF ? '' : lang;
+  write(join(base),          landing(lang));   n++;
+  write(join(base,'work'),   workIndex(lang)); n++;
+  write(join(base,'about'),  aboutPage(lang)); n++;
+  live.forEach((p, i) => {
+    write(join(base,'work',p.slug), projectPage(p, lang, live[i-1], live[i+1]));
+    n++;
+  });
+}
+
+/* sitemap + robots, del mismo JSON */
+const urls = [];
+for (const lang of LANGS) {
+  urls.push([url(lang), null]);
+  urls.push([url(lang,'work/'), null]);
+  urls.push([url(lang,'about/'), null]);
+  for (const p of live) urls.push([url(lang,`work/${p.slug}/`), p.date]);
+}
+const NS = 'http://www.sitemaps.org/schemas/sitemap/0.9';
+writeFileSync(join(OUT, 'sitemap.xml'),
+  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="${NS}">\n`
+  + urls.map(([u, d]) =>
+      `  <url><loc>${abs(u)}</loc>${d ? `<lastmod>${d}</lastmod>` : ''}</url>`).join('\n')
+  + `\n</urlset>\n`);
+
+writeFileSync(join(OUT,'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${abs('/sitemap.xml')}\n`);
+writeFileSync(join(OUT,'.nojekyll'), '');
+
+console.log(`${n} paginas · ${live.length} proyectos publicados de ${all.length} · ${LANGS.length} idiomas`);
+console.log(`borradores (published:false): ${all.filter(p=>!p.published).map(p=>p.slug).join(', ')}`);
