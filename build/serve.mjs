@@ -27,7 +27,9 @@ let building = false, pending = false;
 const build = () => {
   if (building) { pending = true; return; }
   building = true;
-  execFile('node', [join(ROOT, 'build/build.mjs')], (err, out, errOut) => {
+  // En local se sirve en la raiz: sin subcarpeta, al reves que en Pages.
+  execFile('node', [join(ROOT, 'build/build.mjs')], { env: { ...process.env, BASE: '' } },
+    (err, out, errOut) => {
     building = false;
     console.log(err ? '✗ ' + (errOut || err.message).trim() : '· ' + out.trim().split('\n')[0]);
     for (const c of clients) c.write('data: go\n\n');

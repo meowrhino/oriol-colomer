@@ -18,6 +18,12 @@ const live = all.filter(p => p.published);          // FET? = FALSE no se public
 const LANGS = site.langs;
 const DEF   = site.defaultLang;
 
+/* Subcarpeta en la que se sirve el sitio. En GitHub Pages es el nombre del
+   repo; en un dominio propio, cadena vacia. Se puede forzar con BASE=... */
+const B = (process.env.BASE ?? site.base ?? '').replace(/\/$/, '');
+/** Prefija una ruta absoluta del sitio con esa subcarpeta. */
+const raiz = p => (B + (p.startsWith('/') ? p : '/' + p));
+
 /* ---------- utilidades ---------------------------------- */
 const esc = s => String(s ?? '')
   .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -25,8 +31,8 @@ const esc = s => String(s ?? '')
 const t  = (obj, l) => (obj && (obj[l] || obj[DEF])) || '';
 // prefijo de idioma: el idioma por defecto vive en la raiz, los otros en /es/ y /cat/
 const pre = l => (l === DEF ? '' : `/${l}`);
-const url = (l, path='') => `${pre(l)}/${path}`.replace(/\/{2,}/g,'/');
-const abs = p => site.baseUrl.replace(/\/$/,'') + p;
+const url = (l, path='') => B + `${pre(l)}/${path}`.replace(/\/{2,}/g,'/');
+const abs = p => site.baseUrl.replace(/\/$/,'') + p;   // p ya trae la subcarpeta
 
 const fmtDate = (iso, l) => {
   const [y,m,d] = iso.split('-');
@@ -73,17 +79,17 @@ const linkHandles = txt => esc(txt).replace(/@[\w.\-_]+/g,
 const mediaTag = (m, p, sub, i) => {
   const label = `${esc(p.title)} — ${esc(sub)}`;
   if (!isVideo(m)) {
-    return `<img src="/${esc(m)}" alt="${label}"
+    return `<img src="${raiz('/' + esc(m))}" alt="${label}"
       loading="${i < 2 ? 'eager' : 'lazy'}" decoding="async">`;
   }
   const webm = m.replace(/\.mp4$/i, '.webm');
   const has  = existsSync(join(ROOT, webm));
   const pj = poster(m);
   return `<video autoplay muted loop playsinline
-      ${existsSync(join(ROOT, pj)) ? `poster="/${esc(pj)}"` : ''}
+      ${existsSync(join(ROOT, pj)) ? `poster="${raiz('/' + esc(pj))}"` : ''}
       preload="${i < 2 ? 'auto' : 'none'}" aria-label="${label}">`
-    + (has ? `<source src="/${esc(webm)}" type="video/webm">` : '')
-    + `<source src="/${esc(m)}" type="video/mp4"></video>`;
+    + (has ? `<source src="${raiz('/' + esc(webm))}" type="video/webm">` : '')
+    + `<source src="${raiz('/' + esc(m))}" type="video/mp4"></video>`;
 };
 
 /* ---------- parciales ----------------------------------- */
@@ -107,17 +113,17 @@ function head({ lang, title, desc, path, image, jsonld, anim, entrar }) {
   <meta property="og:url" content="${abs(url(lang, path))}">
   <meta property="og:site_name" content="${esc(site.shortName)}">
   <meta property="og:locale" content="${lang === 'cat' ? 'ca_ES' : lang === 'es' ? 'es_ES' : 'en_GB'}">
-  ${image ? `<meta property="og:image" content="${abs('/' + image)}">` : ''}
+  ${image ? `<meta property="og:image" content="${abs(raiz('/' + image))}">` : ''}
   <meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}">
   <meta name="theme-color" content="#fafafa">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='16' fill='%23a6a6a6'/%3E%3C/svg%3E">
-  <link rel="preload" as="font" type="font/ttf" href="/assets/fonts/helvetica.ttf" crossorigin>
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preload" as="font" type="font/ttf" href="${raiz('/assets/fonts/helvetica.ttf')}" crossorigin>
+  <link rel="stylesheet" href="${raiz('/css/style.css')}">
   ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld)}</script>` : ''}
 </head>
 <body${entrar ? ` data-entrar="${entrar}"` : ''}>
 <canvas class="dots" id="bg" data-anim="${anim ? 1 : 0}" aria-hidden="true"></canvas>
-<script src="/js/bg.js"></script>`;
+<script src="${raiz('/js/bg.js')}"></script>`;
 }
 
 function nav(lang, current, variant = 'inline') {
@@ -185,7 +191,7 @@ function landing(lang) {
         <!-- El contorno viene en blanco sobre transparente, asi que va de
              mascara y el color lo pone el CSS. -->
         <span class="shape" aria-hidden="true"></span>
-        <img class="pupil" id="pupil" src="/assets/eye_pupil.png" alt="" width="70" height="70">
+        <img class="pupil" id="pupil" src="${raiz('/assets/eye_pupil.png')}" alt="" width="70" height="70">
       </div>
       <h1 class="name">${esc(site.name)}</h1>
     </div>
@@ -193,7 +199,7 @@ function landing(lang) {
   </div>
   ${langs(lang, '')}
 </main>
-<script src="/js/welcome.js" defer></script>`
+<script src="${raiz('/js/welcome.js')}" defer></script>`
   + foot();
 }
 
@@ -205,7 +211,7 @@ function workIndex(lang) {
   // asi que filtro y orden valen igual en las dos vistas.
   const rows = live.map(p => `      <li data-tags="${esc(p.tags.join(' '))}"
           data-date="${p.date}" data-client="${esc(p.client.toLowerCase())}" data-title="${esc(p.title.toLowerCase())}">
-        <a href="${url(lang, 'work/' + p.slug + '/')}"${cover(p) ? ` data-peek="/${esc(cover(p))}"` : ''}>
+        <a href="${url(lang, 'work/' + p.slug + '/')}"${cover(p) ? ` data-peek="${raiz('/' + esc(cover(p)))}"` : ''}>
           <span class="t">${titleHtml(p.title)}<small>${esc(t(p.subheader, lang))}</small></span>
           <span class="c">${esc(fmtDate(p.date, lang))}</span>
           <span class="g">${esc(p.tags.join(' '))}</span>
@@ -274,8 +280,8 @@ ${rows}
 
 <div class="peek" id="peek" aria-hidden="true"><img src="" alt=""></div>
 ${pageFoot(lang, 'work/')}
-<script src="/js/work.js" defer></script>
-<script src="/js/tunnel.js" defer></script>`
+<script src="${raiz('/js/work.js')}" defer></script>
+<script src="${raiz('/js/tunnel.js')}" defer></script>`
   + foot();
 }
 
@@ -310,7 +316,7 @@ ${roles.map(([role, people]) =>
       creator: { '@type':'Person', name: site.name, url: site.baseUrl },
       about: p.client,
       keywords: p.tags.join(', '),
-      ...(ogImage(p) ? { image: abs('/' + ogImage(p)) } : {}),
+      ...(ogImage(p) ? { image: abs(raiz('/' + ogImage(p))) } : {}),
       ...(p.link  ? { sameAs: [p.link] } : {}),
       contributor: roles.flatMap(([, people]) =>
         (people.match(/@[\w.\-_]+/g) || []).map(h =>
@@ -414,7 +420,7 @@ writeFileSync(join(OUT, 'sitemap.xml'),
       `  <url><loc>${abs(u)}</loc>${d ? `<lastmod>${d}</lastmod>` : ''}</url>`).join('\n')
   + `\n</urlset>\n`);
 
-writeFileSync(join(OUT,'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${abs('/sitemap.xml')}\n`);
+writeFileSync(join(OUT,'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${abs(raiz('/sitemap.xml'))}\n`);
 writeFileSync(join(OUT,'.nojekyll'), '');
 
 console.log(`${n} paginas · ${live.length} proyectos publicados de ${all.length} · ${LANGS.length} idiomas`);

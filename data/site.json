@@ -1,7 +1,7 @@
 {
   "name": "oriol colomer delgado",
   "shortName": "oriol colomer",
-  "baseUrl": "https://oriolcolomer.com",
+  "baseUrl": "https://meowrhino.github.io",
   "defaultLang": "en",
   "langs": [
     "cat",
@@ -152,5 +152,6 @@
       "es": "lista",
       "cat": "llista"
     }
-  }
+  },
+  "base": "/oriol-colomer"
 }
