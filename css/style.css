@@ -68,6 +68,8 @@ a{ color:inherit; text-decoration:none; }
 a:hover{ color: var(--ink-hard); }
 img{ max-width:100%; display:block; }
 
+/* Se lee pero no se ve: el h1 de work, que la barra de arriba ya cuenta
+   visualmente pero un buscador o un lector de pantalla necesitan igual. */
 .sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 
 /* ---------- fondo de puntos ------------------------------- */
@@ -81,9 +83,8 @@ img{ max-width:100%; display:block; }
 
 /* ============================================================
    NAV
-   Dos variantes de la misma barra:
-   .nav--spread  -> landing: work | about | lab anclados a los bordes
-   .nav--inline  -> interior: • work / about / lab a la izquierda
+   Una sola barra, la misma en todas las paginas interiores:
+   work / about / lab a la izquierda. La landing no la lleva.
    ============================================================ */
 .nav{
   position:relative; z-index:2;
@@ -96,11 +97,7 @@ img{ max-width:100%; display:block; }
 .nav [aria-current="page"]{ color: var(--ink-hard); font-weight:700; }
 .nav .off{ color: var(--ink-faint); cursor:default; }   /* lab, todavia sin destino */
 
-.nav--spread{ display:flex; justify-content:space-between; align-items:baseline; }
-.nav--spread .mid{ position:absolute; left:50%; transform:translateX(-50%); }
-
 .nav--inline{ display:flex; align-items:baseline; gap:.5ch; }
-.nav--inline .dot{ font-size:.7em; line-height:1; margin-right:1.1ch; color:var(--ink-soft); }
 .nav--inline .sep{ color: var(--ink-faint); }
 
 /* ---------- selector de idioma ---------------------------- */
@@ -346,49 +343,6 @@ body.entrando .pista, body.entrando .langs{ opacity:0; transition: opacity .2s; 
 .foot .langs{ grid-column:3; justify-self:end; }
 
 /* ============================================================
-   RESPONSIVE
-   ============================================================ */
-@media (max-width: 820px){
-  /* .side deja de ser caja para que sus hijos entren en la misma rejilla
-     que .media: asi el orden es texto -> carrusel -> creditos. */
-  .project{ grid-template-columns: 1fr; gap: clamp(26px,6vw,44px); }
-  .side{ display:contents; }
-  .info   { grid-column:1; grid-row:auto; order:1; }
-  .media  { grid-column:1; grid-row:auto; order:2; }
-  .credits{ grid-column:1; grid-row:auto; order:3; margin-top:0; }
-  .pager  { grid-column:1; grid-row:auto; order:4; }
-  /* en movil .side no es caja, asi que no hay sticky del que defenderse */
-  .side{ margin-bottom:0; }
-
-  /* En movil la tira vertical se vuelve carrusel horizontal con anclaje. */
-  .media{
-    grid-auto-flow:column; grid-auto-columns:88%;
-    overflow-x:auto; scroll-snap-type:x mandatory;
-    gap:8px; margin-inline: calc(var(--pad) * -1); padding-inline: var(--pad);
-    scrollbar-width:none;
-  }
-  .media::-webkit-scrollbar{ display:none; }
-  .media figure{ scroll-snap-align:center; }
-  .media img, .media video{ aspect-ratio:16/9; object-fit:cover; }
-
-  .controls{ gap:.9rem 2ch; }
-  .sorts{ margin-left:0; }
-  .index a{ grid-template-columns: 1fr auto; gap: 1.5ch; }
-  .index .c{ display:none; }
-  .peek{ display:none; }
-  .langs, .sig{ position:static; }
-  .langs{ justify-content:flex-end; padding: 0 var(--pad) var(--pad); }
-  .foot .langs{ padding:0; }
-  .meta{ grid-template-columns: 1fr; gap:.15em; }
-  .meta .c, .meta .g{ text-align:left; }
-}
-
-@media (prefers-reduced-motion: reduce){
-  *{ transition:none !important; animation:none !important; }
-}
-
-
-/* ============================================================
    WORK
    Las dos vistas comparten barra: nav a la izquierda, controles a
    la derecha. Lo unico que cambia debajo es como se pinta la lista.
@@ -520,10 +474,51 @@ a.rotulo:hover b{ color: var(--ink-hard); }
 .rotulo b{ font-weight:400; color: var(--ink-soft); }
 .rotulo i{ font-style:normal; margin-left:1ch; }
 
+/* ============================================================
+   RESPONSIVE
+   Un unico corte. Estaba partido en dos bloques con tres
+   secciones enteras en medio, y las reglas de movil acababan
+   en dos sitios distintos del fichero.
+   ============================================================ */
 @media (max-width: 820px){
+  /* .side deja de ser caja para que sus hijos entren en la misma rejilla
+     que .media: asi el orden es texto -> carrusel -> creditos. */
+  .project{ grid-template-columns: 1fr; gap: clamp(26px,6vw,44px); }
+  .side{ display:contents; }
+  .info   { grid-column:1; grid-row:auto; order:1; }
+  .media  { grid-column:1; grid-row:auto; order:2; }
+  .credits{ grid-column:1; grid-row:auto; order:3; margin-top:0; }
+  .pager  { grid-column:1; grid-row:auto; order:4; }
+  /* en movil .side no es caja, asi que no hay sticky del que defenderse */
+  .side{ margin-bottom:0; }
+
+  /* En movil la tira vertical se vuelve carrusel horizontal con anclaje. */
+  .media{
+    grid-auto-flow:column; grid-auto-columns:88%;
+    overflow-x:auto; scroll-snap-type:x mandatory;
+    gap:8px; margin-inline: calc(var(--pad) * -1); padding-inline: var(--pad);
+    scrollbar-width:none;
+  }
+  .media::-webkit-scrollbar{ display:none; }
+  .media figure{ scroll-snap-align:center; }
+  .media img, .media video{ aspect-ratio:16/9; object-fit:cover; }
+
+  .index a{ grid-template-columns: 1fr auto; gap: 1.5ch; }
+  .index .c{ display:none; }
+  .peek{ display:none; }
+  .langs, .sig{ position:static; }
+  .langs{ justify-content:flex-end; padding: 0 var(--pad) var(--pad); }
+  .foot .langs{ padding:0; }
+  .meta{ grid-template-columns: 1fr; gap:.15em; }
+  .meta .c, .meta .g{ text-align:left; }
+
   .topbar{ flex-wrap:wrap; gap:.9rem 1.2rem; }
   .controles{ width:100%; margin-left:0; justify-content:space-between; gap:.8rem; }
   .escena{ height: calc(100dvh - 15rem); }
   .carta{ width: min(72vw, 340px); margin-left:-36vw; }
   .tiempo{ width:90%; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{ transition:none !important; animation:none !important; }
 }

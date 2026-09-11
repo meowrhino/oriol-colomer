@@ -18,13 +18,13 @@
 
    Para probar: ?bg=remolino en la url, o las teclas 1..5.
    ============================================================ */
-(() => {
-  const cv = document.getElementById('bg');
-  if (!cv || !cv.getContext) return;
-  const ctx = cv.getContext('2d', { alpha: true });
+import { seco, mez as mezcla } from './util.js';
 
-  const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches
-              || cv.dataset.anim !== '1';
+const cv = document.getElementById('bg');
+
+if (cv && cv.getContext) {
+  const ctx = cv.getContext('2d', { alpha: true });
+  const quieto = seco || cv.dataset.anim !== '1';
 
   const PASO  = 21;    // separacion de la rejilla, px CSS
   const R_MAX = 2.7;   // radio del punto en la cima
@@ -39,7 +39,6 @@
     return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
   };
   const suave  = t => t * t * t * (t * (t * 6 - 15) + 10);
-  const mezcla = (a, b, t) => a + (b - a) * t;
 
   function ruido(x, y, z) {
     const i = Math.floor(x), j = Math.floor(y), k = Math.floor(z);
@@ -60,7 +59,10 @@
   }
 
   /* ---- los cinco campos ------------------------------------
-     Cada uno recibe el punto y el tiempo y devuelve 0..1.     */
+     Cada uno recibe el punto, el tiempo y el tamano del lienzo
+     y devuelve 0..1. El tamano lo usa solo `gotas`, pero se lo
+     pasan todos: antes lo leia de una variable de mas arriba y
+     era el unico de los cinco que no se podia probar suelto.  */
   const CAMPOS = {
     // Relieve que deriva. Cuatro octavas y frecuencia mas alta: mas
     // cumbres y mas juntas. La curva final separa cima de ladera, para
@@ -102,11 +104,11 @@
     },
 
     // varias fuentes emitiendo aros; donde coinciden, se suman
-    gotas: (x, y, t) => {
+    gotas: (x, y, t, ancho, alto) => {
       let s = 0;
       for (let n = 0; n < 3; n++) {
         const fx = (hash(n, 11, 3) * .8 + .1), fy = (hash(n, 23, 5) * .8 + .1);
-        const d = Math.hypot(x - fx * an, y - fy * al);
+        const d = Math.hypot(x - fx * ancho, y - fy * alto);
         s += Math.sin(d * .028 - t * 2.1 - n * 2) / (1 + d * .0042);
       }
       return .5 + s * .34;
@@ -143,7 +145,7 @@
       const y = fy * PASO;
       for (let fx = 0; fx < cols; fx++) {
         const x = fx * PASO;
-        let h = f(x, y, t);
+        let h = f(x, y, t, an, al);
 
         if (px > -9e8) {
           const d = Math.hypot(x - px, y - py);
@@ -163,26 +165,30 @@
   /* ---- ciclo ------------------------------------------------ */
   medir();
   addEventListener('resize', () => { medir(); if (quieto) pintar(0); });
-  if (quieto) { pintar(0); return; }
 
-  addEventListener('pointermove', e => { px = e.clientX; py = e.clientY; }, { passive: true });
-  addEventListener('pointerleave', () => { px = py = -9e9; });
+  if (quieto) {
+    // Un solo fotograma y a otra cosa: ni bucle ni escuchas de puntero.
+    pintar(0);
+  } else {
+    addEventListener('pointermove', e => { px = e.clientX; py = e.clientY; }, { passive: true });
+    addEventListener('pointerleave', () => { px = py = -9e9; });
 
-  // 1..5 conmutan el campo, para poder compararlos sin recargar
-  const orden = Object.keys(CAMPOS);
-  addEventListener('keydown', e => {
-    const n = +e.key;
-    if (n >= 1 && n <= orden.length) { campo = orden[n - 1]; console.log('fondo:', campo); }
-  });
+    // 1..5 conmutan el campo, para poder compararlos sin recargar
+    const orden = Object.keys(CAMPOS);
+    addEventListener('keydown', e => {
+      const n = +e.key;
+      if (n >= 1 && n <= orden.length) { campo = orden[n - 1]; console.log('fondo:', campo); }
+    });
 
-  let ultimo = 0;
-  const inicio = performance.now();
-  pintar(0);   // un fotograma ya: en pestana de fondo el bucle no corre
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) ultimo = 0; });
-  (function bucle(ahora) {
-    requestAnimationFrame(bucle);
-    if (document.hidden || ahora - ultimo < 1000 / FPS) return;
-    ultimo = ahora;
-    pintar((ahora - inicio) / 1000);
-  })(inicio);
-})();
+    let ultimo = 0;
+    const inicio = performance.now();
+    pintar(0);   // un fotograma ya: en pestana de fondo el bucle no corre
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) ultimo = 0; });
+    (function bucle(ahora) {
+      requestAnimationFrame(bucle);
+      if (document.hidden || ahora - ultimo < 1000 / FPS) return;
+      ultimo = ahora;
+      pintar((ahora - inicio) / 1000);
+    })(inicio);
+  }
+}

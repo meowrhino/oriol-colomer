@@ -6,9 +6,9 @@
    evento 'lista:cambia' y se reconstruye desde ese mismo <ul>.
    Asi las dos vistas nunca pueden discrepar.
    ============================================================ */
-(() => {
-  const lista = document.getElementById('index');
-  if (!lista) return;
+const lista = document.getElementById('index');
+
+if (lista) {
   const items = [...lista.children];
 
   const avisar = () => dispatchEvent(new CustomEvent('lista:cambia'));
@@ -21,7 +21,7 @@
     m.querySelector('.cabeza').setAttribute('aria-expanded', 'false');
   });
 
-  /** Crea un menu: devuelve una funcion para leer el valor puesto. */
+  /** Engancha un menu desplegable y avisa con el valor elegido. */
   function montar(m, alElegir) {
     const cabeza = m.querySelector('.cabeza');
     const caja   = m.querySelector('.opciones');
@@ -51,7 +51,6 @@
 
     // valor de arranque: el que viene marcado del generador
     val.textContent = opts.find(o => o.getAttribute('aria-checked') === 'true').textContent.trim();
-    return v => opts.find(o => o.dataset.v === v);
   }
 
   addEventListener('pointerdown', e => { if (!e.target.closest('.menu')) cerrarTodos(null); });
@@ -90,23 +89,25 @@
   aplicar(guardada);
 
   /* ---- miniatura al pasar por la lista -------------------- */
-  const peek = document.getElementById('peek');
-  if (!peek || matchMedia('(hover: none)').matches) return;
-  const img = peek.querySelector('img');
+  // En pantalla tactil no hay hover, asi que la miniatura no se monta.
+  const peek = matchMedia('(hover: none)').matches ? null : document.getElementById('peek');
+  if (peek) {
+    const img = peek.querySelector('img');
 
-  lista.addEventListener('pointerover', e => {
-    const a = e.target.closest('a[data-peek]');
-    if (!a) return;
-    if (img.getAttribute('src') !== a.dataset.peek) img.src = a.dataset.peek;
-    peek.classList.add('on');
-  });
-  lista.addEventListener('pointerout', e => {
-    if (!e.relatedTarget || !lista.contains(e.relatedTarget)) peek.classList.remove('on');
-  });
-  addEventListener('pointermove', e => {
-    if (!peek.classList.contains('on')) return;
-    const x = Math.min(e.clientX + 24, innerWidth  - peek.offsetWidth  - 12);
-    const y = Math.min(e.clientY + 24, innerHeight - peek.offsetHeight - 12);
-    peek.style.transform = `translate(${x}px, ${y}px)`;
-  }, { passive: true });
-})();
+    lista.addEventListener('pointerover', e => {
+      const a = e.target.closest('a[data-peek]');
+      if (!a) return;
+      if (img.getAttribute('src') !== a.dataset.peek) img.src = a.dataset.peek;
+      peek.classList.add('on');
+    });
+    lista.addEventListener('pointerout', e => {
+      if (!e.relatedTarget || !lista.contains(e.relatedTarget)) peek.classList.remove('on');
+    });
+    addEventListener('pointermove', e => {
+      if (!peek.classList.contains('on')) return;
+      const x = Math.min(e.clientX + 24, innerWidth  - peek.offsetWidth  - 12);
+      const y = Math.min(e.clientY + 24, innerHeight - peek.offsetHeight - 12);
+      peek.style.transform = `translate(${x}px, ${y}px)`;
+    }, { passive: true });
+  }
+}

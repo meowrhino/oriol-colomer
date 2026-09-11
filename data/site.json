@@ -92,30 +92,10 @@
       "es": "Ver",
       "cat": "Veure"
     },
-    "index": {
-      "en": "Index",
-      "es": "Índice",
-      "cat": "Índex"
-    },
     "all": {
       "en": "all",
       "es": "todo",
       "cat": "tot"
-    },
-    "next": {
-      "en": "Next",
-      "es": "Siguiente",
-      "cat": "Següent"
-    },
-    "prev": {
-      "en": "Previous",
-      "es": "Anterior",
-      "cat": "Anterior"
-    },
-    "backToWork": {
-      "en": "Back to work",
-      "es": "Volver a work",
-      "cat": "Tornar a work"
     },
     "sort": {
       "en": "sort",
@@ -151,6 +131,28 @@
       "en": "list",
       "es": "lista",
       "cat": "llista"
+    },
+    "aria": {
+      "lang": {
+        "en": "language",
+        "es": "idioma",
+        "cat": "idioma"
+      },
+      "view": {
+        "en": "view",
+        "es": "vista",
+        "cat": "vista"
+      },
+      "projects": {
+        "en": "projects",
+        "es": "proyectos",
+        "cat": "projectes"
+      },
+      "soon": {
+        "en": "soon",
+        "es": "pronto",
+        "cat": "aviat"
+      }
     }
   },
   "base": "/oriol-colomer"

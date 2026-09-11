@@ -34,10 +34,8 @@ const pre = l => (l === DEF ? '' : `/${l}`);
 const url = (l, path='') => B + `${pre(l)}/${path}`.replace(/\/{2,}/g,'/');
 const abs = p => site.baseUrl.replace(/\/$/,'') + p;   // p ya trae la subcarpeta
 
-const fmtDate = (iso, l) => {
-  const [y,m,d] = iso.split('-');
-  return l === 'en' ? `${d}/${m}/${y}` : `${d}/${m}/${y}`;   // mismo formato que la ficha original
-};
+/* Mismo formato en los tres idiomas, como la ficha original. */
+const fmtDate = iso => { const [y,m,d] = iso.split('-'); return `${d}/${m}/${y}`; };
 
 /** Corta el texto en parrafos por linea en blanco. */
 const paras = txt => String(txt).split(/\n{2,}/).map(s => s.trim()).filter(Boolean);
@@ -123,23 +121,19 @@ function head({ lang, title, desc, path, image, jsonld, anim, entrar }) {
 </head>
 <body${entrar ? ` data-entrar="${entrar}"` : ''}>
 <canvas class="dots" id="bg" data-anim="${anim ? 1 : 0}" aria-hidden="true"></canvas>
-<script src="${raiz('/js/bg.js')}"></script>`;
+<script type="module" src="${raiz('/js/bg.js')}"></script>`;
 }
 
-function nav(lang, current, variant = 'inline') {
+function nav(lang, current) {
   const item = n => {
     const label = esc(t(n.label, lang));
-    if (!n.href) return `<span class="off" title="soon">${label}</span>`;      // lab
+    // lab todavia no tiene destino: se ensena apagado y sin enlace
+    if (!n.href) return `<span class="off" title="${esc(t(site.ui.aria.soon, lang))}">${label}</span>`;
     const href = url(lang, n.href.replace(/^\//,''));
     return n.id === current
       ? `<a href="${href}" aria-current="page">${label}</a>`
       : `<a href="${href}">${label}</a>`;
   };
-  // En la landing solo van los tres destinos; 'home' es la propia pagina.
-  if (variant === 'spread') {
-    const [, w, a, l] = site.nav;
-    return `<nav class="nav nav--spread">${item(w)}<span class="mid">${item(a)}</span>${item(l)}</nav>`;
-  }
   return `<nav class="nav nav--inline">`
        + site.nav.map(item).join('<span class="sep">/</span>')
        + `</nav>`;
@@ -149,7 +143,7 @@ function langs(lang, path) {
   // Sin separadores y sin adornos: los separa el espacio y el activo se
   // distingue por peso. El dingbat de la referencia se cae — en el png
   // se lee como un icono, pero como texto sale como un simbolo suelto.
-  return `<nav class="langs" aria-label="idioma">`
+  return `<nav class="langs" aria-label="${esc(t(site.ui.aria.lang, lang))}">`
     + LANGS.map(l => l === lang
         ? `<span aria-current="true">${l}</span>`
         : `<a href="${url(l, path)}" hreflang="${l === 'cat' ? 'ca' : l}">${l}</a>`
@@ -161,12 +155,12 @@ const sig = () =>
   `<p class="sig">${esc(site.credit.label)}: `
   + `<a href="${site.credit.url}" target="_blank" rel="noopener">${esc(site.credit.name)}</a></p>`;
 
-/** Pie de pagina: idiomas y firma.
-    En la landing van anclados a las esquinas, que la pagina cabe entera.
-    En las que scrollean van al final, o se comen el contenido. */
-const pageFoot = (lang, path, fixed = false) => fixed
-  ? langs(lang, path) + sig()
-  : `<footer class="foot">${sig()}${langs(lang, path)}</footer>`;
+/** Pie de las paginas que scrollean. La firma sale solo en about: es el
+    unico sitio donde toca hablar de quien ha hecho la web, y repetirla en
+    cada proyecto le robaba sitio al trabajo. En la landing no hay pie —
+    los idiomas van anclados a la esquina, que la pagina cabe entera. */
+const pageFoot = (lang, path, { firma = false } = {}) =>
+  `<footer class="foot">${firma ? sig() : ''}${langs(lang, path)}</footer>`;
 
 const foot = () => `</body>\n</html>\n`;
 
@@ -199,7 +193,7 @@ function landing(lang) {
   </div>
   ${langs(lang, '')}
 </main>
-<script src="${raiz('/js/welcome.js')}" defer></script>`
+<script type="module" src="${raiz('/js/welcome.js')}"></script>`
   + foot();
 }
 
@@ -209,14 +203,17 @@ function workIndex(lang) {
   // La lista va en el HTML siempre: es lo que lee Google y lo que queda si
   // no corre JavaScript. El tunel se construye leyendo esta misma lista,
   // asi que filtro y orden valen igual en las dos vistas.
-  const rows = live.map(p => `      <li data-tags="${esc(p.tags.join(' '))}"
+  const rows = live.map(p => {
+    const portada = cover(p);          // una sola vez: cada llamada toca disco
+    return `      <li data-tags="${esc(p.tags.join(' '))}"
           data-date="${p.date}" data-client="${esc(p.client.toLowerCase())}" data-title="${esc(p.title.toLowerCase())}">
-        <a href="${url(lang, 'work/' + p.slug + '/')}"${cover(p) ? ` data-peek="${raiz('/' + esc(cover(p)))}"` : ''}>
+        <a href="${url(lang, 'work/' + p.slug + '/')}"${portada ? ` data-peek="${raiz('/' + esc(portada))}"` : ''}>
           <span class="t">${titleHtml(p.title)}<small>${esc(t(p.subheader, lang))}</small></span>
-          <span class="c">${esc(fmtDate(p.date, lang))}</span>
+          <span class="c">${esc(fmtDate(p.date))}</span>
           <span class="g">${esc(p.tags.join(' '))}</span>
         </a>
-      </li>`).join('\n');
+      </li>`;
+  }).join('\n');
 
   /** Menu desplegable. El boton ensena el valor puesto; al abrirlo salen
       todas las opciones, incluida la activa, que va marcada. */
@@ -250,7 +247,7 @@ ${opciones.map(([v, l], i) => `          <button type="button" role="menuitemrad
   <!-- Los mismos controles en las dos vistas: solo cambia como se pinta
        la lista debajo, no como se manda sobre ella. -->
   <div class="controles">
-    <div class="vistas" role="group" aria-label="vista">
+    <div class="vistas" role="group" aria-label="${esc(t(site.ui.aria.view, lang))}">
       <button type="button" data-vista="tunel" aria-pressed="true">${esc(t(site.ui.tunnel, lang))}</button>
       <button type="button" data-vista="lista" aria-pressed="false">${esc(t(site.ui.list, lang))}</button>
     </div>
@@ -260,6 +257,10 @@ ${menu('tag', '', filtro)}
 </div>
 
 <main class="wrap">
+  <!-- El encabezado no se ve: la barra de arriba ya dice donde estas, pero
+       un buscador o un lector de pantalla necesitan el h1 igual. -->
+  <h1 class="sr">${esc(t(site.nav[1].label, lang))}</h1>
+
   <!-- vista tunel -->
   <div class="escena" id="escena">
     <div class="tunel" id="tunel"></div>
@@ -280,8 +281,8 @@ ${rows}
 
 <div class="peek" id="peek" aria-hidden="true"><img src="" alt=""></div>
 ${pageFoot(lang, 'work/')}
-<script src="${raiz('/js/work.js')}" defer></script>
-<script src="${raiz('/js/tunnel.js')}" defer></script>`
+<script type="module" src="${raiz('/js/work.js')}"></script>
+<script type="module" src="${raiz('/js/tunnel.js')}"></script>`
   + foot();
 }
 
@@ -331,7 +332,7 @@ ${roles.map(([role, people]) =>
     <div class="info">
       <h1 class="title">${titleHtml(p.title)}</h1>
       <div class="meta">
-        <span class="d">${esc(fmtDate(p.date, lang))}</span>
+        <span class="d">${esc(fmtDate(p.date))}</span>
         <span class="c">${esc(p.client)}</span>
         <span class="g">${esc(p.tags.join(' '))}</span>
       </div>
@@ -347,7 +348,7 @@ ${credits}
 ${media || '      <!-- sin material grafico todavia -->'}
   </div>
 
-  <nav class="pager" aria-label="proyectos">
+  <nav class="pager" aria-label="${esc(t(site.ui.aria.projects, lang))}">
     ${prev ? `<a href="${url(lang,'work/'+prev.slug+'/')}">← ${esc(prev.title)}</a>` : '<span></span>'}
     ${next ? `<a class="r" href="${url(lang,'work/'+next.slug+'/')}">${esc(next.title)} →</a>` : '<span></span>'}
   </nav>
@@ -376,7 +377,7 @@ ${ps.map(x => `  <p>${esc(x)}</p>`).join('\n')}
   <p class="contact"><a href="mailto:${esc(site.email)}">${esc(site.email)}</a> ·
      <a href="${igUrl(site.instagram)}" target="_blank" rel="noopener">${esc(site.instagram)}</a></p>
 </main>
-${pageFoot(lang, 'about/')}`
+${pageFoot(lang, 'about/', { firma: true })}`
   + foot();
 }
 

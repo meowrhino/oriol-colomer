@@ -1,14 +1,14 @@
 /* Welcome. Clic en cualquier sitio: el ojo parpadea y entras al tunel.
    El viaje no acaba aqui — al llegar a work la camara arranca al fondo
    y avanza, asi que los dos movimientos se leen como uno solo. */
-(() => {
-  const ojo   = document.getElementById('eye');
-  const lente = ojo && ojo.querySelector('.lens');
-  const pupila = document.getElementById('pupil');
-  const destino = document.body.dataset.entrar;
-  if (!ojo || !destino) return;
+import { seco, ms } from './util.js';
 
-  const seco = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ojo     = document.getElementById('eye');
+const lente   = ojo && ojo.querySelector('.lens');
+const pupila  = document.getElementById('pupil');
+const destino = document.body.dataset.entrar;
+
+if (ojo && destino) {
 
   /* la pupila mira al cursor, dentro de una elipse para no salirse */
   if (!seco && pupila) {
@@ -30,11 +30,6 @@
 
   /* Los tiempos viven en el CSS (--parpadeo, --zoom): aqui solo se leen,
      para que la navegacion caiga justo al final del zoom y no antes. */
-  const ms = nombre => {
-    const v = getComputedStyle(document.documentElement).getPropertyValue(nombre).trim();
-    return v.endsWith('ms') ? parseFloat(v) : parseFloat(v) * 1000 || 0;
-  };
-
   let yendo = false;
   function entrar(e) {
     if (yendo) return;
@@ -50,4 +45,4 @@
   addEventListener('keydown', e => {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); entrar(); }
   });
-})();
+}

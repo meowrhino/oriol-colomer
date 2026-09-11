@@ -6,12 +6,13 @@ import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { watch } from 'node:fs';
 import { execFile } from 'node:child_process';
-import { join, extname, dirname } from 'node:path';
+import { join, extname, dirname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'dist');
 const PORT = 4321;
+const HOST = '127.0.0.1';   // solo esta maquina: no es un servidor para la red
 
 const TYPES = { '.html':'text/html; charset=utf-8', '.css':'text/css; charset=utf-8',
   '.js':'text/javascript; charset=utf-8', '.json':'application/json', '.png':'image/png',
@@ -45,6 +46,16 @@ for (const dir of ['data','css','js','build','assets']) {
   });
 }
 
+/** Ruta pedida -> fichero dentro de dist, o null si se sale.
+    El parser de URL normaliza los `..`, pero no toca un `%2f`, y al
+    decodificarlo despues volvia a ser un separador: con `/..%2fpackage.json`
+    se leia cualquier fichero de la maquina. Por eso se decodifica primero y
+    se comprueba al final que lo que sale sigue estando dentro de dist. */
+const dentroDeDist = path => {
+  const f = resolve(DIST, '.' + (path.startsWith('/') ? path : '/' + path));
+  return f === DIST || f.startsWith(DIST + sep) ? f : null;
+};
+
 createServer(async (req, res) => {
   const path = decodeURIComponent(new URL(req.url, 'http://x').pathname);
 
@@ -56,9 +67,10 @@ createServer(async (req, res) => {
     return;
   }
 
-  let file = join(DIST, path);
+  let file = dentroDeDist(path);
+  if (!file) { res.writeHead(403).end(); return; }
   try { if ((await stat(file)).isDirectory()) file = join(file, 'index.html'); }
-  catch { file = join(DIST, path, 'index.html'); }
+  catch { file = join(file, 'index.html'); }
 
   try {
     const ext = extname(file);
@@ -71,4 +83,4 @@ createServer(async (req, res) => {
     res.writeHead(404, { 'content-type':'text/plain; charset=utf-8' });
     res.end('404 ' + path);
   }
-}).listen(PORT, () => console.log(`http://localhost:${PORT}  (recarga automatica activa)`));
+}).listen(PORT, HOST, () => console.log(`http://localhost:${PORT}  (recarga automatica activa)`));

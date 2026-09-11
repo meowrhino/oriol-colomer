@@ -10,24 +10,24 @@
    filtro o el orden cambian, work.js avisa y esto se rehace: no
    hay dos listas que puedan discrepar.
    ============================================================ */
-(() => {
-  const zona   = document.getElementById('tunel');
-  const escena = document.getElementById('escena');
-  const lista  = document.getElementById('index');
-  if (!zona || !lista || !escena) return;
+import { seco, lim, mez, px } from './util.js';
 
-  const P       = 900;   // perspectiva, tiene que coincidir con el css
+const zona   = document.getElementById('tunel');
+const escena = document.getElementById('escena');
+const lista  = document.getElementById('index');
+
+if (zona && lista && escena) {
+  // La perspectiva se lee del CSS en vez de repetirla aqui: estaba escrita
+  // en los dos sitios con un comentario en cada uno avisando del otro, que
+  // es justo la clase de pareja que acaba discrepando.
+  const P       = px(escena, 'perspective') || 900;
   const SALTO   = 780;   // distancia en z entre proyectos
   const CERCA   = .62 * P;
   const FONDO   = 4.2;   // cuantos proyectos ves hacia atras
   const SNAP_MS = 380;   // quietud antes de encajar en el mas cercano
   const FUERA   = .4;    // cuanto te dejas pasar de los extremos
   const ARRASTRE= 9;     // px antes de considerar que arrastras
-  const seco    = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const suavear = seco ? 1 : .16;
-
-  const lim = (v, a, b) => Math.min(b, Math.max(a, v));
-  const mez = (a, b, t) => a + (b - a) * t;
 
   /* Las cartas caen en sitio distinto cada vez que se abre el tunel: no hay
      semilla fija, se sortea en cada `construir()` (carga, cambio de vista,
@@ -261,4 +261,4 @@
     prof = -2.6; pintar();
   }
   requestAnimationFrame(tick);
-})();
+}
