@@ -1,10 +1,10 @@
-# Cada push a v2 regenera el sitio y lo publica.
+# Cada push a main regenera el sitio y lo publica.
 # Oriol edita data/*.json desde la web de GitHub y esto hace el resto:
 # el no instala nada ni ejecuta nada.
 name: build & deploy
 on:
   push:
-    branches: [v2]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
