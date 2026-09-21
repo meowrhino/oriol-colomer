@@ -126,7 +126,16 @@ img{ max-width:100%; display:block; }
    ============================================================ */
 .landing{ min-height:100dvh; display:flex; flex-direction:column; }
 .landing .nav{ flex:0 0 auto; }
-.landing .hero{ flex:1 1 auto; display:grid; place-items:center; padding: var(--pad); }
+/* La pista ("click anywhere") colgaba absoluta a 12dvh del suelo, o sea a
+   media pantalla del nombre: parecia un pie de pagina y no la instruccion
+   de lo que acabas de leer. Ahora es un hermano en flujo y cae justo
+   debajo, que es donde la buscas. */
+.landing .hero{
+  flex:1 1 auto; position:relative; cursor:pointer;
+  display:grid; justify-items:center; align-content:center;
+  gap: clamp(20px, 3.6vh, 38px);
+  padding: var(--pad);
+}
 
 .eye{ display:grid; place-items:center; gap: clamp(14px,2vw,26px); }
 .eye .lens{
@@ -136,15 +145,37 @@ img{ max-width:100%; display:block; }
 }
 .eye .shape{
   position:absolute; inset:0;
-  background: var(--ink-soft);
+  /* de --ink-soft a --ink: el ojo es lo unico que hay en la portada y se
+     quedaba mas palido que su propio pie de foto */
+  background: var(--ink);
   -webkit-mask: url('../assets/eye_shape.png') center/contain no-repeat;
           mask: url('../assets/eye_shape.png') center/contain no-repeat;
 }
+/* La pupila.
+
+   Era un PNG: un degradado gris muy difuso y con el centro MAS CLARO que
+   el borde, que es lo contrario de una pupila. De lejos se leia como una
+   mancha desenfocada y el ojo entero parecia fuera de foco.
+
+   Ahora se dibuja aqui, con la misma formula que los puntos de la linea
+   del tiempo —`circle at 34% 30%`, luz arriba a la izquierda—, que el CSS
+   de alla ya describia como "semiesferas, como la pupila del ojo". Eran
+   las dos unicas piezas redondas del sitio y no se parecian en nada.
+
+   El PNG sigue en assets por si se quiere volver. */
 .eye .pupil{
   position:absolute; left:50%; top:50%;
-  width:43.75%;                       /* 70/160, la proporcion real de los png */
+  width:43.75%;                       /* 70/160, la proporcion real del ojo */
+  aspect-ratio:1; border-radius:50%;
   translate:-50% -50%;
   transition: translate .12s linear;  /* sigue al cursor, sin rebote */
+  background:
+    radial-gradient(circle at 34% 30%,
+      rgba(255,255,255,.92) 0%, rgba(255,255,255,0) 36%),          /* el brillo */
+    radial-gradient(circle at 50% 50%,
+      var(--ink-hard) 0 40%, rgba(0,0,0,0) 41%),                   /* la pupila */
+    radial-gradient(circle at 50% 50%,
+      var(--ink-soft) 0%, var(--ink-faint) 70%, rgba(0,0,0,0) 100%); /* el iris */
 }
 .eye .name{
   margin:0; font-weight:400; color: var(--ink-soft);
@@ -152,9 +183,7 @@ img{ max-width:100%; display:block; }
 }
 /* La invitacion a entrar aparece sola tras un momento: quien ya lo sabe
    no la ve, y quien se queda parado la encuentra. */
-.landing .hero{ position:relative; cursor:pointer; }
 .pista{
-  position:absolute; left:50%; translate:-50% 0; bottom: 12dvh;
   margin:0; font-size:.8rem; color: var(--btn-subtle);
   opacity:0; animation: asomar .8s ease 2.6s forwards;
 }
@@ -186,6 +215,13 @@ img{ max-width:100%; display:block; }
   transition: transform var(--parpadeo) cubic-bezier(.45,0,.55,1),
               border-color var(--parpadeo) ease-in;
 }
+/* Un ojo que no parpadea nunca esta muerto. Lo dispara welcome.js a
+   intervalos irregulares: a ritmo fijo se oye el metronomo. Va antes que
+   la regla de `entrando` a proposito —misma especificidad, gana la ultima—
+   para que el cierre de la entrada mande sobre un parpadeo a medias. */
+.eye.pestanea .lens::before,
+.eye.pestanea .lens::after{ transform: scaleY(.505); }
+
 body.entrando .lens::before,
 body.entrando .lens::after{ transform: scaleY(.505); }
 body.entrando .lens::before{ border-top-color: var(--ink-soft); }
@@ -354,15 +390,20 @@ body.entrando .pista, body.entrando .langs{ opacity:0; transition: opacity .2s; 
    Las dos vistas comparten barra: nav a la izquierda, controles a
    la derecha. Lo unico que cambia debajo es como se pinta la lista.
    ============================================================ */
+/* Un solo renglon: la navegacion a la izquierda y los controles pegados a
+   la derecha, tambien en el telefono. Antes, por debajo de 820px, los
+   controles se bajaban a una segunda fila a todo lo ancho y con
+   space-between, asi que la cabecera ocupaba el doble de alto y los tres
+   grupos quedaban desperdigados. */
 .topbar{
-  display:flex; align-items:baseline; gap:1.5rem;
+  display:flex; align-items:baseline; gap:1rem;
   padding: var(--pad) var(--pad) 0;
 }
-.topbar .nav{ padding:0; }
-.controles{ display:flex; align-items:baseline; gap:1.4rem; margin-left:auto; }
+.topbar .nav{ padding:0; flex:0 0 auto; }
+.controles{ display:flex; align-items:baseline; gap:.9rem; margin-left:auto; flex:0 0 auto; }
 
 /* botones sueltos y cabeceras de menu, mismo criterio en todos */
-.vistas{ display:flex; align-items:baseline; gap:.3rem; }
+.vistas{ display:flex; align-items:baseline; gap:.15rem; }
 .vistas button, .menu .cabeza, .opciones button{
   font:inherit; font-size:.8rem; line-height:1;
   background:none; border:0; padding:.2rem .3rem; cursor:pointer;
@@ -579,17 +620,41 @@ a.rotulo:hover b{ color: var(--ink-hard); }
   .meta{ grid-template-columns: 1fr; gap:.15em; }
   .meta .c, .meta .g{ text-align:left; }
 
-  .topbar{ flex-wrap:wrap; gap:.9rem 1.2rem; }
-  .controles{ width:100%; margin-left:0; justify-content:space-between; gap:.8rem; }
+  /* En un telefono los cuatro grupos —nav, vista, orden y filtro— no caben
+     a su tamano natural en un solo renglon (hacen falta unos 425px y hay
+     375). Se aprieta todo un punto y se cae la etiqueta "sort": el valor y
+     la flecha ya dicen que es un desplegable, y al abrirlo la palabra esta
+     dentro. Preferimos eso a partir la cabecera en dos pisos. */
+  .topbar{ gap:.5rem; padding: 14px 14px 0; }
+  .controles{ gap:.55rem; }
+  .vistas button, .menu .cabeza, .opciones button{ font-size:.72rem; }
+  /* La palabra "sort" se va de la vista, pero no del arbol de accesibilidad:
+     con display:none el boton se anunciaria solo como "date" y no habria
+     forma de saber que es el control de orden. Se esconde como el h1. */
+  .menu[data-menu="sort"] .et{
+    position:absolute; width:1px; height:1px;
+    overflow:hidden; clip-path:inset(50%); white-space:nowrap;
+  }
+  .nav--inline{ gap:.35ch; }
+  .nav{ font-size:.92em; }
   .escena{ height: calc(100dvh - 15rem); }
 
   /* 19px de alto era la mitad del objetivo tactil. El margen negativo se come
      el relleno extra, asi que la barra se ve exactamente igual. */
   .vistas button, .menu .cabeza, .opciones button{
-    padding:.95rem .5rem; margin:-.75rem 0;
+    padding:1.02rem .5rem; margin:-.8rem 0;
   }
   .carta{ width: min(72vw, 340px); margin-left:-36vw; }
   .tiempo{ width:90%; }
+}
+
+/* Telefonos pequenos (iPhone SE y compania): un punto mas de apriete para
+   que el renglon de arriba siga siendo uno solo. */
+@media (max-width: 360px){
+  .topbar{ gap:.4rem; padding: 12px 12px 0; }
+  .controles{ gap:.45rem; }
+  .vistas button, .menu .cabeza, .opciones button{ font-size:.68rem; }
+  .nav{ font-size:.86em; }
 }
 
 @media (prefers-reduced-motion: reduce){

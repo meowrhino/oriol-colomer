@@ -202,20 +202,40 @@ if (zona && lista && escena) {
 
   }
 
+  /* ---- el ciclo, que ahora duerme ---------------------------
+     Antes `tick` se encadenaba a si mismo sin condicion ninguna: en la
+     vista de lista, con el tunel ya encajado y sin nadie tocando, o con la
+     pagina abierta en una pestana de fondo, seguia pidiendo un fotograma
+     cada 16ms para siempre. Un portfolio es una pagina que la gente deja
+     abierta.
+
+     Ahora pinta mientras quede algo que mover y para; cualquier gesto lo
+     despierta. La pieza que lo hace posible es el clavado de `prof`: una
+     interpolacion exponencial no llega NUNCA del todo a su destino, y ese
+     "nunca" era justamente lo que no dejaba parar. */
+  let frame = 0;
+  const despertar = () => { if (!frame) frame = requestAnimationFrame(tick); };
+
   function tick() {
-    requestAnimationFrame(tick);
+    frame = 0;
     if (document.body.dataset.vista !== 'tunel' || !cartas.length) return;
 
     prof = mez(prof, meta, suavear);
+    if (Math.abs(meta - prof) < 5e-4) prof = meta;   // llegada exacta
     pintar();
 
     if (!agarrado && quieto && performance.now() - quieto > SNAP_MS) {
       quieto = 0; meta = lim(Math.round(meta), 0, ultimo);
     }
+
+    // `quieto` es el encaje pendiente: mientras cuente, seguimos despiertos
+    if (prof !== meta || agarrado || quieto) despertar();
   }
 
-  const mover = d => { meta = lim(meta + d, -FUERA, ultimo + FUERA); quieto = performance.now(); };
-  const irA   = i => { meta = lim(i, 0, ultimo); quieto = 0; };
+  const mover = d => {
+    meta = lim(meta + d, -FUERA, ultimo + FUERA); quieto = performance.now(); despertar();
+  };
+  const irA   = i => { meta = lim(i, 0, ultimo); quieto = 0; despertar(); };
 
   /* ---- entrada --------------------------------------------- */
   escena.addEventListener('wheel', e => {
@@ -296,8 +316,11 @@ if (zona && lista && escena) {
   }
 
   /* ---- arranque -------------------------------------------- */
-  addEventListener('lista:cambia', () => { visto = -1; construir(); });
-  addEventListener('resize', medir);
+  // Cada uno de estos despierta al bucle: cambiar de vista, de orden o de
+  // filtro, y redimensionar. Sin esto, con el bucle dormido, el tunel se
+  // quedaria con la ultima imagen pintada.
+  addEventListener('lista:cambia', () => { visto = -1; construir(); despertar(); });
+  addEventListener('resize', () => { medir(); despertar(); });
 
   construir();
   // La camara llega desde el fondo, encadenando con el parpadeo del ojo.
@@ -305,5 +328,5 @@ if (zona && lista && escena) {
     sessionStorage.removeItem('entrando');
     prof = -2.6; pintar();
   }
-  requestAnimationFrame(tick);
+  despertar();
 }

@@ -117,8 +117,42 @@ if (cv && cv.getContext) {
 
   const NIVEL = { terreno:.54, olas:.52, remolino:.47, celular:.55, gotas:.5 };
 
+  /* ---- que cada visita se vea distinta ----------------------
+     Antes el campo era siempre `terreno`: data-campo no lo escribia nadie
+     y el ?bg= es solo para probar, asi que los otros cuatro no llegaron a
+     verse nunca. Y como todas las paginas menos la portada pintan un solo
+     fotograma en t=0, salia exactamente la misma imagen en cada carga,
+     siempre la misma, hasta el ultimo punto.
+
+     Ahora se sortean el campo y el momento del que se parte. El sorteo se
+     guarda en la sesion, no por pagina: el fondo es el mismo mientras
+     navegas —el sitio se lee como una pieza y no da un salto al cambiar
+     de pagina— y cambia la proxima vez que entras. */
+  const NOMBRES = Object.keys(CAMPOS);
+  function sorteo() {
+    const dado = () => ({
+      campo: NOMBRES[Math.floor(Math.random() * NOMBRES.length)],
+      t0: Math.random() * 900,        // de que momento del campo se parte
+    });
+    try {
+      const guardado = sessionStorage.getItem('fondo');
+      if (guardado) {
+        const v = JSON.parse(guardado);
+        if (CAMPOS[v.campo] && typeof v.t0 === 'number') return v;
+      }
+      const nuevo = dado();
+      sessionStorage.setItem('fondo', JSON.stringify(nuevo));
+      return nuevo;
+    } catch {
+      return dado();   // ventana privada o almacenamiento bloqueado: se sortea y ya
+    }
+  }
+
+  const elegido = sorteo();
+  // el ?bg= de la url manda sobre todo, que para eso esta
   let campo = new URLSearchParams(location.search).get('bg');
-  if (!CAMPOS[campo]) campo = cv.dataset.campo || 'terreno';
+  if (!CAMPOS[campo]) campo = cv.dataset.campo || elegido.campo;
+  const T0 = elegido.t0;
 
   /* ---- lienzo ---------------------------------------------- */
   let an = 0, al = 0, tinta = '226,226,226';
@@ -164,17 +198,18 @@ if (cv && cv.getContext) {
 
   /* ---- ciclo ------------------------------------------------ */
   medir();
-  addEventListener('resize', () => { medir(); if (quieto) pintar(0); });
+  addEventListener('resize', () => { medir(); if (quieto) pintar(T0); });
 
   if (quieto) {
-    // Un solo fotograma y a otra cosa: ni bucle ni escuchas de puntero.
-    pintar(0);
+    // Un solo fotograma y a otra cosa: ni bucle ni escuchas de puntero. El
+    // fotograma ya no es el de t=0, que era el que salia siempre igual.
+    pintar(T0);
   } else {
     addEventListener('pointermove', e => { px = e.clientX; py = e.clientY; }, { passive: true });
     addEventListener('pointerleave', () => { px = py = -9e9; });
 
     // 1..5 conmutan el campo, para poder compararlos sin recargar
-    const orden = Object.keys(CAMPOS);
+    const orden = NOMBRES;
     addEventListener('keydown', e => {
       const n = +e.key;
       if (n >= 1 && n <= orden.length) { campo = orden[n - 1]; console.log('fondo:', campo); }
@@ -182,13 +217,13 @@ if (cv && cv.getContext) {
 
     let ultimo = 0;
     const inicio = performance.now();
-    pintar(0);   // un fotograma ya: en pestana de fondo el bucle no corre
+    pintar(T0);  // un fotograma ya: en pestana de fondo el bucle no corre
     document.addEventListener('visibilitychange', () => { if (!document.hidden) ultimo = 0; });
     (function bucle(ahora) {
       requestAnimationFrame(bucle);
       if (document.hidden || ahora - ultimo < 1000 / FPS) return;
       ultimo = ahora;
-      pintar((ahora - inicio) / 1000);
+      pintar(T0 + (ahora - inicio) / 1000);
     })(inicio);
   }
 }

@@ -185,7 +185,10 @@ function landing(lang) {
         <!-- El contorno viene en blanco sobre transparente, asi que va de
              mascara y el color lo pone el CSS. -->
         <span class="shape" aria-hidden="true"></span>
-        <img class="pupil" id="pupil" src="${raiz('/assets/eye_pupil.png')}" alt="" width="70" height="70">
+        <!-- La pupila se dibuja en el CSS (ver .eye .pupil): antes era un PNG
+             difuso con el centro mas claro que el borde. Ahorra una peticion
+             y se lee mucho mejor; el png sigue en assets por si acaso. -->
+        <span class="pupil" id="pupil" aria-hidden="true"></span>
       </div>
       <h1 class="name">${esc(site.name)}</h1>
     </div>

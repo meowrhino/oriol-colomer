@@ -45,4 +45,21 @@ if (ojo && destino) {
   addEventListener('keydown', e => {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); entrar(); }
   });
+
+  /* Parpadeo en reposo. Un ojo que no parpadea nunca esta muerto, y los dos
+     parpados ya existian para la entrada: aqui solo se les da un motivo.
+     Los intervalos son irregulares a proposito —entre 4 y 9 segundos— porque
+     a ritmo fijo se oye el metronomo. */
+  if (!seco) {
+    const cerrado = ms('--parpadeo');
+    (function ciclo() {
+      setTimeout(() => {
+        if (!yendo) {
+          ojo.classList.add('pestanea');
+          setTimeout(() => ojo.classList.remove('pestanea'), cerrado + 60);
+        }
+        ciclo();
+      }, 4000 + Math.random() * 5000);
+    })();
+  }
 }
