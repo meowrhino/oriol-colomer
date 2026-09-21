@@ -107,8 +107,10 @@ if (cv && cv.getContext) {
       let mejor = 9;
       for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
         const gi = i + di, gj = j + dj;
-        // cada celda tiene una semilla que orbita despacio
-        const a = hash(gi, gj, 7) * 6.2832 + t * .5;
+        // Cada celda tiene una semilla que orbita despacio. De que punto de
+        // la orbita arranca lo decide SEMILLA: antes era un 7 fijo y las
+        // burbujas se agrupaban siempre igual, por muy lejos que empezara t.
+        const a = hash(gi, gj, SEMILLA) * 6.2832 + t * .5;
         const px = gi + .5 + Math.cos(a) * .38;
         const py = gj + .5 + Math.sin(a) * .38;
         const d = Math.hypot(cx - px, cy - py);
@@ -121,7 +123,10 @@ if (cv && cv.getContext) {
     gotas: (x, y, t, ancho, alto) => {
       let s = 0;
       for (let n = 0; n < 3; n++) {
-        const fx = (hash(n, 11, 3) * .8 + .1), fy = (hash(n, 23, 5) * .8 + .1);
+        // Los tres focos salian de un hash constante, asi que brotaban
+        // siempre de los mismos tres puntos de la pantalla y lo unico que
+        // cambiaba entre visitas era la fase de los anillos. Ahora se mueven.
+        const fx = (hash(n, 11, SEMILLA) * .8 + .1), fy = (hash(n, 23, SEMILLA + 1) * .8 + .1);
         const d = Math.hypot(x - fx * ancho, y - fy * alto);
         s += Math.sin(d * .028 - t * 2.1 - n * 2) / (1 + d * .0042);
       }
@@ -138,21 +143,31 @@ if (cv && cv.getContext) {
      fotograma en t=0, salia exactamente la misma imagen en cada carga,
      siempre la misma, hasta el ultimo punto.
 
-     Ahora se sortean el campo y el momento del que se parte. El sorteo se
-     guarda en la sesion, no por pagina: el fondo es el mismo mientras
-     navegas —el sitio se lee como una pieza y no da un salto al cambiar
-     de pagina— y cambia la proxima vez que entras. */
+     Ahora se sortean tres cosas: el campo, el momento del que se parte y
+     una semilla entera. La semilla hace falta porque en dos de los cinco
+     campos la geometria no depende del tiempo —las celdas de `celular` y
+     los focos de `gotas`— y partir de otro instante no los cambiaba de
+     sitio: solo les corria la fase.
+
+     El sorteo se guarda en la sesion, no por pagina: el fondo es el mismo
+     mientras navegas —el sitio se lee como una pieza y no da un salto al
+     cambiar de pagina— y cambia cuando vuelves a entrar. Recargar tambien
+     cuenta como entrar de nuevo, ver mas abajo. */
   const NOMBRES = Object.keys(CAMPOS);
   function sorteo() {
     const dado = () => ({
       campo: NOMBRES[Math.floor(Math.random() * NOMBRES.length)],
       t0: Math.random() * 900,        // de que momento del campo se parte
+      sem: Math.floor(Math.random() * 1e6),   // y de donde cuelga su geometria
     });
     try {
       const guardado = sessionStorage.getItem('fondo');
       if (guardado) {
         const v = JSON.parse(guardado);
-        if (CAMPOS[v.campo] && typeof v.t0 === 'number') return v;
+        // La semilla se comprueba como lo demas: una sesion abierta antes
+        // de que existiera guarda un objeto sin ella, y sin esto saldria
+        // un hash con undefined dentro.
+        if (CAMPOS[v.campo] && typeof v.t0 === 'number' && Number.isInteger(v.sem)) return v;
       }
       const nuevo = dado();
       sessionStorage.setItem('fondo', JSON.stringify(nuevo));
@@ -162,6 +177,16 @@ if (cv && cv.getContext) {
     }
   }
 
+  /* Recargar es entrar otra vez. La sesion sobrevive al F5 —solo muere al
+     cerrar la pestana—, asi que el sorteo guardado se releia igual y salia
+     exactamente el mismo paisaje, hasta el ultimo punto. Un clic en un
+     enlace del sitio si lo conserva: ahi la continuidad es la gracia.
+     Volver atras es 'back_forward', no 'reload', y tampoco lo rompe. */
+  try {
+    if (performance.getEntriesByType('navigation')[0]?.type === 'reload')
+      sessionStorage.removeItem('fondo');
+  } catch { /* sin almacenamiento no hay nada que borrar */ }
+
   const elegido = sorteo();
   const pedido = cv.dataset.campo;     // lo que diga data/site.json
   // el ?bg= de la url manda sobre todo, que para eso esta
@@ -170,6 +195,8 @@ if (cv && cv.getContext) {
   // El momento de partida se sortea siempre, tambien con el campo fijado:
   // asi dos visitas nunca empiezan en el mismo sitio del paisaje.
   const T0 = elegido.t0;
+  // La leen `celular` y `gotas` al pintar, que es despues de esta linea.
+  const SEMILLA = elegido.sem;
 
   /* ---- lienzo ---------------------------------------------- */
   let an = 0, al = 0, tinta = '226,226,226';
