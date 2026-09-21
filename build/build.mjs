@@ -91,7 +91,13 @@ const mediaTag = (m, p, sub, i) => {
 };
 
 /* ---------- parciales ----------------------------------- */
-function head({ lang, title, desc, path, image, jsonld, anim, entrar }) {
+/* Velocidad del fondo dentro del sitio. La portada va a 1: es lo unico que
+   hay en pantalla y puede permitirse moverse. Dentro, el fondo es el telon
+   del trabajo, asi que va despacio — se nota que esta vivo sin competir con
+   las fotos ni con el tunel. */
+const DENTRO = 0.38;
+
+function head({ lang, title, desc, path, image, jsonld, vel, entrar }) {
   const alts = LANGS.map(l =>
     `<link rel="alternate" hreflang="${l === 'cat' ? 'ca' : l}" href="${abs(url(l, path))}">`
   ).join('\n  ');
@@ -120,7 +126,10 @@ function head({ lang, title, desc, path, image, jsonld, anim, entrar }) {
   ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld)}</script>` : ''}
 </head>
 <body${entrar ? ` data-entrar="${entrar}"` : ''}>
-<canvas class="dots" id="bg" data-anim="${anim ? 1 : 0}" aria-hidden="true"></canvas>
+<!-- El fondo se mueve en todas las paginas; la velocidad es lo unico que
+     cambia entre la portada y el resto. El campo sale de data/site.json:
+     uno de los cinco, o "aleatorio" para que lo sortee cada visita. -->
+<canvas class="dots" id="bg" data-vel="${vel ?? DENTRO}" data-campo="${esc(site.fondo || 'terreno')}" aria-hidden="true"></canvas>
 <script type="module" src="${raiz('/js/bg.js')}"></script>`;
 }
 
@@ -167,7 +176,7 @@ const foot = () => `</body>\n</html>\n`;
 /* ---------- paginas ------------------------------------- */
 function landing(lang) {
   return head({
-    lang, path: '', anim: true, entrar: url(lang, 'work/'),
+    lang, path: '', vel: 1, entrar: url(lang, 'work/'),
     title: `${site.name} — ${t(site.tagline, lang)}`,
     desc: t(site.tagline, lang),
     image: ogImage(live[0]),
@@ -235,7 +244,7 @@ ${opciones.map(([v, l], i) => `          <button type="button" role="menuitemrad
   const filtro = [['', t(site.ui.all, lang)], ...tags.map(g => [g, g])];
 
   return head({
-    lang, path: 'work/', anim: false,
+    lang, path: 'work/',
     title: `work — ${site.shortName}`,
     desc: t(site.tagline, lang),
     image: ogImage(live[0]),

@@ -16,7 +16,13 @@
      celular   distancia al punto sembrado mas cercano: burbujas
      gotas     ondas circulares de varias fuentes, interfiriendo
 
-   Para probar: ?bg=remolino en la url, o las teclas 1..5.
+   Cual se usa lo decide `fondo` en data/site.json: el nombre de uno de
+   los cinco, o "aleatorio" para que lo sortee cada visita. Para probar
+   sin tocar nada: ?bg=remolino en la url, o las teclas 1..5.
+
+   Se mueve en todas las paginas. Dentro del sitio va despacio (data-vel
+   lo pone el generador): el fondo es el telon del trabajo y no tiene que
+   competir con las fotos ni con el tunel.
    ============================================================ */
 import { seco, mez as mezcla } from './util.js';
 
@@ -24,11 +30,14 @@ const cv = document.getElementById('bg');
 
 if (cv && cv.getContext) {
   const ctx = cv.getContext('2d', { alpha: true });
-  const quieto = seco || cv.dataset.anim !== '1';
+  /* Con movimiento reducido no se mueve nada, como siempre. El resto del
+     tiempo la velocidad la pone el generador por pagina: 1 en la portada,
+     bastante menos dentro. */
+  const VEL = seco ? 0 : (parseFloat(cv.dataset.vel) || 0);
+  const quieto = VEL <= 0;
 
   const PASO  = 21;    // separacion de la rejilla, px CSS
   const R_MAX = 2.7;   // radio del punto en la cima
-  const FPS   = 30;
 
   /* ---- ruido de valor 3D -----------------------------------
      Hash entero en cada vertice de la celda + interpolacion
@@ -68,7 +77,12 @@ if (cv && cv.getContext) {
     // cumbres y mas juntas. La curva final separa cima de ladera, para
     // que las montanas tengan filo y no sean lomas.
     terreno: (x, y, t) => {
-      const h = fbm((x + t * 105) * .0052, y * .0052, t * .22, 4);
+      // Deriva en diagonal y ademas se deforma. Antes casi todo el movimiento
+      // era el arrastre lateral (105 px/s) y el relieve apenas cambiaba: se
+      // leia como una cinta transportadora, siempre el mismo perfil pasando
+      // de largo. Ahora traslada menos y el termino en z pesa el doble, que
+      // es el que hace que las cumbres nazcan y se deshagan en su sitio.
+      const h = fbm((x + t * 58) * .0052, (y + t * 23) * .0052, t * .44, 4);
       return h < .5 ? 2 * h * h : 1 - 2 * (1 - h) * (1 - h);   // contraste en S
     },
 
@@ -149,9 +163,12 @@ if (cv && cv.getContext) {
   }
 
   const elegido = sorteo();
+  const pedido = cv.dataset.campo;     // lo que diga data/site.json
   // el ?bg= de la url manda sobre todo, que para eso esta
   let campo = new URLSearchParams(location.search).get('bg');
-  if (!CAMPOS[campo]) campo = cv.dataset.campo || elegido.campo;
+  if (!CAMPOS[campo]) campo = CAMPOS[pedido] ? pedido : elegido.campo;
+  // El momento de partida se sortea siempre, tambien con el campo fijado:
+  // asi dos visitas nunca empiezan en el mismo sitio del paisaje.
   const T0 = elegido.t0;
 
   /* ---- lienzo ---------------------------------------------- */
@@ -215,6 +232,12 @@ if (cv && cv.getContext) {
       if (n >= 1 && n <= orden.length) { campo = orden[n - 1]; console.log('fondo:', campo); }
     });
 
+    /* Un fotograma del campo cuesta 0,6ms a 1440x900 —medido—, asi que lo
+       que manda el ritmo no es el coste sino lo que se ve: a poca velocidad
+       no hace falta refrescar tanto, y cada fotograma que no se pide es
+       bateria que no se gasta. */
+    const FPS = VEL >= .8 ? 30 : 18;
+
     let ultimo = 0;
     const inicio = performance.now();
     pintar(T0);  // un fotograma ya: en pestana de fondo el bucle no corre
@@ -223,7 +246,7 @@ if (cv && cv.getContext) {
       requestAnimationFrame(bucle);
       if (document.hidden || ahora - ultimo < 1000 / FPS) return;
       ultimo = ahora;
-      pintar(T0 + (ahora - inicio) / 1000);
+      pintar(T0 + ((ahora - inicio) / 1000) * VEL);
     })(inicio);
   }
 }

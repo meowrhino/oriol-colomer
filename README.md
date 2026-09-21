@@ -65,6 +65,37 @@ tarda más en cargar que el vídeo entero y hunde el posicionamiento.
 `data/site.json` tiene el about, el menú, el correo y los textos de la interfaz.
 Mismo sistema: lo editas y ya está.
 
+### El fondo
+
+Los puntos del fondo no son una imagen: se calculan. Cada punto lee un campo
+invisible y crece o desaparece según el valor, y el campo se mueve. Hay cinco,
+y se elige en `data/site.json`:
+
+```json
+"fondo": "terreno"
+```
+
+| valor | qué se ve |
+|---|---|
+| `terreno` | relieve que nace y se deshace, como un mapa de montañas. **El que está puesto.** |
+| `olas` | crestas que barren en diagonal |
+| `remolino` | mármol, humo |
+| `celular` | burbujas que se empujan |
+| `gotas` | aros de varias fuentes que se cruzan |
+| `aleatorio` | uno de los cinco al azar, distinto en cada visita |
+
+Aunque el campo esté fijado, **el momento del que arranca se sortea siempre**:
+dos visitas nunca empiezan en el mismo punto del paisaje.
+
+Para verlos sin tocar nada: `?bg=remolino` al final de cualquier dirección, o
+las teclas `1`…`5` con la página abierta.
+
+Se mueve en todas las páginas, pero **dentro del sitio va más despacio** que en
+la portada: ahí el fondo es el telón del trabajo y no tiene que competir con las
+fotos ni con el túnel. Esa velocidad es la constante `DENTRO` en
+`build/build.mjs`; `0` lo deja quieto. Con `prefers-reduced-motion` no se mueve
+en ningún sitio.
+
 ---
 
 ## Para desarrollo
