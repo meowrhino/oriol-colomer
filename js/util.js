@@ -14,6 +14,14 @@ export const lim = (v, a, b) => Math.min(b, Math.max(a, v));
 /** Interpolacion lineal entre a y b. */
 export const mez = (a, b, t) => a + (b - a) * t;
 
+/** Smoothstep: 0 antes de a, 1 despues de b, y una S por el medio. Sirve
+    para las caidas que no pueden tener esquinas —la sombra del tunel entra
+    y sale con esto— porque una rampa lineal se nota al empezar y al acabar. */
+export const suave = (a, b, x) => {
+  const t = lim((x - a) / (b - a), 0, 1);
+  return t * t * (3 - 2 * t);
+};
+
 /** Una medida del CSS en milisegundos, para que los tiempos vivan en un
     sitio solo: `--parpadeo: 300ms` se escribe en la hoja y se lee aqui. */
 export const ms = nombre => {

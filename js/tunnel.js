@@ -10,7 +10,7 @@
    filtro o el orden cambian, work.js avisa y esto se rehace: no
    hay dos listas que puedan discrepar.
    ============================================================ */
-import { seco, lim, mez, px } from './util.js';
+import { seco, lim, mez, suave, px } from './util.js';
 
 const zona   = document.getElementById('tunel');
 const escena = document.getElementById('escena');
@@ -28,6 +28,23 @@ if (zona && lista && escena) {
   const FUERA   = .4;    // cuanto te dejas pasar de los extremos
   const ARRASTRE= 9;     // px antes de considerar que arrastras
   const suavear = seco ? 1 : .16;
+
+  /* ---- sombra y atmosfera ----------------------------------
+     Lo que dice cual es el proyecto que estas mirando. Sin esto
+     las cartas eran recortes planos, todas nitidas y a opacidad
+     1: cinco imagenes de tamanos distintos amontonadas, sin nada
+     que las separase del fondo ni entre si.
+
+     La sombra es fuerte en el de delante, tenue en el del fondo,
+     y se apaga en cuanto lo pasas: una carta pasada esta ampliada
+     por la perspectiva y su sombra taparia media pantalla.        */
+  const HALO_CERCA   = .74;   // fuerza en el proyecto de delante
+  const HALO_FONDO   = .15;   // ...y en el ultimo que se ve
+  const HALO_ALCANCE = 2.4;   // en cuantos proyectos baja de una a otra
+  const HALO_PASADA  = .60;   // en cuantos se apaga al dejarla atras
+  const DESENFOQUE   = 3.2;   // px de desenfoque en el fondo del tunel
+  const DESATURA     = .28;   // cuanto color pierde lo que no miras
+  const FOCO         = 1.15;  // radio del "esto es lo que miras", en proyectos
 
   /* Las cartas caen en sitio distinto cada vez que se abre el tunel: no hay
      semilla fija, se sortea en cada `construir()` (carga, cambio de vista,
@@ -112,6 +129,20 @@ if (zona && lista && escena) {
   function medir() {
     an = innerWidth; al = innerHeight;
     anchoCarta = (cartas[0] && cartas[0].offsetWidth) || 300;
+    situarRotulo();
+  }
+
+  /* El rotulo cuelga centrado sobre el punto en el que estas, recortado
+     contra los extremos de la barra para que no se salga en el primero ni
+     en el ultimo. Antes vivia pegado a la izquierda mientras el punto activo
+     podia estar en la otra punta: las dos senales de "donde estoy" a media
+     pantalla la una de la otra, sin nada que las relacionase. */
+  function situarRotulo() {
+    if (!rotulo || !barra || visto < 0) return;
+    const ancho = barra.offsetWidth, propio = rotulo.offsetWidth;
+    if (!ancho || !propio) return;
+    rotulo.style.left =
+      lim(enPct(visto) * ancho, propio / 2, ancho - propio / 2).toFixed(1) + 'px';
   }
 
   /* ---- pintar ---------------------------------------------- */
@@ -142,6 +173,19 @@ if (zona && lista && escena) {
       el.style.opacity = (entra * sale).toFixed(3);
       el.style.zIndex  = String(1000 - Math.round(delante * 10));
       el.classList.toggle('foco', Math.abs(delante) < .5);
+
+      // La sombra: fuerte de cerca, tenue al fondo, apagada al pasarla.
+      const atras  = suave(0, HALO_ALCANCE, Math.max(0, delante));
+      const pasada = 1 - suave(0, HALO_PASADA, Math.max(0, -delante));
+      el.style.setProperty('--halo', (mez(HALO_CERCA, HALO_FONDO, atras) * pasada).toFixed(3));
+
+      // La atmosfera: lo que esta al fondo se desenfoca y pierde color. Es
+      // lo que convierte cuatro imagenes sueltas en profundidad, y lo que
+      // mas se nota en un telefono, donde solo cabe una carta entera.
+      const cerca01 = 1 - suave(0, FOCO, Math.abs(delante));
+      const borron  = suave(.7, FONDO, delante) * DESENFOQUE;
+      el.style.filter = (borron > .12 ? `blur(${borron.toFixed(2)}px) ` : '')
+                      + `saturate(${mez(1 - DESATURA, 1, cerca01).toFixed(3)})`;
     }
 
     const cerca = lim(Math.round(prof), 0, ultimo);
@@ -152,6 +196,7 @@ if (zona && lista && escena) {
         rotulo.innerHTML = `<b>${datos[cerca].rotulo}</b><i>${datos[cerca].pie}</i>`;
         // La ficha es el proyecto de delante: tambien se puede entrar por ella.
         if (rotulo.tagName === 'A') rotulo.href = datos[cerca].href;
+        situarRotulo();
       }
     }
 

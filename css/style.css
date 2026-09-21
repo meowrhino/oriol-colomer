@@ -26,6 +26,13 @@
   --edge-x: 3dvw;                      /* separacion de los botones al borde */
   --edge-y: 3dvh;
 
+  /* Cuanto desborda la sombra de la carta, a los lados y arriba/abajo. Es la
+     perilla del dia a dia junto con HALO_CERCA en js/tunnel.js: mas grande =
+     mas difusa, y pasado cierto punto las nubes de las cartas vecinas se
+     funden en una niebla que ya no separa nada. */
+  --halo-x: 46%;
+  --halo-y: 70%;
+
   --pad:   clamp(20px, 3.2vw, 52px);   /* margen exterior */
   --gap:   clamp(24px, 4vw, 72px);     /* separacion entre columnas */
 
@@ -430,8 +437,50 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   display:block; width:100%; aspect-ratio:16/9;
   object-fit:cover; background:#f0f0f0;
   -webkit-user-drag:none; user-select:none;
+  transition: transform .28s cubic-bezier(.2,.7,.2,1);
 }
 .carta:focus-visible{ outline:2px solid var(--ink-hard); outline-offset:4px; }
+
+/* ---------- la sombra ----------
+   No es un box-shadow: es una mancha ovalada mucho mas grande que la carta,
+   asi que lo que se ve no es el contorno de la foto sino un hueco en el
+   fondo. Un box-shadow sigue el rectangulo y se lee como un borde.
+
+   La fuerza no es fija: la escribe el tunel en --halo carta a carta segun lo
+   cerca que este del foco (ver js/tunnel.js). Por eso la sombra no solo
+   separa la carta del fondo, tambien te dice cual estas mirando.
+
+   Nunca llega a negro: todas las paradas son grises, y van aclarando hacia
+   fuera a la vez que baja el alfa, asi que la nube se apaga sin dejar tinta
+   en ningun punto. Al lado de cada una, su gris en la escala 0=blanco 1=negro. */
+.carta::before{
+  content:''; position:absolute;
+  inset: calc(-1 * var(--halo-y)) calc(-1 * var(--halo-x));
+  border-radius:50%;
+  pointer-events:none;                /* o abririas proyectos apuntando al vacio */
+  opacity: var(--halo, 0);
+  transition: opacity .2s linear;
+  background: radial-gradient(50% 50% at 50% 50%,
+    rgba(105,105,105, var(--halo-nucleo))  0%,   /* .59 */
+    rgba(120,120,120,.86)  34%,                  /* .53 */
+    rgba(142,142,142,.66)  52%,                  /* .44 */
+    rgba(168,168,168,.42)  68%,                  /* .34 */
+    rgba(196,196,196,.18)  84%,                  /* .23 */
+    rgba(212,212,212,0)   100%);                 /* .17 */
+}
+/* La carta de delante lleva el nucleo mas cerrado: no solo mas sombra, sino
+   mas apretada contra la foto, que es lo que se lee como "esta esta encima".
+   `foco` la marcaba ya el js desde el primer dia; hasta ahora no la usaba
+   nadie, la clase se ponia y no dibujaba nada. */
+.carta::before{ --halo-nucleo:.66; }
+.carta.foco::before{ --halo-nucleo:.92; }
+
+/* la foto por delante de su propia sombra */
+.carta img, .carta .sin{ position:relative; }
+
+@media (hover:hover) and (pointer:fine){
+  .carta:hover img{ transform:scale(1.025); }
+}
 
 /* ============================================================
    Linea del tiempo
@@ -443,11 +492,20 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   position:fixed; left:50%; translate:-50% 0; bottom: var(--edge-y);
   width:80%; z-index:3;
 }
+/* La zona util es la barra entera —el toque engancha al proyecto mas cercano—
+   asi que lo que hay que agrandar es el area, no el dibujo: la linea sigue
+   midiendo lo mismo y el dedo tiene 47px. Vivia ademas pegada al borde de
+   abajo, justo donde el telefono tiene sus propios gestos. */
 .barra{ position:relative; height:2.2rem; cursor:pointer; touch-action:none; }
+.barra::before{ content:''; position:absolute; inset:-6px 0; }
 .marcas{ position:absolute; inset:0; }
+/* 16x16 era menos de la mitad del objetivo tactil de rigor. El punto que se
+   dibuja sigue siendo el de siempre (::after): esto solo agranda la zona a la
+   que apuntas. 34px de ancho caben de sobra, que la separacion media entre
+   dos proyectos es de unos 48. */
 .marca{
   position:absolute; top:50%; translate:-50% -50%;
-  width:16px; height:16px; padding:0; border:0; background:none; cursor:pointer;
+  width:34px; height:44px; padding:0; border:0; background:none; cursor:pointer;
 }
 /* semiesferas: un punto con luz arriba, como la pupila del ojo */
 .marca::after{
@@ -464,14 +522,23 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
 .marca:focus-visible{ outline:1px solid var(--ink-hard); }
 
 /* La ficha es un enlace al proyecto que tienes delante en el tunel. */
+/* El rotulo dice que proyecto tienes delante: es informacion, no ambiente,
+   asi que sale de la banda palida. Con --ink-faint daba 1,7:1 sobre el fondo
+   —a plena luz no estaba— y era lo unico que nombraba la carta enfocada.
+
+   Y cuelga centrado sobre el punto activo de la barra (el `left` lo pone
+   situarRotulo() en js/tunnel.js) en vez de quedarse pegado a la izquierda
+   mientras el punto podia estar en la otra punta: las dos senales de "donde
+   estoy" a media pantalla la una de la otra. */
 .rotulo{
-  display:block; width:max-content; max-width:100%; padding-bottom:.35em;
-  font-size: var(--fs-meta); color: var(--ink-faint); white-space:nowrap;
-  overflow:hidden; text-overflow:ellipsis;
+  position:absolute; bottom:100%; left:0; translate:-50% 0;
+  width:max-content; padding-bottom:.55em;
+  font-size: var(--fs-meta); color: var(--ink); white-space:nowrap;
+  transition: left .35s cubic-bezier(.2,.7,.2,1);
 }
 a.rotulo{ cursor:pointer; }
 a.rotulo:hover b{ color: var(--ink-hard); }
-.rotulo b{ font-weight:400; color: var(--ink-soft); }
+.rotulo b{ font-weight:400; color: var(--ink-hard); }
 .rotulo i{ font-style:normal; margin-left:1ch; }
 
 /* ============================================================
@@ -515,6 +582,12 @@ a.rotulo:hover b{ color: var(--ink-hard); }
   .topbar{ flex-wrap:wrap; gap:.9rem 1.2rem; }
   .controles{ width:100%; margin-left:0; justify-content:space-between; gap:.8rem; }
   .escena{ height: calc(100dvh - 15rem); }
+
+  /* 19px de alto era la mitad del objetivo tactil. El margen negativo se come
+     el relleno extra, asi que la barra se ve exactamente igual. */
+  .vistas button, .menu .cabeza, .opciones button{
+    padding:.95rem .5rem; margin:-.75rem 0;
+  }
   .carta{ width: min(72vw, 340px); margin-left:-36vw; }
   .tiempo{ width:90%; }
 }

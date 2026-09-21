@@ -101,14 +101,45 @@ data/projects.json     los proyectos          <- lo que edita Oriol
 data/site.json         about, menú, textos    <- lo que edita Oriol
 build/build.mjs        genera los HTML
 build/import-csv.py    importa la ficha técnica (una vez)
-build/gif2mp4.sh       GIF -> MP4
+build/video.sh         GIF -> MP4
 build/optimize-images.sh  PNG -> JPG
 build/serve.mjs        servidor local
 css/style.css          toda la hoja de estilo
-js/eye.js              la pupila sigue al cursor
+js/util.js             lo poco que comparten los guiones
+js/bg.js               el fondo de puntos
+js/welcome.js          la portada
 js/work.js             filtro, orden y miniatura del índice
+js/tunnel.js           la vista en profundidad de work
 media/<slug>/          fotos y vídeos
 ```
+
+---
+
+## La sombra del túnel
+
+En la vista de túnel las cartas son fotos recortadas sobre `#fafafa`. Sin nada más,
+cinco imágenes de tamaños distintos amontonadas en el centro no dicen cuál estás
+mirando: el tamaño es el único indicio de profundidad y no basta.
+
+La sombra hace las dos cosas a la vez — separa la carta del fondo **y** te dice
+cuál tienes delante. No es un `box-shadow` (eso sigue el rectángulo de la foto y
+se lee como un borde) sino una mancha ovalada más grande que la carta: lo que ves
+es un hueco en el fondo, con los puntos apagándose alrededor.
+
+La fuerza no es fija. `js/tunnel.js` escribe `--halo` en cada carta, cada frame,
+según lo cerca que esté del foco:
+
+| perilla | dónde | qué hace |
+|---|---|---|
+| `HALO_CERCA` / `HALO_FONDO` | `js/tunnel.js` | fuerza en el proyecto de delante y en el del fondo |
+| `HALO_ALCANCE` | `js/tunnel.js` | en cuántos proyectos baja de una a otra |
+| `HALO_PASADA` | `js/tunnel.js` | en cuántos se apaga al dejar la carta atrás. Importa: una carta pasada está ampliada por la perspectiva y su sombra taparía media pantalla |
+| `--halo-x` / `--halo-y` | `css/style.css`, en `:root` | cuánto desborda de la carta. Más grande = más difusa, y pasado cierto punto las nubes vecinas se funden en una niebla que ya no separa nada |
+| `--halo-nucleo` | `css/style.css` | lo cerrado del centro. La carta con `.foco` lo lleva más apretado: no sólo más sombra, sino más pegada a la foto, que es lo que se lee como "ésta está encima" |
+
+Van con ella `DESENFOQUE` y `DESATURA`, en el mismo `js/tunnel.js`: lo que está al
+fondo se desenfoca y pierde color. Es lo que convierte cuatro imágenes sueltas en
+profundidad, y lo que más se nota en un teléfono, donde sólo cabe una carta entera.
 
 ---
 
