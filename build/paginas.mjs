@@ -357,9 +357,16 @@ ${rows}
   </ul>
 </main>
 
+<!-- Linea del tiempo: una raya de lado a lado y cada proyecto en su fecha.
+     El pomo avanza con el tunel y se puede arrastrar. -->
 <footer class="tiempo" id="tiempo">
+  <div class="barra" id="barra">
+    <span class="linea" aria-hidden="true"></span>
+    <span class="relleno" id="relleno" aria-hidden="true"></span>
+    <div class="marcas" id="marcas"></div>
+    <span class="pomo" id="pomo" aria-hidden="true"></span>
+  </div>
   <a class="rotulo" id="rotulo" href=""></a>
-  <div class="barra" id="barra"><div class="marcas" id="marcas"></div></div>
 </footer>
 
 <div class="peek" id="peek" aria-hidden="true"></div>

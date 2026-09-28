@@ -3,12 +3,28 @@
    ------------------------------------------------------------
    `prof` es la posicion de la camara sobre el eje z, medida en
    proyectos: el proyecto i esta en el plano de pantalla cuando
-   prof === i. Los de indice mayor quedan al fondo.
+   prof === i. El 0 es el mas reciente; los demas quedan detras,
+   cada uno SALTO mas lejos.
 
-   Se construye leyendo el <ul class="index"> que ya esta en el
-   HTML, en su orden actual y saltandose lo oculto. Cuando el
-   filtro o el orden cambian, work.js avisa y esto se rehace: no
-   hay dos listas que puedan discrepar.
+   El movimiento es el de la v0, que es el que se lee como un
+   tunel de verdad:
+
+   - Cada carta tiene una x/y FIJA en el espacio y lo unico que
+     cambia es su z. La perspectiva la lleva sola en linea recta
+     desde el centro hacia fuera, como lo que pasa por tu lado.
+     Antes la x dependia del tamano con que se veia la carta, y
+     al acercarse se iba hacia el centro, chocaba con las otras y
+     luego cambiaba de camino.
+   - Se reparten en espiral de angulo aureo: dos seguidas quedan
+     a 137 grados una de otra y ninguna cae en el centro, que es
+     por donde pasa la siguiente.
+   - La que dejas atras crece, se desenfoca mucho y se va: pasa
+     volando. Las de delante se ven todas, cada vez mas lejos,
+     mas borrosas y con menos color.
+
+   Se construye leyendo el <ul class="index"> del HTML, pero en
+   orden de fecha y con todos los proyectos: el orden y el filtro
+   son cosa de la lista, el tunel es siempre la linea del tiempo.
    ============================================================ */
 import { seco, lim, mez, suave, px, portada } from './util.js';
 
@@ -17,201 +33,259 @@ const escena = document.getElementById('escena');
 const lista  = document.getElementById('index');
 
 if (zona && lista && escena) {
-  // La perspectiva se lee del CSS en vez de repetirla aqui: estaba escrita
-  // en los dos sitios con un comentario en cada uno avisando del otro, que
-  // es justo la clase de pareja que acaba discrepando.
-  const P       = px(escena, 'perspective') || 900;
-  const SALTO   = 780;   // distancia en z entre proyectos
-  const CERCA   = .62 * P;
-  const FONDO   = 4.2;   // cuantos proyectos ves hacia atras
-  const SNAP_MS = 380;   // quietud antes de encajar en el mas cercano
-  const FUERA   = .4;    // cuanto te dejas pasar de los extremos
-  const ARRASTRE= 9;     // px antes de considerar que arrastras
-  const suavear = seco ? 1 : .16;
+  // La perspectiva se lee del CSS en vez de repetirla aqui.
+  const P        = px(escena, 'perspective') || 900;
+  const SALTO    = 620;        // distancia en z entre proyectos
+  const CERCA    = .70 * P;    // mas cerca que esto ya ha salido de cuadro
+  const FONDO    = 6;          // hasta cuantos proyectos hacia atras se ven
+  const PASADA_A = .06 * P;    // una carta que dejas atras empieza a irse aqui
+  const PASADA_B = .52 * P;    // ...y ha desaparecido aqui
+  const OPTICO   = .46;        // centro optico vertical (= top de .carta)
+  const BORDE    = 14;         // margen minimo contra el borde de pantalla
+  const DESBORDE = .07;        // en movil la carta puede salirse este % del ancho
+  const ALCANCE  = .4;         // mas lejos de esto, un clic te acerca en vez de entrar
 
-  /* ---- sombra y atmosfera ----------------------------------
-     Lo que dice cual es el proyecto que estas mirando. Sin esto
-     las cartas eran recortes planos, todas nitidas y a opacidad
-     1: cinco imagenes de tamanos distintos amontonadas, sin nada
-     que las separase del fondo ni entre si.
+  /* La atmosfera: lo que esta al fondo se desenfoca y pierde color. Es lo
+     que convierte las imagenes sueltas en profundidad. */
+  const DESENFOQUE = 5;        // px de desenfoque al fondo del tunel
+  const ESTELA     = 22;       // px de desenfoque de la que pasa volando
+  const DESATURA   = .34;      // cuanto color pierde lo que no miras
+  const FOCO       = .55;      // a esta distancia ya no es "la que miras"
 
-     La sombra es fuerte en el de delante, tenue en el del fondo,
-     y se apaga en cuanto lo pasas: una carta pasada esta ampliada
-     por la perspectiva y su sombra taparia media pantalla.        */
-  const HALO_CERCA   = .74;   // fuerza en el proyecto de delante
-  const HALO_FONDO   = .15;   // ...y en el ultimo que se ve
-  const HALO_ALCANCE = 2.4;   // en cuantos proyectos baja de una a otra
-  const HALO_PASADA  = .60;   // en cuantos se apaga al dejarla atras
-  const DESENFOQUE   = 3.2;   // px de desenfoque en el fondo del tunel
-  const DESATURA     = .28;   // cuanto color pierde lo que no miras
-  const FOCO         = 1.15;  // radio del "esto es lo que miras", en proyectos
-
-  /* Las cartas caen en sitio distinto cada vez que se abre el tunel: no hay
-     semilla fija, se sortea en cada `construir()` (carga, cambio de vista,
-     filtro u orden). Lo unico que no se deja al azar es que dos cartas
-     seguidas no se tapen: si la nueva sale cerca de la anterior en el eje
-     que sea, se manda al lado contrario. */
-  const azar = () => Math.random() * 2 - 1;               // -1 .. 1
-  const aparte = (v, previo) =>
-    previo === null || Math.abs(v - previo) > .55 ? v : -v;
+  /* El ritmo. La camara persigue a `meta` y, cuando dejas de tocar, `meta`
+     se acerca sola al proyecto mas cercano. Los dos suaves: el encaje de
+     antes tiraba en seco y se notaba el tiron. */
+  const SNAP_MS  = 420;        // quietud antes de encajar
+  const PERSIGUE = seco ? 1 : .10;
+  const ENCAJA   = seco ? 1 : .08;
+  const FUERA    = .35;        // cuanto te dejas pasar de los extremos
+  const ARRASTRE = 9;          // px antes de considerar que arrastras
+  const EPS      = 5e-4;
 
   const marcas = document.getElementById('marcas');
   const rotulo = document.getElementById('rotulo');
   const barra  = document.getElementById('barra');
-  const dias = d => { const [y,m,x] = d.split('-').map(Number); return Date.UTC(y, m-1, x) / 864e5; };
+  const pomo   = document.getElementById('pomo');
+  const relleno= document.getElementById('relleno');
 
   /* ---- estado ---------------------------------------------- */
-  let datos = [], cartas = [], puntos = [], fechas = [], t0 = 0, span = 1, ultimo = 0;
-  let prof = 0, meta = 0, quieto = 0, arrastrando = false, agarrado = false;
-  let an = 0, al = 0, anchoCarta = 300;
+  let datos = [], cartas = [], puntos = [], pos = [], T = [];
+  let ultimo = 0, prof = 0, meta = 0, ultimaMano = 0;
+  let agarrado = false, raspando = false;
+  let an = 0, al = 0;
 
-  const enPct = i => (fechas[i] - t0) / span;      // 0..1 por fecha real
+  const acercar = (a, b, k) => { const v = a + (b - a) * k; return Math.abs(b - v) < EPS ? b : v; };
+  const dias = d => { const [y, m, x] = d.split('-').map(Number); return Date.UTC(y, m - 1, x) / 864e5; };
+  const movil = () => innerWidth <= 820;
+
+  /* ---- la linea del tiempo ----------------------------------
+     T[i] = donde cae el proyecto i en la barra, de 0 (el mas antiguo, a
+     la izquierda) a 1 (el mas reciente). Por fecha real: dos del mismo mes
+     salen pegados y un ano sin nada deja hueco. */
+  function repartir() {
+    const f = datos.map(d => dias(d.fecha));
+    const t0 = Math.min(...f), span = Math.max(...f) - t0;
+    T = span > 0 ? f.map(v => (v - t0) / span)
+                 : datos.map((_, i) => (ultimo ? 1 - i / ultimo : .5));
+  }
+  /** profundidad (fraccionaria) -> sitio en la barra, 0..1 */
+  function enBarra(d) {
+    if (!ultimo) return T[0] ?? .5;
+    const i = lim(Math.floor(d), 0, ultimo - 1);
+    return lim(mez(T[i], T[i + 1], d - i), 0, 1);
+  }
+  /** sitio en la barra -> profundidad (fraccionaria). Si dos proyectos
+      caen en el mismo dia, gana el primero. */
+  function enTunel(t) {
+    if (!ultimo) return 0;
+    if (t >= T[0]) return 0;
+    if (t <= T[ultimo]) return ultimo;
+    for (let i = 0; i < ultimo; i++) {
+      const a = T[i], b = T[i + 1];
+      if (t <= a && t >= b) return a === b ? i : i + (a - t) / (a - b);
+    }
+    return 0;
+  }
 
   /* ---- construir desde la lista ---------------------------- */
   function construir() {
     zona.replaceChildren();
     if (marcas) marcas.replaceChildren();
 
-    datos = [...lista.children].filter(li => !li.hidden).map(li => {
-      const a = li.querySelector('a');
-      return {
-        a,
-        href: a.getAttribute('href'),
-        fecha: li.dataset.date,
-        rotulo: a.querySelector('.t').childNodes[0].textContent.trim(),
-        pie: a.querySelector('.c').textContent.trim(),
-      };
-    });
+    datos = [...lista.children]
+      .sort((a, b) => b.dataset.date.localeCompare(a.dataset.date))
+      .map(li => {
+        const a = li.querySelector('a');
+        return {
+          a, href: a.getAttribute('href'), fecha: li.dataset.date,
+          rotulo: a.querySelector('.t').childNodes[0].textContent.trim(),
+          pie: a.querySelector('.c').textContent.trim(),
+        };
+      });
     ultimo = datos.length - 1;
     if (!datos.length) return;
+    repartir();
 
-    fechas = datos.map(d => dias(d.fecha));
-    t0 = Math.min(...fechas);
-    span = Math.max(Math.max(...fechas) - t0, 1);
+    // espiral aurea con un giro inicial al azar: cada visita coloca las
+    // cartas en sitios distintos, pero nunca dos seguidas en la misma zona
+    const AUREO = Math.PI * (3 - Math.sqrt(5));
+    const a0 = Math.random() * Math.PI * 2;
 
-    let dx = null, dy = null;
     cartas = datos.map((d, i) => {
       const el = document.createElement('a');
       el.className = 'carta';
-      el.href = d.href;                       // clic = ir al proyecto, siempre
-      el.dataset.i = i;
-      // Sin pie de foto: el rotulo de la linea del tiempo ya dice cual es
-      // el proyecto de delante, y repetirlo aqui chocaba con las cartas
-      // del fondo. El nombre accesible va en el propio enlace.
-      el.append(portada(d.a));
+      el.href = d.href;
+      el.draggable = false;
       el.setAttribute('aria-label', `${d.rotulo}, ${d.pie}`);
-      dx = aparte(azar(), dx); dy = aparte(azar(), dy);
-      el.style.setProperty('--dx', dx.toFixed(3));
-      el.style.setProperty('--dy', dy.toFixed(3));
+      const pintura = portada(d.a);
+      el._video = pintura.tagName === 'VIDEO' ? pintura : null;
+      el.append(el._video ? lienzo(el._video) : pintura);
+      const ang = a0 + i * AUREO + (Math.random() - .5) * .5;
+      const r = .55 + .45 * Math.random();
+      el._n = { x: Math.cos(ang) * r, y: Math.sin(ang) * r };
       zona.append(el);
       return el;
     });
 
-    // Linea del tiempo sin raya: solo los proyectos, cada uno en su fecha.
     puntos = datos.map((d, i) => {
       if (!marcas) return null;
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'marca';
-      b.style.left = (enPct(i) * 100).toFixed(3) + '%';
+      b.style.left = (T[i] * 100).toFixed(3) + '%';
       b.title = `${d.rotulo} · ${d.pie}`;
-      b.setAttribute('aria-label', `ir a ${d.rotulo}, ${d.pie}`);
-      b.addEventListener('click', e => { e.preventDefault(); irA(i); });
+      b.setAttribute('aria-label', `${d.rotulo}, ${d.pie}`);
+      // solo el teclado llega aqui: los toques los resuelve la barra entera
+      b.addEventListener('click', () => irA(i));
       marcas.append(b);
       return b;
     });
 
-    prof = meta = lim(meta, 0, ultimo);
     medir();
     pintar();
   }
 
-  function medir() {
-    an = innerWidth; al = innerHeight;
-    anchoCarta = (cartas[0] && cartas[0].offsetWidth) || 300;
-    situarRotulo();
+  /* Un video dentro de un espacio 3D con perspectiva no siempre se pinta:
+     hay Chrome que deja el hueco gris aunque el video este reproduciendo.
+     Asi que el video no entra en la carta: se reproduce fuera y cada
+     fotograma se copia a un <canvas>, que el 3D compone siempre. Se copia
+     solo mientras suena, que es solo mientras la carta se ve (pintar()). */
+  function lienzo(video) {
+    const cv = document.createElement('canvas');
+    cv.width = 480; cv.height = 270;
+    if (video.poster) cv.style.backgroundImage = `url("${video.poster}")`;
+    const g = cv.getContext('2d');
+    const rvfc = 'requestVideoFrameCallback' in video;
+    let enCurso = false;
+    const copiar = () => {
+      if (video.paused) { enCurso = false; return; }
+      if (video.videoWidth) {
+        if (cv.width !== video.videoWidth) { cv.width = video.videoWidth; cv.height = video.videoHeight; }
+        g.drawImage(video, 0, 0, cv.width, cv.height);
+      }
+      rvfc ? video.requestVideoFrameCallback(copiar) : requestAnimationFrame(copiar);
+    };
+    video.addEventListener('playing', () => { if (!enCurso) { enCurso = true; copiar(); } });
+    return cv;
   }
 
-  /* El rotulo cuelga centrado sobre el punto en el que estas, recortado
-     contra los extremos de la barra para que no se salga en el primero ni
-     en el ultimo. Antes vivia pegado a la izquierda mientras el punto activo
-     podia estar en la otra punta: las dos senales de "donde estoy" a media
-     pantalla la una de la otra, sin nada que las relacionase. */
-  function situarRotulo() {
-    if (!rotulo || !barra || visto < 0) return;
-    const ancho = barra.offsetWidth, propio = rotulo.offsetWidth;
-    if (!ancho || !propio) return;
-    rotulo.style.left =
-      lim(enPct(visto) * ancho, propio / 2, ancho - propio / 2).toFixed(1) + 'px';
+  /* Las x/y se sortean normalizadas y se resuelven aqui contra el hueco
+     real que queda, asi que ninguna carta se sale en su momento de foco
+     por estrecha que sea la ventana. */
+  function medir() {
+    an = innerWidth; al = innerHeight;
+    if (!cartas.length) return;
+    const arriba = (document.querySelector('.topbar')?.offsetHeight || 0) + 8;
+    const abajo  = (document.getElementById('tiempo')?.offsetHeight || 0) + 24;
+    const cy = OPTICO * al;
+    const banda = Math.max(0, Math.min(cy - arriba, al - abajo - cy));
+    const desborde = movil() ? DESBORDE * an : 0;
+    pos = cartas.map(el => {
+      const cw = el.offsetWidth || 300, ch = el.offsetHeight || cw * .5625;
+      return {
+        x: el._n.x * Math.max(0, an / 2 - cw / 2 - BORDE + desborde),
+        y: el._n.y * Math.max(0, banda - ch / 2),
+      };
+    });
+    situarRotulo();
   }
 
   /* ---- pintar ---------------------------------------------- */
   let visto = -1;
 
-  /** Coloca las cartas para el valor actual de `prof`. Se llama desde el
-      bucle, pero tambien una vez al construir: requestAnimationFrame no
-      corre en una pestana de fondo, y sin esto las cartas se quedarian
-      sin colocar hasta que alguien mirase. */
   function pintar() {
     if (!cartas.length) return;
     for (let i = 0; i < cartas.length; i++) {
       const el = cartas[i];
-      const z = (prof - i) * SALTO;
-      const delante = i - prof;                    // <0 ya pasada, >0 al fondo
+      const rel = prof - i;                            // >0 ya la has pasado
+      const z = lim(rel * SALTO, -FONDO * SALTO, CERCA);
 
-      if (z > CERCA || delante > FONDO) { el.style.visibility = 'hidden'; continue; }
-      el.style.visibility = 'visible';
+      let op, bl;
+      if (z <= 0) {                                    // por delante: asoma del fondo
+        const d = -z / SALTO;
+        op = 1 - suave(FONDO - 1.4, FONDO, d);
+        bl = suave(.6, FONDO, d) * DESENFOQUE;
+      } else {                                         // pasada: crece, se borra y se va
+        op = 1 - suave(PASADA_A, PASADA_B, z);
+        bl = suave(0, .66 * P, z) * ESTELA;
+      }
 
-      const escala  = P / (P - z);
-      const holgura = Math.max(0, (an - anchoCarta * escala) / 2 - 16) / Math.max(escala, .2);
-      const dx = parseFloat(el.style.getPropertyValue('--dx')) * holgura * .62;
-      const dy = parseFloat(el.style.getPropertyValue('--dy')) * Math.min(holgura * .5, al * .22);
+      const visible = op > .003;
+      el.style.visibility = visible ? 'visible' : 'hidden';
+      if (el._video) { if (visible && el._video.paused) el._video.play().catch(() => {});
+                       else if (!visible && !el._video.paused) el._video.pause(); }
+      if (!visible) continue;
 
-      el.style.transform = `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, ${z.toFixed(1)}px)`;
-      const entra = lim((FONDO - delante) / 1.1, 0, 1);   // asoma desde el fondo
-      const sale  = lim((CERCA - z) / (CERCA * .55), 0, 1); // se va al pasar
-      el.style.opacity = (entra * sale).toFixed(3);
-      el.style.zIndex  = String(1000 - Math.round(delante * 10));
-      el.classList.toggle('foco', Math.abs(delante) < .5);
-
-      // La sombra: fuerte de cerca, tenue al fondo, apagada al pasarla.
-      const atras  = suave(0, HALO_ALCANCE, Math.max(0, delante));
-      const pasada = 1 - suave(0, HALO_PASADA, Math.max(0, -delante));
-      el.style.setProperty('--halo', (mez(HALO_CERCA, HALO_FONDO, atras) * pasada).toFixed(3));
-
-      // La atmosfera: lo que esta al fondo se desenfoca y pierde color. Es
-      // lo que convierte cuatro imagenes sueltas en profundidad, y lo que
-      // mas se nota en un telefono, donde solo cabe una carta entera.
-      const cerca01 = 1 - suave(0, FOCO, Math.abs(delante));
-      const borron  = suave(.7, FONDO, delante) * DESENFOQUE;
-      el.style.filter = (borron > .12 ? `blur(${borron.toFixed(2)}px) ` : '')
-                      + `saturate(${mez(1 - DESATURA, 1, cerca01).toFixed(3)})`;
+      const { x, y } = pos[i] || { x: 0, y: 0 };
+      el.style.transform =
+        `translate3d(calc(-50% + ${x.toFixed(1)}px), calc(-50% + ${y.toFixed(1)}px), ${z.toFixed(1)}px)`;
+      el.style.opacity = op.toFixed(3);
+      const cerca = 1 - suave(0, FOCO, Math.abs(rel));
+      const sat = mez(1 - DESATURA, 1, cerca);
+      el.style.filter = ((bl > .15 ? `blur(${bl.toFixed(2)}px) ` : '')
+                      + (sat < .995 ? `saturate(${sat.toFixed(3)})` : '')) || 'none';
+      el.style.zIndex = String(Math.round(1000 + z));
+      el.classList.toggle('foco', Math.abs(rel) < .5);
+      // Lo de delante se puede clicar aunque este lejos: te acerca. Lo que ya
+      // has pasado no, que es enorme y esta encima: se comeria el clic.
+      el.style.pointerEvents = (z <= 0 ? op > .12 : op > .5 && bl < 3) ? 'auto' : 'none';
     }
+
+    // el pomo avanza a la vez que la camara, no a saltos de bola en bola
+    const donde = (enBarra(prof) * 100).toFixed(3) + '%';
+    if (pomo) pomo.style.left = donde;
+    // la raya empieza en el borde de la pantalla, no en el de la barra
+    if (relleno) relleno.style.width = `calc(var(--pad) + ${donde})`;
+    situarRotulo();
 
     const cerca = lim(Math.round(prof), 0, ultimo);
     if (cerca !== visto) {
       visto = cerca;
       puntos.forEach((b, i) => b && b.classList.toggle('aqui', i === cerca));
       if (rotulo) {
-        rotulo.innerHTML = `<b>${datos[cerca].rotulo}</b><i>${datos[cerca].pie}</i>`;
-        // La ficha es el proyecto de delante: tambien se puede entrar por ella.
-        if (rotulo.tagName === 'A') rotulo.href = datos[cerca].href;
-        situarRotulo();
+        rotulo.replaceChildren();
+        const b = document.createElement('b'); b.textContent = datos[cerca].rotulo;
+        const it = document.createElement('i'); it.textContent = datos[cerca].pie;
+        rotulo.append(b, it);
+        rotulo.href = datos[cerca].href;             // la ficha tambien entra al proyecto
+        rotulo.setAttribute('aria-label', `${datos[cerca].rotulo}, ${datos[cerca].pie}`);
       }
     }
-
   }
 
-  /* ---- el ciclo, que ahora duerme ---------------------------
-     Antes `tick` se encadenaba a si mismo sin condicion ninguna: en la
-     vista de lista, con el tunel ya encajado y sin nadie tocando, o con la
-     pagina abierta en una pestana de fondo, seguia pidiendo un fotograma
-     cada 16ms para siempre. Un portfolio es una pagina que la gente deja
-     abierta.
+  /* El rotulo cuelga sobre el pomo, recortado contra los extremos de la
+     barra para que no se salga en el primero ni en el ultimo. */
+  function situarRotulo() {
+    if (!rotulo || !barra || !datos.length) return;
+    const ancho = barra.offsetWidth, propio = rotulo.offsetWidth;
+    if (!ancho || !propio) return;
+    const x = enBarra(prof) * ancho;
+    rotulo.style.left = lim(x, propio / 2 - 8, ancho - propio / 2 + 8).toFixed(1) + 'px';
+  }
 
-     Ahora pinta mientras quede algo que mover y para; cualquier gesto lo
-     despierta. La pieza que lo hace posible es el clavado de `prof`: una
-     interpolacion exponencial no llega NUNCA del todo a su destino, y ese
-     "nunca" era justamente lo que no dejaba parar. */
+  /* ---- el ciclo, que duerme ---------------------------------
+     Pinta mientras quede algo que mover y para; cualquier gesto lo
+     despierta. Los interpoladores se clavan en su destino (acercar), asi
+     que "ya no queda nada" es una igualdad exacta y el bucle puede parar. */
   let frame = 0;
   const despertar = () => { if (!frame) frame = requestAnimationFrame(tick); };
 
@@ -219,113 +293,144 @@ if (zona && lista && escena) {
     frame = 0;
     if (document.body.dataset.vista !== 'tunel' || !cartas.length) return;
 
-    prof = mez(prof, meta, suavear);
-    if (Math.abs(meta - prof) < 5e-4) prof = meta;   // llegada exacta
+    const suelto = !agarrado && !raspando && performance.now() - ultimaMano > SNAP_MS;
+    if (suelto) meta = acercar(meta, lim(Math.round(meta), 0, ultimo), ENCAJA);
+    prof = acercar(prof, meta, PERSIGUE);
     pintar();
 
-    if (!agarrado && quieto && performance.now() - quieto > SNAP_MS) {
-      quieto = 0; meta = lim(Math.round(meta), 0, ultimo);
-    }
-
-    // `quieto` es el encaje pendiente: mientras cuente, seguimos despiertos
-    if (prof !== meta || agarrado || quieto) despertar();
+    const quieto = prof === meta && meta === Math.round(meta) && suelto;
+    if (!quieto || agarrado || raspando) despertar();
   }
 
   const mover = d => {
-    meta = lim(meta + d, -FUERA, ultimo + FUERA); quieto = performance.now(); despertar();
+    meta = lim(meta + d, -FUERA, ultimo + FUERA);
+    ultimaMano = performance.now(); despertar();
   };
-  const irA   = i => { meta = lim(i, 0, ultimo); quieto = 0; despertar(); };
+  const irA = i => { meta = lim(i, 0, ultimo); ultimaMano = 0; despertar(); };
 
-  /* ---- entrada --------------------------------------------- */
-  escena.addEventListener('wheel', e => {
+  /* ---- entrada ----------------------------------------------
+     Toda la pantalla mueve el tunel, no solo la franja del centro: en el
+     telefono, tocar por encima o por debajo de las cartas hacia rebotar
+     la pagina. Se escucha en window y se deja pasar lo que va a los
+     controles (menu de arriba, barra del tiempo, idiomas). */
+  const enTunelActivo = () => document.body.dataset.vista === 'tunel';
+  const esControl = t => t.closest('.topbar, .tiempo, .langs, #vista-previa');
+
+  addEventListener('wheel', e => {
+    if (!enTunelActivo() || esControl(e.target)) return;
     e.preventDefault();
-    mover((Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX) * .0022);
+    const d = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+    // deltaMode 1 son lineas (Firefox con rueda de raton), no pixeles
+    mover(d * (e.deltaMode === 1 ? 16 : 1) * .0022);
   }, { passive: false });
 
-  let x0 = 0, y0 = 0, p0 = 0, movido = 0, capturado = 0;
-  escena.addEventListener('pointerdown', e => {
-    if (e.button) return;
-    agarrado = true; movido = 0; capturado = 0;
-    x0 = e.clientX; y0 = e.clientY; p0 = meta;
+  /* Arrastre y clic van juntos en pointerdown/pointerup, sin captura: la
+     captura redirige el clic a la escena y las cartas dejaban de recibirlo.
+     Un clic de trackpad se mueve unos pixeles: hasta ARRASTRE no es arrastre. */
+  let gesto = null;
+  addEventListener('pointerdown', e => {
+    if (!enTunelActivo() || e.button || esControl(e.target)) return;
+    gesto = { x: e.clientX, y: e.clientY, meta, carta: cartaEn(e.clientX, e.clientY), movido: false,
+              aparte: e.metaKey || e.ctrlKey || e.shiftKey };
   });
-  escena.addEventListener('pointermove', e => {
-    if (!agarrado) return;
-    const dx = e.clientX - x0, dy = e.clientY - y0;
-    movido = Math.max(movido, Math.hypot(dx, dy));
-    if (movido > ARRASTRE) {
-      arrastrando = true;
-      escena.classList.add('arrastrando');
-      // Se captura aqui, no en pointerdown: con la captura puesta el click
-      // se dispara sobre .escena y el enlace de la carta nunca se abre.
-      if (!capturado) { capturado = 1; escena.setPointerCapture(e.pointerId); }
-      meta = lim(p0 - (dx + dy) / 190, -FUERA, ultimo + FUERA);
-    }
+  addEventListener('pointermove', e => {
+    if (!gesto) return;
+    const dx = e.clientX - gesto.x, dy = e.clientY - gesto.y;
+    if (!gesto.movido && Math.hypot(dx, dy) < ARRASTRE) return;
+    gesto.movido = agarrado = true;
+    escena.classList.add('arrastrando');
+    // hacia arriba avanza; de lado cuenta menos, para que un gesto vertical
+    // algo torcido no se anule a si mismo
+    meta = lim(gesto.meta + (-dy - dx * .4) * .006, -FUERA, ultimo + FUERA);
+    ultimaMano = performance.now(); despertar();
   });
-  const soltar = () => {
-    if (!agarrado) return;
+  const soltar = e => {
+    if (!gesto) return;
+    const g = gesto; gesto = null;
     agarrado = false; escena.classList.remove('arrastrando');
-    quieto = performance.now();
-    setTimeout(() => { arrastrando = false; }, 0);
+    ultimaMano = performance.now(); despertar();
+    if (g.movido || g.aparte || e.type === 'pointercancel') return;
+    const c = cartaEn(e.clientX, e.clientY);
+    if (c < 0 || c !== g.carta) return;
+    // clicar algo que esta al fondo te lleva hasta el; lo de delante, entra
+    if (Math.abs(prof - c) > ALCANCE) irA(c);
+    else location.href = datos[c].href;
   };
-  escena.addEventListener('pointerup', soltar);
-  escena.addEventListener('pointercancel', soltar);
-  // Si sueltas fuera de la escena antes de llegar al umbral no hay captura
-  // y el pointerup no llega aqui: sin esto te quedarias agarrado.
   addEventListener('pointerup', soltar);
+  addEventListener('pointercancel', soltar);
 
-  // El clic entra al proyecto. Solo se anula si venias arrastrando, que
-  // entonces no era un clic sino el final de un gesto.
+  // Del raton se encarga soltar(). El clic del enlace se deja pasar con
+  // teclado (Enter sobre una carta enfocada) y con cmd/ctrl, que abre el
+  // proyecto en otra pestana como cualquier enlace.
   escena.addEventListener('click', e => {
-    const carta = e.target.closest('.carta');
-    if (!carta) return;
-    if (arrastrando) { e.preventDefault(); return; }
-    // Red de seguridad: si algo se comio la navegacion del enlace (captura
-    // de puntero, un padre que traga el evento), la hacemos a mano.
-    if (!e.defaultPrevented) { e.preventDefault(); location.href = carta.href; }
+    if (e.detail && !(e.metaKey || e.ctrlKey || e.shiftKey)) e.preventDefault();
   });
+
+  /* Se calcula a mano en vez de mirar e.target: dentro de un espacio 3D con
+     perspectiva, Chrome no siempre acierta que carta hay bajo el dedo. La
+     proyeccion solo escala y traslada, asi que el rectangulo es exacto. Gana
+     la mas cercana. */
+  function cartaEn(x, y) {
+    let mejor = -1, zmax = -Infinity;
+    cartas.forEach((el, i) => {
+      if (el.style.pointerEvents === 'none' || el.style.visibility === 'hidden') return;
+      const r = el.getBoundingClientRect();
+      if (x < r.left || x > r.right || y < r.top || y > r.bottom) return;
+      const z = +el.style.zIndex || 0;
+      if (z > zmax) { zmax = z; mejor = i; }
+    });
+    return mejor;
+  }
 
   addEventListener('keydown', e => {
-    if (document.body.dataset.vista !== 'tunel') return;
+    if (!enTunelActivo()) return;
     if (e.target.closest('input, textarea, button, [role="menu"]')) return;
-    const k = { ArrowRight:1, ArrowDown:1, ArrowLeft:-1, ArrowUp:-1 }[e.key];
+    const k = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
     if (k) { e.preventDefault(); irA(Math.round(meta) + k); return; }
     if (e.key === 'Home') { e.preventDefault(); irA(0); }        // mas reciente
     if (e.key === 'End')  { e.preventDefault(); irA(ultimo); }   // mas antiguo
-    if (e.key === 'Enter' && datos.length) {
+    if (e.key === 'Enter' && datos.length && !e.target.closest('a')) {
       location.href = datos[lim(Math.round(prof), 0, ultimo)].href;
     }
   });
 
-  // arrastrar sobre la linea del tiempo: engancha al proyecto mas cercano
+  /* ---- la barra del tiempo ----------------------------------
+     La zona util es la barra entera, pomo incluido. Mientras arrastras el
+     tunel te sigue sin encajar; al soltar, encaja en el mas cercano. */
   if (barra) {
     const desdeX = e => {
       const r = barra.getBoundingClientRect();
-      const p = lim((e.clientX - r.left) / r.width, 0, 1);
-      let mejor = 0, dif = 9;
-      for (let i = 0; i <= ultimo; i++) { const d = Math.abs(enPct(i) - p); if (d < dif) { dif = d; mejor = i; } }
-      irA(mejor);
+      if (!r.width) return;
+      meta = enTunel(lim((e.clientX - r.left) / r.width, 0, 1));
+      despertar();
     };
-    let raspando = false;
     barra.addEventListener('pointerdown', e => {
-      if (e.target.closest('.marca')) return;
-      raspando = true; barra.setPointerCapture(e.pointerId); desdeX(e);
+      if (e.button) return;
+      raspando = true; barra.classList.add('raspando');
+      barra.setPointerCapture(e.pointerId); desdeX(e);
     });
     barra.addEventListener('pointermove', e => { if (raspando) desdeX(e); });
-    barra.addEventListener('pointerup',   () => { raspando = false; });
+    const fin = e => {
+      if (!raspando) return;
+      if (e.type === 'pointerup') desdeX(e);             // donde se suelta, manda
+      raspando = false; barra.classList.remove('raspando');
+      ultimaMano = 0; despertar();                       // encaja ya
+    };
+    barra.addEventListener('pointerup', fin);
+    barra.addEventListener('pointercancel', fin);
   }
 
   /* ---- arranque -------------------------------------------- */
-  // Cada uno de estos despierta al bucle: cambiar de vista, de orden o de
-  // filtro, y redimensionar. Sin esto, con el bucle dormido, el tunel se
-  // quedaria con la ultima imagen pintada.
-  addEventListener('lista:cambia', () => { visto = -1; construir(); despertar(); });
-  addEventListener('resize', () => { medir(); despertar(); });
+  // Al volver a la vista de tunel hay que medir otra vez: mientras estaba
+  // escondida todo medía cero.
+  addEventListener('lista:cambia', () => { if (enTunelActivo()) { medir(); pintar(); despertar(); } });
+  addEventListener('resize', () => { medir(); pintar(); despertar(); });
 
   construir();
-  // La camara llega desde el fondo, encadenando con el parpadeo del ojo.
-  if (!seco && sessionStorage.getItem('entrando') === '1') {
+  // Desde la portada no se entra volando: el tunel aparece fundido.
+  if (sessionStorage.getItem('entrando') === '1') {
     sessionStorage.removeItem('entrando');
-    prof = -2.6; pintar();
+    if (!seco) escena.classList.add('aparece');
   }
   despertar();
 }
