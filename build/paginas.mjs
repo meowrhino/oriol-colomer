@@ -184,7 +184,30 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
      que hay en pantalla. Dentro, el fondo es el telon del trabajo. */
   const DENTRO = 0.38;
 
-  function head({ lang, title, desc, path, image, jsonld, vel, entrar, vista }) {
+  /* El favicon es la bola: la misma pieza que la pupila y el pomo de la
+     linea del tiempo, con su luz arriba a la izquierda. */
+  const FAVICON = 'data:image/svg+xml,' + encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs>`
+    + `<radialGradient id='b' cx='.34' cy='.3' r='.8'><stop offset='0' stop-color='#fff'/>`
+    + `<stop offset='.82' stop-color='#7d7d7d'/></radialGradient></defs>`
+    + `<circle cx='32' cy='32' r='24' fill='url(#b)'/></svg>`);
+
+  /** El correo no va escrito en el HTML: va del reves y en base64, y lo
+      monta js/correo.js al clicar. Los robots que buscan correos leen el
+      HTML, no lo ejecutan. */
+  const cifrado = mail => {
+    const r = [...String(mail)].reverse().join('');
+    return typeof btoa === 'function' ? btoa(unescape(encodeURIComponent(r)))
+                                      : Buffer.from(r, 'utf8').toString('base64');
+  };
+  const correo = (lang, clase = '') => site.email
+    ? `<button type="button" class="correo ${clase}" data-c="${cifrado(site.email)}">${esc(t(site.ui.mail, lang))}</button>`
+    + `<noscript>${esc(site.email.replace('@', ' [at] '))}</noscript>`
+    : '';
+  const redes = () => (site.redes || []).map(r =>
+    `<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.texto)}</a>`).join('\n     ');
+
+  function head({ lang, title, desc, path, image, jsonld, vel, entrar, vista, auto }) {
     const alts = LANGS.map(l =>
       `<link rel="alternate" hreflang="${l === 'cat' ? 'ca' : l}" href="${abs(l, path)}">`
     ).join('\n  ');
@@ -207,15 +230,19 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
   ${image ? `<meta property="og:image" content="${absFichero(image)}">` : ''}
   <meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}">
   <meta name="theme-color" content="#fafafa">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='16' fill='%23a6a6a6'/%3E%3C/svg%3E">
+  <link rel="icon" href="${FAVICON}">
   <link rel="stylesheet" href="${raiz('/css/style.css')}">
+  <!-- La letra elegida (normal o webdings) se aplica antes de pintar nada,
+       para que no parpadee al cargar. El boton lo lleva js/tipo.js. -->
+  <script>try{if(localStorage.getItem('tipo')==='webdings')document.documentElement.classList.add('webdings')}catch(e){}</script>
   ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld)}</script>` : ''}
 </head>
-<body${entrar ? ` data-entrar="${entrar}"` : ''}${vista ? ` data-vista="${vista}"` : ''}>
+<body${entrar ? ` data-entrar="${entrar}"` : ''}${auto ? ` data-auto="${auto}"` : ''}${vista ? ` data-vista="${vista}"` : ''}>
 <!-- El fondo se mueve en todas las paginas; la velocidad es lo unico que
      cambia entre la portada y el resto. El campo sale de data/site.json. -->
 <canvas class="dots" id="bg" data-vel="${vel ?? DENTRO}" data-campo="${esc(site.fondo || 'terreno')}" aria-hidden="true"></canvas>
-<script type="module" src="${raiz('/js/bg.js')}"></script>`;
+<script type="module" src="${raiz('/js/bg.js')}"></script>
+<script type="module" src="${raiz('/js/tipo.js')}"></script>`;
   }
 
   /** La barra de arriba. Dentro de un proyecto, su nombre ocupa el sitio
@@ -261,6 +288,10 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
           ? `<span aria-current="true">${l}</span>`
           : `<a href="${url(l, path)}" hreflang="${l === 'cat' ? 'ca' : l}">${l}</a>`
         ).join('')
+      // letra normal o webdings. Sale escondido: js/tipo.js lo ensena solo si
+      // el aparato tiene la fuente (Windows y Mac si, moviles no)
+      + `<button type="button" class="tipo" aria-pressed="false" title="${esc(t(site.ui.tipo, lang))}" hidden>`
+      + `<span aria-hidden="true">Aa</span><span class="sr">${esc(t(site.ui.tipo, lang))}</span></button>`
       + `</nav>`;
   }
 
@@ -277,14 +308,15 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
   /* ---------- paginas ---------- */
   function landing(lang) {
     return head({
-      lang, path: '', vel: 1, entrar: url(lang, 'work/'),
+      lang, path: '', vel: 1, entrar: url(lang, 'work/'), auto: site.entradaAuto,
       title: `${site.name} — ${t(site.tagline, lang)}`,
       desc: t(site.tagline, lang),
       image: ogSitio(),
       jsonld: {
         '@context':'https://schema.org', '@type':'Person',
         name: site.name, url: abs(lang),
-        jobTitle: t(site.tagline, lang), email: `mailto:${site.email}`,
+        jobTitle: t(site.tagline, lang),
+        sameAs: (site.redes || []).map(r => r.url),
         address: { '@type':'PostalAddress', addressLocality:'Barcelona', addressCountry:'ES' },
       },
     })
@@ -297,7 +329,6 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
       </div>
       <h1 class="name">${esc(site.name)}</h1>
     </div>
-    <p class="pista">${esc(t(site.ui.enter, lang))}</p>
   </div>
   ${langs(lang, '')}
 </main>
@@ -486,17 +517,20 @@ ${media || '      <!-- sin material grafico todavia -->'}
         '@context':'https://schema.org', '@type':'AboutPage',
         url: abs(lang, 'about/'),
         mainEntity: { '@type':'Person', name: site.name, description: metaDesc(ps[0]),
-                      email:`mailto:${site.email}`, url: site.baseUrl },
+                      url: site.baseUrl, sameAs: (site.redes || []).map(r => r.url) },
       },
     })
     + `${nav(lang, 'about')}
 <main class="about">
   <h1>${esc(site.name)}</h1>
 ${ps.map(x => `  <p>${esc(x)}</p>`).join('\n')}
-  <p class="contact"><a href="mailto:${esc(site.email)}">${esc(site.email)}</a> ·
-     <a href="${igUrl(site.instagram)}" target="_blank" rel="noopener">${esc(site.instagram)}</a></p>
+  <p class="contact">${correo(lang)}</p>
+  <p class="redes">
+     ${redes()}
+  </p>
 </main>
-${pageFoot(lang, 'about/', { firma: true })}`
+${pageFoot(lang, 'about/', { firma: true })}
+<script type="module" src="${raiz('/js/correo.js')}"></script>`
     + foot();
   }
 

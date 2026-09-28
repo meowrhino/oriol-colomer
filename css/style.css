@@ -45,10 +45,10 @@
      paginacion nunca se pegan, por corta que sea la media del proyecto. */
   --aire: clamp(44px, 5vw, 96px);
 
-  /* La entrada al tunel: el ojo se cierra y despues se va hacia dentro.
+  /* La entrada al tunel: la pupila parpadea y la portada se funde.
      welcome.js lee estos dos valores para saber cuando navegar. */
-  --parpadeo: 300ms;
-  --zoom:     460ms;
+  --parpadeo: 260ms;
+  --fundido:  480ms;
 
   font-size: 16px;
 }
@@ -121,16 +121,27 @@ img{ max-width:100%; display:block; }
 }
 .langs a:hover{ color: var(--btn-subtle-hover); }
 .langs [aria-current]{ color: var(--ink-hard); font-weight:600; }
+/* letra normal o webdings (js/tipo.js): un idioma mas, a la derecha */
+.langs .tipo{
+  font:inherit; font-size:.8rem; line-height:1; padding:.2rem .3rem; margin-left:.35rem;
+  background:none; border:0; cursor:pointer; color: var(--btn-subtle); transition: color .2s ease;
+}
+.langs .tipo:hover{ color: var(--btn-subtle-hover); }
+.langs .tipo[aria-pressed="true"]{ color: var(--ink-hard); font-weight:600; }
+.langs .tipo[hidden]{ display:none; }
+
+/* Webdings en toda la web, menos en lo que hace falta para volver: los
+   idiomas y el propio boton. */
+html.webdings body{ font-family: Webdings, Helvetica, 'Helvetica Neue', Arial, sans-serif; }
+html.webdings .langs, html.webdings .langs *{ font-family: Helvetica, 'Helvetica Neue', Arial, sans-serif; }
 
 /* ============================================================
    LANDING
    ============================================================ */
 .landing{ min-height:100dvh; display:flex; flex-direction:column; }
 .landing .nav{ flex:0 0 auto; }
-/* La pista ("click anywhere") colgaba absoluta a 12dvh del suelo, o sea a
-   media pantalla del nombre: parecia un pie de pagina y no la instruccion
-   de lo que acabas de leer. Ahora es un hermano en flujo y cae justo
-   debajo, que es donde la buscas. */
+/* Sin "click anywhere": clicar en cualquier sitio entra, y si nadie hace
+   nada se entra solo a los pocos segundos (welcome.js). */
 .landing .hero{
   flex:1 1 auto; position:relative; cursor:pointer;
   display:grid; justify-items:center; align-content:center;
@@ -152,88 +163,38 @@ img{ max-width:100%; display:block; }
   -webkit-mask: url('../assets/eye_shape.png') center/contain no-repeat;
           mask: url('../assets/eye_shape.png') center/contain no-repeat;
 }
-/* La pupila.
+/* La pupila es la bola: la misma pieza que el pomo de la linea del tiempo
+   y el favicon. Sin el brillo aparte y sin el nucleo oscuro de antes: mas
+   clara, dentro de la banda de grises de todo el sitio.
 
-   Era un PNG: un degradado gris muy difuso y con el centro MAS CLARO que
-   el borde, que es lo contrario de una pupila. De lejos se leia como una
-   mancha desenfocada y el ojo entero parecia fuera de foco.
-
-   Ahora se dibuja aqui, con la misma formula que los puntos de la linea
-   del tiempo —`circle at 34% 30%`, luz arriba a la izquierda—, que el CSS
-   de alla ya describia como "semiesferas, como la pupila del ojo". Eran
-   las dos unicas piezas redondas del sitio y no se parecian en nada.
-
-   El PNG sigue en assets por si se quiere volver. */
+   La mueve welcome.js con un muelle (translate), asi que no lleva
+   transicion de posicion: arranca y frena sola, en curva. El parpadeo es
+   solo suyo —se aplasta en vertical— y el contorno del ojo no se toca. */
 .eye .pupil{
   position:absolute; left:50%; top:50%;
   width:43.75%;                       /* 70/160, la proporcion real del ojo */
   aspect-ratio:1; border-radius:50%;
   translate:-50% -50%;
-  transition: translate .12s linear;  /* sigue al cursor, sin rebote */
-  background:
-    radial-gradient(circle at 34% 30%,
-      rgba(255,255,255,.92) 0%, rgba(255,255,255,0) 36%),          /* el brillo */
-    radial-gradient(circle at 50% 50%,
-      var(--ink-hard) 0 40%, rgba(0,0,0,0) 41%),                   /* la pupila */
-    radial-gradient(circle at 50% 50%,
-      var(--ink-soft) 0%, var(--ink-faint) 70%, rgba(0,0,0,0) 100%); /* el iris */
+  background: var(--bola-activa);
+  transition: scale var(--parpadeo) cubic-bezier(.45,0,.55,1);
 }
+/* Un ojo que no parpadea nunca esta muerto. Lo dispara welcome.js a
+   intervalos irregulares: a ritmo fijo se oye el metronomo. El de la
+   entrada es el mismo parpadeo, solo que no se vuelve a abrir. */
+.eye.pestanea .pupil,
+body.entrando .pupil{ scale: 1 .06; }
+
 .eye .name{
   margin:0; font-weight:400; color: var(--ink-soft);
   font-size: clamp(17px, 1.55vw, 24px); letter-spacing:.005em;
 }
-/* La invitacion a entrar aparece sola tras un momento: quien ya lo sabe
-   no la ve, y quien se queda parado la encuentra. */
-.pista{
-  margin:0; font-size:.8rem; color: var(--btn-subtle);
-  opacity:0; animation: asomar .8s ease 2.6s forwards;
-}
-@keyframes asomar{ to{ opacity:1; } }
 
-/* Salida: primero se cierra el ojo, y solo despues se va hacia dentro y
-   arrastra la pagina con el. Van seguidos, no a la vez: si el zoom arranca
-   con el parpadeo no da tiempo a ver el ojo cerrarse.
-   Al llegar a work la camara sigue el movimiento. */
-.landing .lens{ overflow:hidden; }
-/* Dos parpados que se juntan en el centro: se lee como un ojo cerrandose,
-   no como una cortina que baja. Solo quedan las puntas del contorno.
-   Se cierran con scaleY y no con `height`, porque .lens se dimensiona por
-   aspect-ratio y ahi un porcentaje de altura resuelve a 0: el parpado
-   nunca llegaba a verse. */
-.landing .lens::before,
-.landing .lens::after{
-  content:''; position:absolute; inset:-2px; z-index:1;
-  background: var(--bg); transform: scaleY(0);
-  transition: transform var(--parpadeo) cubic-bezier(.45,0,.55,1);
-}
-.landing .lens::after { transform-origin: top; }
-/* El parpado de abajo lleva la raya del ojo cerrado en su borde superior:
-   cae justo donde se juntan los dos, asi que al cerrarse queda una linea
-   y no un hueco vacio. Va gruesa porque el scaleY la aplasta. */
-.landing .lens::before{
-  transform-origin: bottom;
-  border-top: 3px solid transparent;
-  transition: transform var(--parpadeo) cubic-bezier(.45,0,.55,1),
-              border-color var(--parpadeo) ease-in;
-}
-/* Un ojo que no parpadea nunca esta muerto. Lo dispara welcome.js a
-   intervalos irregulares: a ritmo fijo se oye el metronomo. Va antes que
-   la regla de `entrando` a proposito —misma especificidad, gana la ultima—
-   para que el cierre de la entrada mande sobre un parpadeo a medias. */
-.eye.pestanea .lens::before,
-.eye.pestanea .lens::after{ transform: scaleY(.505); }
-
-body.entrando .lens::before,
-body.entrando .lens::after{ transform: scaleY(.505); }
-body.entrando .lens::before{ border-top-color: var(--ink-soft); }
-
-body.entrando .eye{
-  animation: adentro var(--zoom) cubic-bezier(.6,0,.85,.3) var(--parpadeo) forwards;
-}
-body.entrando .pista, body.entrando .langs{ opacity:0; transition: opacity .2s; }
-@keyframes adentro{
-  25%  { transform: scale(.94); }
-  100% { transform: scale(7); opacity:0; }
+/* Salida: el ojo parpadea y la portada se funde. Sin zoom: el tunel, al
+   otro lado, tambien aparece fundido, asi que se lee como un solo corte
+   suave. El fundido espera al parpadeo para que se vea cerrarse el ojo. */
+body.entrando .landing{
+  opacity:0;
+  transition: opacity var(--fundido) ease var(--parpadeo);
 }
 
 /* ============================================================
@@ -369,8 +330,17 @@ body.entrando .pista, body.entrando .langs{ opacity:0; transition: opacity .2s; 
   font-size: clamp(26px,3.2vw,44px); line-height:1.05;
 }
 .about p{ margin:0 0 1.1em; text-align:justify; hyphens:auto; }
-.about .contact{ margin-top:2.4em; font-size: var(--fs-meta); }
-.about .contact a{ border-bottom:1px solid var(--ink-faint); }
+.about .contact{ margin:2.4em 0 .6em; font-size: var(--fs-meta); }
+/* el correo sale como un boton con cara de enlace, y al clicarlo se cambia
+   por el enlace de verdad (js/correo.js) */
+.about .correo{
+  font:inherit; color:inherit; background:none; border:0; padding:0 0 .1em; cursor:pointer;
+  border-bottom:1px solid var(--ink-faint);
+}
+.about .correo:hover{ color: var(--ink-hard); border-color: var(--ink-hard); }
+.about .redes{ display:flex; flex-wrap:wrap; gap:.4em 1.4em; margin:0; font-size: var(--fs-meta); text-align:left; }
+.about .redes a{ border-bottom:1px solid var(--ink-faint); }
+.about .redes a:hover{ border-color: var(--ink-hard); }
 
 /* ============================================================
    PIE — la firma
@@ -637,6 +607,21 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   .controles{ gap:.45rem; }
   .vistas button, .menu .cabeza, .opciones button{ font-size:.68rem; }
   .nav{ font-size:.86em; }
+}
+
+/* ============================================================
+   CURSOR
+   La bola otra vez: pequena por defecto y mas grande y oscura sobre
+   lo que se puede clicar o arrastrar. Solo con raton: en un
+   telefono no hay cursor que cambiar.
+   ============================================================ */
+@media (hover:hover) and (pointer:fine){
+  :root{
+    --cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cdefs%3E%3CradialGradient id='b' cx='.34' cy='.3' r='.8'%3E%3Cstop offset='0' stop-color='%23fff'/%3E%3Cstop offset='.85' stop-color='%23646464'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='8' cy='8' r='6' fill='url(%23b)'/%3E%3C/svg%3E") 8 8, auto;
+    --cursor-mano: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cdefs%3E%3CradialGradient id='b' cx='.34' cy='.3' r='.8'%3E%3Cstop offset='0' stop-color='%23fff'/%3E%3Cstop offset='.85' stop-color='%234f4f4f'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='14' cy='14' r='11' fill='url(%23b)' fill-opacity='.9'/%3E%3C/svg%3E") 14 14, pointer;
+  }
+  html, body{ cursor: var(--cursor); }
+  a, button, summary, .hero, .barra, .escena, .carta, .rotulo{ cursor: var(--cursor-mano) !important; }
 }
 
 @media (prefers-reduced-motion: reduce){
