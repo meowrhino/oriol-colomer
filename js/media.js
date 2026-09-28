@@ -73,6 +73,23 @@ if (videos.length) {
    pagina que se abre para ver fotos no tiene por que bajarse nadie.
    youtube-nocookie no deja cookies hasta que se reproduce.
    ============================================================ */
+/* Una pieza interactiva (una build de Unity) va igual: marco con play y
+   el iframe al darle. Lleva permiso de pantalla completa y de mando. */
+for (const a of document.querySelectorAll('.media a.pieza[data-pieza]')) {
+  a.addEventListener('click', e => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+    e.preventDefault();
+    const f = document.createElement('iframe');
+    f.className = 'pieza';
+    f.src = a.dataset.pieza;
+    f.title = a.getAttribute('aria-label') || '';
+    f.allow = 'fullscreen; autoplay; gamepad';
+    f.allowFullscreen = true;
+    a.replaceWith(f);
+    f.focus();
+  });
+}
+
 for (const a of document.querySelectorAll('.media a.yt[data-yt]')) {
   a.addEventListener('click', e => {
     if (e.metaKey || e.ctrlKey || e.shiftKey) return;   // abrir en YouTube, como un enlace
@@ -101,10 +118,11 @@ const lado = document.querySelector('.project .side');
 if (lado) {
   const ajustar = () => {
     if (getComputedStyle(lado).display === 'contents') return;
-    // --pad es un clamp(): se lee ya resuelto del relleno de .project
-    const pad = parseFloat(getComputedStyle(lado.parentElement).paddingLeft) || 0;
-    const margen = Math.min(pad, innerHeight - lado.offsetHeight - pad);
-    lado.style.setProperty('--side-top', `${Math.round(margen)}px`);
+    // Pegado de forma que su pie quede donde esta ahora, a la distancia del
+    // borde de abajo que marca el relleno de .project: si es corto, no se
+    // mueve; si es mas alto que la pantalla, sube lo justo para que se vea.
+    const abajo = parseFloat(getComputedStyle(lado.parentElement).paddingBottom) || 0;
+    lado.style.setProperty('--side-top', `${Math.round(innerHeight - lado.offsetHeight - abajo)}px`);
   };
   ajustar();
   addEventListener('resize', ajustar);

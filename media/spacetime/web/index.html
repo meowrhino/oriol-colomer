@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!--
+  spacetime — build de Unity WebGL (v0.1).
+  Va dentro de un <iframe> en la pagina del proyecto, y solo se carga al
+  darle al play. Cambios respecto al index.html que exporta Unity:
+  - el canvas llena el marco en vez de medir 1920x1080 fijos;
+  - los ficheros van descomprimidos (.data, .wasm, .framework.js) y no en
+    .br: GitHub Pages no manda la cabecera Content-Encoding que Unity pide
+    para los .br, y sin "Decompression Fallback" la build no arrancaba.
+  Para actualizarla: exportar desde Unity con Publishing Settings >
+  Compression Format: Brotli y "Decompression Fallback" activado, y
+  sustituir la carpeta Build (entonces los nombres llevan .unityweb).
+-->
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>spacetime</title>
+    <style>
+      html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
+      #unity-canvas { display: block; width: 100%; height: 100%; background: #000; }
+      #aviso { position: absolute; inset: 0; display: grid; place-items: center;
+               color: #7d7d7d; font: 13px/1.4 Helvetica, Arial, sans-serif; pointer-events: none; }
+    </style>
+  </head>
+  <body>
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+    <div id="aviso">loading…</div>
+    <script src="Build/Web-0_1.loader.js"></script>
+    <script>
+      var aviso = document.getElementById('aviso');
+      createUnityInstance(document.querySelector('#unity-canvas'), {
+        arguments: [],
+        dataUrl: 'Build/Web-0_1.data',
+        frameworkUrl: 'Build/Web-0_1.framework.js',
+        codeUrl: 'Build/Web-0_1.wasm',
+        streamingAssetsUrl: 'StreamingAssets',
+        companyName: 'DefaultCompany',
+        productName: 'spacetime',
+        productVersion: '0.1.0',
+      }, function (p) {
+        aviso.textContent = 'loading… ' + Math.round(p * 100) + '%';
+      }).then(function () {
+        aviso.remove();
+      }).catch(function (message) {
+        aviso.textContent = message;
+      });
+    </script>
+  </body>
+</html>

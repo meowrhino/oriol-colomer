@@ -68,7 +68,7 @@ de minutos.
 | `credits` | `"rol": "quién"`. El rol sale en **negrita**. Los `@handle` se enlazan solos a Instagram. |
 | `link` | Si es de **YouTube**, el vídeo sale embebido el primero del carrusel. Si es otra cosa, sale como "Watch →". Se puede quitar. |
 | `thumb` | La portada del túnel y de la lista. Puede ser una foto, un **webp animado** o un **vídeo** (`.webm`), y entonces se mueve. Si no lo pones, se usa el primero de `media`. |
-| `media` | Fotos y vídeos del proyecto, en orden. Basta el nombre del fichero: se busca en `media/<slug>/`. |
+| `media` | Fotos y vídeos del proyecto, en orden. Basta el nombre del fichero: se busca en `media/<slug>/`. También puede ir una **pieza interactiva** (ver abajo). |
 | `published` | `false` = escrito pero sin publicar. No sale en la web (pero se puede ver en la vista previa). |
 
 Cuidado con las comas: entre campo y campo va una, y **después del último no**.
@@ -89,6 +89,24 @@ ven todas las portadas a la vez y cada una pesa.
 
 **No subas GIF ni fotos de móvil sin convertir**: una foto de 5 MB tarda más en
 cargar que todo el resto de la página y hunde el posicionamiento.
+
+### Piezas interactivas (Unity, webs)
+
+Una build de Unity WebGL o cualquier web hecha a mano se sube entera a una
+subcarpeta del proyecto y se pone su `index.html` en `media`:
+
+```
+media/spacetime/web/index.html
+media/spacetime/web/Build/...
+```
+```json
+"media": ["web/index.html"]
+```
+
+En la página sale un marco con un play, y la pieza solo se carga al darle: una
+build de Unity son decenas de megas. Desde Unity, exporta con
+*Publishing Settings → Compression Format: Brotli* y **"Decompression Fallback"
+activado**: sin eso, GitHub Pages no sabe servir los `.br` y la build no arranca.
 
 ### Ver los cambios antes de subirlos: Live Server
 

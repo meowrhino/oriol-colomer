@@ -18,6 +18,8 @@ export const esc = s => String(s ?? '')
   .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
 export const esVideo = m => /\.(mp4|webm)$/i.test(m);
+/** Una pieza interactiva (una build de Unity, una web): va en un iframe. */
+export const esPieza = m => /\.html?$/i.test(m);
 
 /** Lee un JSON y, si esta mal, dice donde. El error de JSON.parse da una
     posicion en caracteres ("at position 1432"), que para quien edita el
@@ -96,12 +98,12 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
     h => `<a href="${igUrl(h)}" target="_blank" rel="noopener">${h}</a>`);
 
   /* ---------- media ----------
-     En el JSON un fichero se puede escribir entero ("media/slug/foto.webp")
-     o solo con su nombre ("foto.webp"): entonces se busca en media/<slug>/,
-     que es la carpeta que toca. Lo segundo es lo facil de escribir. */
+     En el JSON un fichero se escribe con su nombre ("foto.webp", o
+     "web/index.html" si esta en una subcarpeta) y se busca en media/<slug>/,
+     que es la carpeta que toca. Si empieza por "media/" es la ruta entera. */
   const enCarpeta = (p, m) => {
     const s = String(m).trim().replace(/^\/+/, '');
-    return s.includes('/') ? s : `media/${p.slug}/${s}`;
+    return s.startsWith('media/') ? s : `media/${p.slug}/${s}`;
   };
   /** Fotograma de un video, para el poster: webp si lo hay, si no jpg. */
   const poster = m => {
@@ -137,18 +139,19 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
       const pj = poster(th);
       return { img: pj ? chica(pj) : '', video: fuentes(th) };
     }
-    const m = p.media?.[0] && enCarpeta(p, p.media[0]);
+    const todo = (p.media || []).map(x => enCarpeta(p, x)).filter(x => !esPieza(x));
+    const m = todo[0];
     if (!m) return null;
     if (!esVideo(m)) return { img: chica(m), video: null };
     const pj = poster(m);
     if (pj) return { img: chica(pj), video: null };
-    const foto = p.media.map(x => enCarpeta(p, x)).find(x => !esVideo(x));
+    const foto = todo.find(x => !esVideo(x));
     return foto ? { img: chica(foto), video: null } : null;
   };
   /** Para og:image hace falta una imagen de verdad, no un video. */
   const ogImage = p => {
     if (!p || !p.media) return null;
-    const m = p.media.map(x => enCarpeta(p, x));
+    const m = p.media.map(x => enCarpeta(p, x)).filter(x => !esPieza(x));
     return m.find(x => !esVideo(x)) || m.map(poster).find(Boolean) || null;
   };
   /** La imagen con la que se comparte la portada y el indice: la del
@@ -160,6 +163,16 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
       entra en pantalla. Con autoplay se bajaban todos de golpe. */
   const mediaTag = (m, p, sub, i) => {
     const label = `${esc(p.title)} — ${esc(sub)}`;
+    /* Una pieza interactiva no se carga sola: una build de Unity son decenas
+       de megas. Sale un marco con un play, y el iframe llega al darle
+       (js/media.js). Sin JavaScript, el play abre la pieza a pantalla entera. */
+    if (esPieza(m)) {
+      const fondo = cover(p)?.img;
+      return `<a class="pieza" href="${raiz('/' + esc(m))}" target="_blank" rel="noopener"
+        data-pieza="${raiz('/' + esc(m))}" aria-label="play: ${esc(p.title)}"${
+        fondo ? ` style="background-image:url('${raiz('/' + esc(fondo))}')"` : ''}>
+        <span class="play" aria-hidden="true"></span></a>`;
+    }
     if (!esVideo(m)) {
       const d = medidas(m);
       return `<img src="${raiz('/' + esc(m))}" alt="${label}"
@@ -382,13 +395,15 @@ ${opciones.map(([v, l], i) => `          <button type="button" role="menuitemrad
     })
     + `<div class="topbar">
   ${nav(lang, 'work')}
+  <!-- Orden y filtro a la izquierda del cambio de vista: solo salen en la
+       lista, y asi el boton tunel/lista no se mueve de sitio al cambiar. -->
   <div class="controles">
-    <div class="vistas" role="group" aria-label="${esc(t(site.ui.aria.view, lang))}">
-      <button type="button" data-vista="tunel" aria-pressed="true">${esc(t(site.ui.tunnel, lang))}</button>
-      <button type="button" data-vista="lista" aria-pressed="false">${esc(t(site.ui.list, lang))}</button>
-    </div>
 ${menu('sort', t(site.ui.sort, lang), orden)}
 ${menu('tag', '', filtro)}
+    <div class="vistas" role="group" aria-label="${esc(t(site.ui.aria.view, lang))}">
+      <button type="button" data-vista="tunel" data-texto="${esc(t(site.ui.tunnel, lang))}" aria-pressed="true">${esc(t(site.ui.tunnel, lang))}</button>
+      <button type="button" data-vista="lista" data-texto="${esc(t(site.ui.list, lang))}" aria-pressed="false">${esc(t(site.ui.list, lang))}</button>
+    </div>
   </div>
 </div>
 
@@ -484,14 +499,18 @@ ${paras(desc).map(x => `        <p>${esc(x)}</p>`).join('\n')}
       ${p.link && !yt ? `<a class="watch" href="${esc(p.link)}" target="_blank" rel="noopener">${esc(t(site.ui.watch, lang))} →</a>` : ''}
     </div>
 ${credits}
-    <!-- Anterior y siguiente en la misma linea, y los idiomas debajo: todo
-         en el bloque del texto, que se queda quieto mientras bajas. -->
+    <!-- Al pie del bloque del texto, en dos lineas: anterior y siguiente,
+         y debajo, volver a work (bajo el anterior) y los idiomas (bajo el
+         siguiente). -->
     <div class="navega">
       <nav class="pager" aria-label="${esc(t(site.ui.aria.projects, lang))}">
         ${prev ? `<a class="ant" href="${url(lang, 'work/' + prev.slug + '/')}" title="${esc(prev.title)}"><span>←</span> <span class="tt">${esc(prev.title)}</span></a>` : '<span></span>'}
         ${next ? `<a class="sgte" href="${url(lang, 'work/' + next.slug + '/')}" title="${esc(next.title)}"><span class="tt">${esc(next.title)}</span> <span>→</span></a>` : '<span></span>'}
       </nav>
-      ${langs(lang, `work/${p.slug}/`)}
+      <div class="abajo">
+        <a class="volver" href="${url(lang, 'work/')}">${esc(t(site.ui.back, lang))}</a>
+        ${langs(lang, `work/${p.slug}/`)}
+      </div>
     </div>
   </div>
 
@@ -555,7 +574,7 @@ ${pageFoot(lang, 'about/', { firma: true })}
     const avisos = [];
     const aviso = (quien, texto) => avisos.push({ quien, texto });
     const vistos = new Set();
-    const EXT = /\.(jpe?g|png|webp|gif|avif|mp4|webm)$/i;
+    const EXT = /\.(jpe?g|png|webp|gif|avif|mp4|webm|html?)$/i;
 
     for (const lang of LANGS) {
       if (!site.about?.[lang]) aviso('site.json', `falta el about en "${lang}"`);
@@ -584,7 +603,7 @@ ${pageFoot(lang, 'about/', { firma: true })}
       if (p.thumb) ficheros.push(p.thumb);
       for (const m of ficheros) {
         const f = enCarpeta(p, m);
-        if (!EXT.test(f)) aviso(quien, `"${m}": formato que la web no sabe ensenar (usa webp, jpg, png, gif, webm o mp4)`);
+        if (!EXT.test(f)) aviso(quien, `"${m}": formato que la web no sabe ensenar (usa webp, jpg, png, gif, webm, mp4 o una pieza .html)`);
         else if (!existe(f)) aviso(quien, `no encuentro ${f}`);
       }
     });

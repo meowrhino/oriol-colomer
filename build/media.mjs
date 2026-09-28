@@ -31,7 +31,7 @@
    ============================================================ */
 import { readFileSync, writeFileSync, existsSync, statSync, rmSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { dirname, join, relative, basename } from 'node:path';
+import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -161,14 +161,18 @@ for (const b of bases) {
 /* ---------- 4. el JSON ---------- */
 const JSON_F = join(ROOT, 'data/projects.json');
 const proyectos = JSON.parse(readFileSync(JSON_F, 'utf8'));
-const enCarpeta = (p, m) => (m.includes('/') ? m.replace(/^\/+/, '') : `media/${p.slug}/${m}`);
+const enCarpeta = (p, m) => {
+  const s = m.trim().replace(/^\/+/, '');
+  return s.startsWith('media/') ? s : `media/${p.slug}/${s}`;
+};
 let tocados = 0;
 for (const p of proyectos) {
   const arreglar = m => {
     const nuevo = renombres.get(enCarpeta(p, m));
     if (!nuevo) return m;
     tocados++;
-    return m.includes('/') ? nuevo : basename(nuevo);   // se respeta como estaba escrito
+    // se respeta como estaba escrito: con la ruta entera, o relativo a la carpeta
+    return m.trim().replace(/^\/+/, '').startsWith('media/') ? nuevo : nuevo.slice(`media/${p.slug}/`.length);
   };
   if (p.media) p.media = p.media.map(arreglar);
   if (p.thumb) p.thumb = arreglar(p.thumb);

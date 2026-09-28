@@ -172,6 +172,11 @@
       "en": "switch to webdings",
       "es": "cambiar a webdings",
       "cat": "canviar a webdings"
+    },
+    "back": {
+      "en": "back",
+      "es": "volver",
+      "cat": "tornar"
     }
   },
   "base": "/oriol-colomer"
