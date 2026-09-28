@@ -4,8 +4,8 @@
   "type": "module",
   "scripts": {
     "build": "node build/build.mjs",
-    "dev": "node build/build.mjs && node build/serve.mjs",
+    "dev": "node build/serve.mjs",
     "import": "python3 build/import-csv.py",
-    "media": "./build/video.sh && ./build/optimize-images.sh"
+    "media": "./build/video.sh && ./build/optimize-images.sh && node build/thumbs.mjs"
   }
 }

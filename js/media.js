@@ -1,0 +1,65 @@
+/* ============================================================
+   Los videos del proyecto, solo cuando se ven
+   ------------------------------------------------------------
+   Antes cada <video> llevaba `autoplay`, y `autoplay` gana a
+   `preload`: los cuatro videos de una pagina se bajaban enteros
+   antes de que nadie hiciera scroll. La de AMORE pesaba 9 MB, de
+   los cuales 6 eran un clip que esta al final del carrete.
+
+   Ahora salen del generador con preload="none" y sin autoplay: lo
+   que se ve de entrada es el poster, que es un fotograma suyo y
+   pesa 40 KB. Cuando uno entra en pantalla se le pide el video y
+   se reproduce; cuando sale, se para. Igual de vivo, y solo se
+   baja lo que de verdad se mira.
+
+   Sin JavaScript queda el poster, que es la misma imagen: la
+   pagina se lee entera, que es lo que importa.
+   ============================================================ */
+import { seco } from './util.js';
+
+const videos = [...document.querySelectorAll('.media video')];
+
+if (videos.length) {
+  /* Con movimiento reducido no arranca nada solo. Pero el video sigue
+     siendo parte del trabajo, asi que se le ponen los controles: se ve
+     cuando se quiera ver, no cuando lo decida la pagina. */
+  if (seco) {
+    for (const v of videos) v.controls = true;
+  } else if (!('IntersectionObserver' in window)) {
+    // Sin observador (navegador muy viejo): como antes, todos a la vez.
+    for (const v of videos) { v.preload = 'auto'; v.play().catch(() => {}); }
+  } else {
+    /* Los que ahora mismo tocaria estar viendo. Hace falta la lista aparte
+       porque un play() puede no cuajar —ver mas abajo— y entonces hay que
+       saber a cuales volver. */
+    const enPantalla = new Set();
+
+    /* play() devuelve una promesa, y el navegador la rechaza cuando decide
+       que no toca. El caso que importa: en una pestana de fondo Chrome para
+       el video sin sonido para ahorrar bateria ("video-only background media
+       was paused to save power"). No es un error nuestro, pero si no se
+       reintenta al volver, quien abre la pagina en otra pestana y viene
+       despues se encuentra los videos congelados en el poster. */
+    const arrancar = v => {
+      if (document.hidden) return;
+      if (v.preload !== 'auto') v.preload = 'auto';
+      v.play().catch(() => {});
+    };
+
+    /* El margen adelanta la carga media pantalla antes de que asome, que
+       es lo que hace que llegue reproduciendose y no en negro. */
+    const ojo = new IntersectionObserver(entradas => {
+      for (const e of entradas) {
+        const v = e.target;
+        if (e.isIntersecting) { enPantalla.add(v); arrancar(v); }
+        else { enPantalla.delete(v); if (!v.paused) v.pause(); }
+      }
+    }, { rootMargin: '50% 0px' });
+
+    for (const v of videos) ojo.observe(v);
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) for (const v of enPantalla) arrancar(v);
+    });
+  }
+}

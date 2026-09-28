@@ -14,7 +14,13 @@ const read = f => JSON.parse(readFileSync(join(ROOT, f), 'utf8'));
 
 const site = read('data/site.json');
 const all  = read('data/projects.json');
-const live = all.filter(p => p.published);          // FET? = FALSE no se publica
+/* El orden de todo el sitio —indice, tunel, anterior/siguiente y sitemap—
+   es este, de mas reciente a mas antiguo. Antes era el orden del fichero y
+   funcionaba de milagro, porque estaba ordenado a mano: un proyecto pegado
+   en el sitio equivocado salia descolocado en las cuatro. El README ya
+   prometia que la fecha ordenaba sola; ahora es verdad. */
+const live = all.filter(p => p.published)           // FET? = FALSE no se publica
+                .sort((a, b) => b.date.localeCompare(a.date));
 const LANGS = site.langs;
 const DEF   = site.defaultLang;
 
@@ -54,17 +60,71 @@ const igUrl = h => `https://instagram.com/${h.replace(/^@/,'')}`;
 const isVideo = m => /\.(mp4|webm)$/i.test(m);
 /** Fotograma de un video, generado por build/video.sh. */
 const poster  = m => m.replace(/\.mp4$/i, '.poster.jpg');
+/** La version chica de una imagen, si build/thumbs.mjs la hizo. Donde se
+    usa la portada —la carta del tunel y la vista previa del raton— se pinta
+    a 360 px como mucho, y se estaban bajando los originales: 1,7 MB de
+    fotos de hasta 2048 px en la pagina que mas se visita. Ahora son 156 KB.
+    Si no hay miniatura se usa el original, asi que esto nunca rompe nada. */
+const chica = m => {
+  const th = m.replace(/\.(jpe?g|png|webp)$/i, '.thumb.webp');
+  return th !== m && existsSync(join(ROOT, th)) ? th : m;
+};
+
 /** Primer fichero del proyecto: es la portada, sin campo aparte.
     Si es un video se usa su poster, que es lo que cabe en un <img>. */
 const cover   = p => {
-  const m = p.media[0];
+  const m = p.media?.[0];
   if (!m) return null;
-  if (!isVideo(m)) return m;
+  if (!isVideo(m)) return chica(m);
   const pj = poster(m);
-  return existsSync(join(ROOT, pj)) ? pj : (p.media.find(x => !isVideo(x)) || null);
+  if (existsSync(join(ROOT, pj))) return chica(pj);
+  const foto = p.media.find(x => !isVideo(x));
+  return foto ? chica(foto) : null;
 };
 /** Para og:image hace falta una imagen de verdad, no un mp4. */
-const ogImage = p => p.media.find(m => !isVideo(m)) || null;
+const ogImage = p => (p && p.media && p.media.find(m => !isVideo(m))) || null;
+/** La imagen con la que se comparte la portada y el indice: la del
+    proyecto mas reciente. Con todo en borrador no hay ninguno, y esto
+    devolvia `live[0].media` de un undefined y tumbaba el build entero. */
+const ogSitio = () => ogImage(live[0]);
+
+/** Ancho y alto reales de un jpg o un png, leidos de la cabecera del
+    fichero. Van al <img> para que el navegador reserve el hueco antes de
+    que baje la imagen: sin ellos la columna de media crece de golpe con
+    cada foto y el texto que hay debajo pega un salto.
+
+    Son treinta lineas de leer bytes, pero la alternativa era una
+    dependencia, y aqui no hay ninguna. En jpeg se buscan los marcadores
+    de inicio de fotograma (SOF0..SOF15, saltandose los que no lo son);
+    en png el alto y el ancho estan siempre en el mismo sitio. */
+const medidasCache = new Map();
+function medidas(rel) {
+  if (medidasCache.has(rel)) return medidasCache.get(rel);
+  let r = null;
+  try {
+    const b = readFileSync(join(ROOT, rel));
+    if (b[0] === 0xFF && b[1] === 0xD8) {                 // jpeg
+      let o = 2;
+      while (o + 9 < b.length) {
+        if (b[o] !== 0xFF) { o++; continue; }             // resincronizar
+        const m = b[o + 1];
+        if (m === 0xD8 || m === 0x01 || (m >= 0xD0 && m <= 0xD7)) { o += 2; continue; }
+        const len = b.readUInt16BE(o + 2);
+        // SOF de verdad: C4 es la tabla Huffman, C8 una extension y CC el
+        // codificador aritmetico. Ninguno de los tres trae medidas.
+        if (m >= 0xC0 && m <= 0xCF && m !== 0xC4 && m !== 0xC8 && m !== 0xCC) {
+          r = { w: b.readUInt16BE(o + 7), h: b.readUInt16BE(o + 5) };
+          break;
+        }
+        o += 2 + len;
+      }
+    } else if (b.readUInt32BE(0) === 0x89504E47) {        // png
+      r = { w: b.readUInt32BE(16), h: b.readUInt32BE(20) };
+    }
+  } catch { /* fichero ausente o ilegible: se sigue sin medidas */ }
+  medidasCache.set(rel, r);
+  return r;
+}
 
 /** Los @handle del texto de creditos se enlazan solos a Instagram. */
 const linkHandles = txt => esc(txt).replace(/@[\w.\-_]+/g,
@@ -73,19 +133,32 @@ const linkHandles = txt => esc(txt).replace(/@[\w.\-_]+/g,
 /** Un item de media: imagen, o video en bucle mudo sin controles.
     Del video se ofrecen los dos formatos y elige el navegador: primero
     el webm, que casi siempre pesa menos, y el mp4 como respaldo. El JSON
-    solo guarda el mp4 — el webm se detecta aqui si el fichero existe. */
+    solo guarda el mp4 — el webm se detecta aqui si el fichero existe.
+
+    El video sale parado y sin pedir nada: lo arranca js/media.js cuando
+    entra en pantalla. Con `autoplay` se bajaban los cuatro de golpe —
+    `autoplay` manda sobre `preload`, asi que el preload="none" de los
+    ultimos no servia de nada y una pagina llegaba a pesar 9 MB. */
 const mediaTag = (m, p, sub, i) => {
   const label = `${esc(p.title)} — ${esc(sub)}`;
   if (!isVideo(m)) {
+    const d = medidas(m);
     return `<img src="${raiz('/' + esc(m))}" alt="${label}"
+      ${d ? `width="${d.w}" height="${d.h}"` : ''}
       loading="${i < 2 ? 'eager' : 'lazy'}" decoding="async">`;
   }
   const webm = m.replace(/\.mp4$/i, '.webm');
   const has  = existsSync(join(ROOT, webm));
   const pj = poster(m);
-  return `<video autoplay muted loop playsinline
-      ${existsSync(join(ROOT, pj)) ? `poster="${raiz('/' + esc(pj))}"` : ''}
-      preload="${i < 2 ? 'auto' : 'none'}" aria-label="${label}">`
+  const hayPoster = existsSync(join(ROOT, pj));
+  // El video tambien deja hueco: sus medidas son las del poster, que es un
+  // fotograma suyo. Sin esto no se sabe cuanto ocupa hasta que baja el
+  // primer trozo del video, y con preload perezoso eso es al hacer scroll.
+  const d = hayPoster ? medidas(pj) : null;
+  return `<video muted loop playsinline preload="none"
+      ${hayPoster ? `poster="${raiz('/' + esc(pj))}"` : ''}
+      ${d ? `width="${d.w}" height="${d.h}"` : ''}
+      aria-label="${label}">`
     + (has ? `<source src="${raiz('/' + esc(webm))}" type="video/webm">` : '')
     + `<source src="${raiz('/' + esc(m))}" type="video/mp4"></video>`;
 };
@@ -97,7 +170,7 @@ const mediaTag = (m, p, sub, i) => {
    las fotos ni con el tunel. */
 const DENTRO = 0.38;
 
-function head({ lang, title, desc, path, image, jsonld, vel, entrar }) {
+function head({ lang, title, desc, path, image, jsonld, vel, entrar, vista }) {
   const alts = LANGS.map(l =>
     `<link rel="alternate" hreflang="${l === 'cat' ? 'ca' : l}" href="${abs(url(l, path))}">`
   ).join('\n  ');
@@ -121,11 +194,11 @@ function head({ lang, title, desc, path, image, jsonld, vel, entrar }) {
   <meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}">
   <meta name="theme-color" content="#fafafa">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='16' fill='%23a6a6a6'/%3E%3C/svg%3E">
-  <link rel="preload" as="font" type="font/ttf" href="${raiz('/assets/fonts/helvetica.ttf')}" crossorigin>
+  <link rel="preload" as="font" type="font/woff2" href="${raiz('/assets/fonts/helvetica.woff2')}" crossorigin>
   <link rel="stylesheet" href="${raiz('/css/style.css')}">
   ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld)}</script>` : ''}
 </head>
-<body${entrar ? ` data-entrar="${entrar}"` : ''}>
+<body${entrar ? ` data-entrar="${entrar}"` : ''}${vista ? ` data-vista="${vista}"` : ''}>
 <!-- El fondo se mueve en todas las paginas; la velocidad es lo unico que
      cambia entre la portada y el resto. El campo sale de data/site.json:
      uno de los cinco, o "aleatorio" para que lo sortee cada visita. -->
@@ -179,7 +252,7 @@ function landing(lang) {
     lang, path: '', vel: 1, entrar: url(lang, 'work/'),
     title: `${site.name} — ${t(site.tagline, lang)}`,
     desc: t(site.tagline, lang),
-    image: ogImage(live[0]),
+    image: ogSitio(),
     jsonld: {
       '@context':'https://schema.org', '@type':'Person',
       name: site.name, url: abs(url(lang)),
@@ -245,9 +318,14 @@ ${opciones.map(([v, l], i) => `          <button type="button" role="menuitemrad
 
   return head({
     lang, path: 'work/',
+    // La vista por defecto ya viene puesta en el HTML. Antes la ponia
+    // work.js al arrancar, asi que hasta entonces no se aplicaba el
+    // `display:none` del indice y la lista entera se pintaba y desaparecia.
+    // El guion sigue mandando: si hay otra guardada, la cambia.
+    vista: 'tunel',
     title: `work — ${site.shortName}`,
     desc: t(site.tagline, lang),
-    image: ogImage(live[0]),
+    image: ogSitio(),
     jsonld: {
       '@context':'https://schema.org', '@type':'CollectionPage',
       name:'work', url: abs(url(lang,'work/')),
@@ -365,7 +443,8 @@ ${media || '      <!-- sin material grafico todavia -->'}
     ${next ? `<a class="r" href="${url(lang,'work/'+next.slug+'/')}">${esc(next.title)} →</a>` : '<span></span>'}
   </nav>
 </main>
-${pageFoot(lang, `work/${p.slug}/`)}`
+${pageFoot(lang, `work/${p.slug}/`)}
+<script type="module" src="${raiz('/js/media.js')}"></script>`
   + foot();
 }
 

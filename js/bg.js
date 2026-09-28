@@ -154,6 +154,12 @@ if (cv && cv.getContext) {
      cambiar de pagina— y cambia cuando vuelves a entrar. Recargar tambien
      cuenta como entrar de nuevo, ver mas abajo. */
   const NOMBRES = Object.keys(CAMPOS);
+  /* Un nombre de campo de verdad, no cualquier cosa que responda en el
+     objeto: `CAMPOS[n]` daba por bueno `constructor`, `toString` y los
+     demas que vienen de Object.prototype. Con ?bg=constructor el campo
+     pasaba el filtro, `f(x,y,t)` devolvia un objeto y el fondo se
+     quedaba en blanco, sin un solo punto y sin error en la consola. */
+  const esCampo = n => Object.hasOwn(CAMPOS, n);
   function sorteo() {
     const dado = () => ({
       campo: NOMBRES[Math.floor(Math.random() * NOMBRES.length)],
@@ -167,7 +173,7 @@ if (cv && cv.getContext) {
         // La semilla se comprueba como lo demas: una sesion abierta antes
         // de que existiera guarda un objeto sin ella, y sin esto saldria
         // un hash con undefined dentro.
-        if (CAMPOS[v.campo] && typeof v.t0 === 'number' && Number.isInteger(v.sem)) return v;
+        if (esCampo(v.campo) && typeof v.t0 === 'number' && Number.isInteger(v.sem)) return v;
       }
       const nuevo = dado();
       sessionStorage.setItem('fondo', JSON.stringify(nuevo));
@@ -191,7 +197,7 @@ if (cv && cv.getContext) {
   const pedido = cv.dataset.campo;     // lo que diga data/site.json
   // el ?bg= de la url manda sobre todo, que para eso esta
   let campo = new URLSearchParams(location.search).get('bg');
-  if (!CAMPOS[campo]) campo = CAMPOS[pedido] ? pedido : elegido.campo;
+  if (!esCampo(campo)) campo = esCampo(pedido) ? pedido : elegido.campo;
   // El momento de partida se sortea siempre, tambien con el campo fijado:
   // asi dos visitas nunca empiezan en el mismo sitio del paisaje.
   const T0 = elegido.t0;

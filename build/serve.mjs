@@ -17,7 +17,7 @@ const HOST = '127.0.0.1';   // solo esta maquina: no es un servidor para la red
 const TYPES = { '.html':'text/html; charset=utf-8', '.css':'text/css; charset=utf-8',
   '.js':'text/javascript; charset=utf-8', '.json':'application/json', '.png':'image/png',
   '.jpg':'image/jpeg', '.gif':'image/gif', '.svg':'image/svg+xml', '.webp':'image/webp',
-  '.mp4':'video/mp4', '.webm':'video/webm', '.ttf':'font/ttf', '.otf':'font/otf',
+  '.mp4':'video/mp4', '.webm':'video/webm', '.woff2':'font/woff2', '.ttf':'font/ttf', '.otf':'font/otf',
   '.xml':'application/xml', '.txt':'text/plain' };
 
 /* --- recarga: la pagina abre un SSE y se refresca cuando le llega algo --- */
@@ -25,8 +25,11 @@ const clients = new Set();
 const RELOAD = `<script>new EventSource('/__reload').onmessage=()=>location.reload()</script>`;
 
 let building = false, pending = false;
-const build = () => {
-  if (building) { pending = true; return; }
+/** Regenera dist. Devuelve una promesa para poder esperar a la primera:
+    hasta que termina, dist esta vacio —el generador la borra al empezar—
+    y una peticion que llegue en medio se encuentra un 404. */
+const build = () => new Promise(listo => {
+  if (building) { pending = true; return listo(); }
   building = true;
   // En local se sirve en la raiz: sin subcarpeta, al reves que en Pages.
   execFile('node', [join(ROOT, 'build/build.mjs')], { env: { ...process.env, BASE: '' } },
@@ -35,8 +38,9 @@ const build = () => {
     console.log(err ? '✗ ' + (errOut || err.message).trim() : '· ' + out.trim().split('\n')[0]);
     for (const c of clients) c.write('data: go\n\n');
     if (pending) { pending = false; build(); }
+    listo();
   });
-};
+});
 
 let timer;
 for (const dir of ['data','css','js','build','assets']) {
@@ -56,7 +60,7 @@ const dentroDeDist = path => {
   return f === DIST || f.startsWith(DIST + sep) ? f : null;
 };
 
-createServer(async (req, res) => {
+const servidor = createServer(async (req, res) => {
   const path = decodeURIComponent(new URL(req.url, 'http://x').pathname);
 
   if (path === '/__reload') {
@@ -83,4 +87,11 @@ createServer(async (req, res) => {
     res.writeHead(404, { 'content-type':'text/plain; charset=utf-8' });
     res.end('404 ' + path);
   }
-}).listen(PORT, HOST, () => console.log(`http://localhost:${PORT}  (recarga automatica activa)`));
+});
+
+/* Una primera pasada antes de abrir el puerto. Sin ella se servia lo que
+   hubiera quedado en dist de la ultima vez —normalmente el build de
+   produccion, con el /oriol-colomer delante— y el sitio salia sin estilos
+   ni guiones hasta que guardabas cualquier fichero y saltaba el watch. */
+await build();
+servidor.listen(PORT, HOST, () => console.log(`http://localhost:${PORT}  (recarga automatica activa)`));

@@ -57,8 +57,20 @@ Súbelas a `media/<slug>/` y añade la ruta a `media`. Antes, pásalas por:
 npm run media
 ```
 
-Convierte los GIF a MP4 y comprime los PNG. **No subas GIF**: un GIF de 60 MB
-tarda más en cargar que el vídeo entero y hunde el posicionamiento.
+Convierte los GIF a MP4, comprime los PNG y saca la miniatura de cada portada.
+**No subas GIF**: un GIF de 60 MB tarda más en cargar que el vídeo entero y
+hunde el posicionamiento.
+
+Lo que genera queda al lado del original y hay que subirlo también: el `.webm`,
+el `.poster.jpg` y el `.thumb.webp`. La miniatura es la que pintan el túnel y la
+vista previa del ratón — ahí la foto se ve a 360 px y no tiene sentido bajar la
+grande. Si falta, se usa el original: nunca rompe nada, solo pesa más.
+
+La primera vez hace falta instalar las dos herramientas que usa:
+
+```bash
+brew install ffmpeg webp
+```
 
 ### El resto del sitio
 
@@ -101,9 +113,9 @@ en ningún sitio.
 ## Para desarrollo
 
 ```bash
-npm run dev      # genera dist/ y lo sirve en localhost:4321
+npm run dev      # genera dist/ y lo sirve en localhost:4321, recargando solo
 npm run build    # solo genera dist/
-npm run media    # GIF -> MP4 y PNG -> JPG en media/
+npm run media    # GIF -> MP4, PNG -> JPG y miniaturas, en media/
 npm run import   # reimporta la ficha técnica desde el CSV (solo al arrancar)
 ```
 
@@ -134,6 +146,7 @@ build/build.mjs        genera los HTML
 build/import-csv.py    importa la ficha técnica (una vez)
 build/video.sh         GIF -> MP4
 build/optimize-images.sh  PNG -> JPG
+build/thumbs.mjs       la miniatura WebP de cada portada
 build/serve.mjs        servidor local
 css/style.css          toda la hoja de estilo
 js/util.js             lo poco que comparten los guiones
@@ -141,6 +154,7 @@ js/bg.js               el fondo de puntos
 js/welcome.js          la portada
 js/work.js             filtro, orden y miniatura del índice
 js/tunnel.js           la vista en profundidad de work
+js/media.js            arranca los vídeos del proyecto al verlos
 media/<slug>/          fotos y vídeos
 ```
 
@@ -171,6 +185,34 @@ según lo cerca que esté del foco:
 Van con ella `DESENFOQUE` y `DESATURA`, en el mismo `js/tunnel.js`: lo que está al
 fondo se desenfoca y pierde color. Es lo que convierte cuatro imágenes sueltas en
 profundidad, y lo que más se nota en un teléfono, donde sólo cabe una carta entera.
+
+---
+
+## El peso
+
+Una web de fotos y vídeo se va de peso sola, así que hay tres piezas que lo
+sujetan. Ninguna se nota mirando la página; se notan todas en un móvil con
+mala cobertura.
+
+**Los vídeos no se bajan hasta que se ven.** Salen del generador parados y con
+`preload="none"`; `js/media.js` los arranca cuando entran en pantalla y los
+para al salir. Con `autoplay` se bajaban los cuatro de golpe — la página de
+AMORE pesaba 9 MB, de los cuales 6 eran un clip que está al final del carrete.
+Sin JavaScript queda el `poster`, que es un fotograma del propio vídeo.
+
+**Las fuentes van en WOFF2.** En TTF iban sin comprimir: las cuatro pesaban
+1,2 MB y pesan 368 KB. La cursiva sola bajaba 583 KB, y la gasta una fecha.
+
+**Las portadas tienen miniatura, y en WebP.** 720 px de ancho, que es el doble
+de lo que se ve. En WebP y no en JPEG porque a igual vista pesa la mitad larga:
+las ocho son 363 KB en JPEG de calidad 70 y 156 KB en WebP de calidad 82, que
+además se ve mejor. Lo hace `build/thumbs.mjs`, dentro de `npm run media`.
+
+| página | antes | ahora |
+|---|---|---|
+| portada | 620 KB | 258 KB |
+| `/work/` | 2,3 MB | 429 KB |
+| un proyecto con vídeo | 9,0 MB | 896 KB |
 
 ---
 

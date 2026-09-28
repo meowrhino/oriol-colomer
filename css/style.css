@@ -4,13 +4,20 @@
    sin radios: la jerarquia la hace el tamano y el gris.
    ============================================================ */
 
-@font-face { font-family: 'Helvetica Local'; src: url('../assets/fonts/helvetica.ttf') format('truetype');
+/* WOFF2, no TTF. El TTF va sin comprimir: las cuatro pesaban 1,2 MB y
+   pesan 368 KB, el mismo dibujo. La cursiva sola bajaba 583 KB —y la
+   gasta una fecha—; ahora son 137. Un navegador tan viejo que no entienda
+   WOFF2 (Explorer, Android 4) se cae a la Helvetica del sistema, que es la
+   siguiente de la pila y aqui no se distingue. */
+@font-face { font-family: 'Helvetica Local'; src: url('../assets/fonts/helvetica.woff2') format('woff2');
              font-weight: 400; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Helvetica Local'; src: url('../assets/fonts/helvetica-bold.ttf') format('truetype');
+@font-face { font-family: 'Helvetica Local'; src: url('../assets/fonts/helvetica-bold.woff2') format('woff2');
              font-weight: 700; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Helvetica Local'; src: url('../assets/fonts/helvetica-oblique.ttf') format('truetype');
+@font-face { font-family: 'Helvetica Local'; src: url('../assets/fonts/helvetica-oblique.woff2') format('woff2');
              font-weight: 400; font-style: italic; font-display: swap; }
-@font-face { font-family: 'Helvetica Local'; src: url('../assets/fonts/helvetica-light-587ebe5a59211.ttf') format('truetype');
+/* El peso 300 no lo usa ninguna regla hoy: queda declarado porque el
+   fichero esta y no cuesta nada — no se baja si nadie lo pide. */
+@font-face { font-family: 'Helvetica Local'; src: url('../assets/fonts/helvetica-light-587ebe5a59211.woff2') format('woff2');
              font-weight: 300; font-style: normal; font-display: swap; }
 
 :root{
