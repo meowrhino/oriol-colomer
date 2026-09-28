@@ -37,7 +37,10 @@ if (zona && lista && escena) {
   const P        = px(escena, 'perspective') || 900;
   const SALTO    = 620;        // distancia en z entre proyectos
   const CERCA    = .70 * P;    // mas cerca que esto ya ha salido de cuadro
-  const FONDO    = 6;          // hasta cuantos proyectos hacia atras se ven
+  // Hasta cuantos proyectos hacia atras se ven: todos, para que ninguno
+  // desaparezca, con un tope para cuando haya muchos (a partir de diez
+  // quedarian como sellos en el centro). Lo ajusta construir().
+  let FONDO = 6;
   const PASADA_A = .06 * P;    // una carta que dejas atras empieza a irse aqui
   const PASADA_B = .52 * P;    // ...y ha desaparecido aqui
   const OPTICO   = .46;        // centro optico vertical (= top de .carta)
@@ -60,6 +63,7 @@ if (zona && lista && escena) {
   const ENCAJA   = seco ? 1 : .08;
   const FUERA    = .35;        // cuanto te dejas pasar de los extremos
   const ARRASTRE = 9;          // px antes de considerar que arrastras
+  const INERCIA  = 220;        // ms de impulso que se anaden al soltar un gesto rapido
   const EPS      = 5e-4;
 
   const marcas = document.getElementById('marcas');
@@ -124,6 +128,7 @@ if (zona && lista && escena) {
       });
     ultimo = datos.length - 1;
     if (!datos.length) return;
+    FONDO = lim(ultimo + 1.4, 4, 10);
     repartir();
 
     // espiral aurea con un giro inicial al azar: cada visita coloca las
@@ -331,7 +336,7 @@ if (zona && lista && escena) {
   addEventListener('pointerdown', e => {
     if (!enTunelActivo() || e.button || esControl(e.target)) return;
     gesto = { x: e.clientX, y: e.clientY, meta, carta: cartaEn(e.clientX, e.clientY), movido: false,
-              aparte: e.metaKey || e.ctrlKey || e.shiftKey };
+              aparte: e.metaKey || e.ctrlKey || e.shiftKey, rastro: [] };
   });
   addEventListener('pointermove', e => {
     if (!gesto) return;
@@ -343,12 +348,28 @@ if (zona && lista && escena) {
     // algo torcido no se anule a si mismo
     meta = lim(gesto.meta + (-dy - dx * .4) * .006, -FUERA, ultimo + FUERA);
     ultimaMano = performance.now(); despertar();
+    // los ultimos 100 ms del gesto, para saber a que velocidad se suelta
+    gesto.rastro.push([ultimaMano, meta]);
+    while (gesto.rastro.length > 2 && ultimaMano - gesto.rastro[0][0] > 100) gesto.rastro.shift();
   });
   const soltar = e => {
     if (!gesto) return;
     const g = gesto; gesto = null;
     agarrado = false; escena.classList.remove('arrastrando');
-    ultimaMano = performance.now(); despertar();
+    ultimaMano = performance.now();
+    /* Inercia: un gesto rapido con el dedo sigue un poco despues de soltar,
+       como cualquier scroll del telefono, y un gesto lento se queda donde
+       lo dejas. Sin esto, para pasar tres proyectos habia que arrastrar tres
+       veces. Se queda en uno y medio como mucho, para no pasarse. */
+    const r = g.rastro;
+    if (g.movido && r.length > 1) {
+      const [t0, m0] = r[0], [t1, m1] = r[r.length - 1];
+      if (t1 - t0 > 0 && ultimaMano - t1 < 60) {
+        const empuje = lim((m1 - m0) / (t1 - t0) * INERCIA, -1.5, 1.5);
+        meta = lim(meta + empuje, -FUERA, ultimo + FUERA);
+      }
+    }
+    despertar();
     if (g.movido || g.aparte || e.type === 'pointercancel') return;
     const c = cartaEn(e.clientX, e.clientY);
     if (c < 0 || c !== g.carta) return;
@@ -420,10 +441,28 @@ if (zona && lista && escena) {
     barra.addEventListener('pointercancel', fin);
   }
 
+  // Con el tabulador se va de carta en carta: la camara la trae delante.
+  zona.addEventListener('focusin', e => {
+    // solo con teclado: con el raton, pulsar ya enfoca, y la camara saltaria
+    // antes de que empezaras a arrastrar
+    const c = e.target.closest('.carta');
+    if (c && c.matches(':focus-visible')) irA(cartas.indexOf(c));
+  });
+
+  /* Los videos de las portadas no estan en la pagina y nadie los para solos:
+     fuera del tunel —en la lista o en otra pestana— se paran a mano. Al
+     volver los arranca pintar(). */
+  const pararVideos = () => cartas.forEach(el => el._video && !el._video.paused && el._video.pause());
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) pararVideos(); else if (enTunelActivo()) pintar();
+  });
+
   /* ---- arranque -------------------------------------------- */
   // Al volver a la vista de tunel hay que medir otra vez: mientras estaba
   // escondida todo medía cero.
-  addEventListener('lista:cambia', () => { if (enTunelActivo()) { medir(); pintar(); despertar(); } });
+  addEventListener('lista:cambia', () => {
+    if (enTunelActivo()) { medir(); pintar(); despertar(); } else pararVideos();
+  });
   addEventListener('resize', () => { medir(); pintar(); despertar(); });
 
   construir();

@@ -85,3 +85,28 @@ for (const a of document.querySelectorAll('.media a.yt[data-yt]')) {
     a.replaceWith(f);
   });
 }
+
+/* ============================================================
+   El bloque del texto, siempre alcanzable
+   ------------------------------------------------------------
+   El texto se queda quieto mientras bajan las fotos (sticky), y
+   lleva dentro anterior/siguiente y los idiomas. Si es mas alto
+   que la pantalla —creditos largos, pantalla baja—, pegado arriba
+   su final no se veria hasta acabar la pagina. Asi que se pega
+   por abajo: el `top` pasa a ser negativo lo justo para que lo
+   ultimo quede a la vista. En movil no es caja (display:contents)
+   y no hay nada que hacer.
+   ============================================================ */
+const lado = document.querySelector('.project .side');
+if (lado) {
+  const ajustar = () => {
+    if (getComputedStyle(lado).display === 'contents') return;
+    // --pad es un clamp(): se lee ya resuelto del relleno de .project
+    const pad = parseFloat(getComputedStyle(lado.parentElement).paddingLeft) || 0;
+    const margen = Math.min(pad, innerHeight - lado.offsetHeight - pad);
+    lado.style.setProperty('--side-top', `${Math.round(margen)}px`);
+  };
+  ajustar();
+  addEventListener('resize', ajustar);
+  if ('ResizeObserver' in window) new ResizeObserver(ajustar).observe(lado);
+}

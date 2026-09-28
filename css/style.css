@@ -20,7 +20,11 @@
   --btn-subtle-hover: rgba(0,0,0,.60);
 
   --edge-x: 3dvw;                      /* separacion de los botones al borde */
-  --edge-y: 3dvh;
+  /* Abajo se suma la zona segura: en un iPhone sin boton la barra del
+     tiempo y los idiomas caian encima de la raya de inicio. La pagina va
+     con viewport-fit=cover, asi que esto hay que ponerlo a mano. */
+  --edge-y: calc(3dvh + env(safe-area-inset-bottom, 0px));
+  --safe-top: env(safe-area-inset-top, 0px);
 
   /* La bola: el punto de la linea del tiempo, el pomo, la pupila del ojo
      y el favicon son la misma pieza. Luz arriba a la izquierda. */
@@ -93,7 +97,7 @@ img{ max-width:100%; display:block; }
    ============================================================ */
 .nav{
   position:relative; z-index:2;
-  padding: var(--pad-top) var(--pad) var(--pad);
+  padding: calc(var(--pad-top) + var(--safe-top)) var(--pad) var(--pad);
   font-size: var(--fs-nav);
   color: var(--ink-soft);
 }
@@ -242,7 +246,7 @@ body.entrando .landing{
 /* El texto se queda quieto mientras la media baja. Lleva dentro todo lo
    que se usa sin tener que llegar al final: creditos, anterior/siguiente e
    idiomas. Antes la paginacion quedaba debajo de la ultima foto. */
-.side{ grid-column:2; grid-row:1; position:sticky; top: var(--pad); min-width:0; }
+.side{ grid-column:2; grid-row:1; position:sticky; top: var(--side-top, var(--pad)); min-width:0; }
 .media{ grid-column:1; grid-row:1; display:grid; gap: clamp(6px,.7vw,12px); min-width:0; }
 .media figure{ margin:0; }
 .media img, .media video{ width:100%; height:auto; display:block; background:#f0f0f0; }
@@ -377,7 +381,7 @@ body.entrando .landing{
    grupos quedaban desperdigados. */
 .topbar{
   display:flex; align-items:baseline; gap:1rem;
-  padding: var(--pad-top) var(--pad) 0;
+  padding: calc(var(--pad-top) + var(--safe-top)) var(--pad) 0;
   /* Por encima de la escena del tunel, que ocupa la pantalla entera */
   position:relative; z-index:4;
 }
@@ -465,7 +469,9 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
    profundidad la dicen el tamano, el desenfoque y el color. */
 .carta{
   position:absolute; left:50%; top:46%;   /* el top es OPTICO en tunnel.js */
-  width: clamp(200px, 30vw, 420px);
+  /* tambien por alto: en una pantalla baja (movil en horizontal) una
+     carta a lo ancho no dejaba sitio para repartir las demas */
+  width: min(clamp(200px, 30vw, 420px), 64dvh);
   will-change:transform,opacity,filter;
   -webkit-user-drag:none;
 }
@@ -569,7 +575,7 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   .index .c{ display:none; }
   .peek{ display:none; }
   .langs, .sig{ position:static; }
-  .langs{ justify-content:flex-end; padding: 0 var(--pad) var(--pad); }
+  .langs{ justify-content:flex-end; padding: 0 var(--pad) calc(var(--pad) + env(safe-area-inset-bottom, 0px)); }
   .foot .langs{ padding:0; }
   .meta{ grid-template-columns: 1fr; gap:.15em; }
   .meta .c, .meta .g{ text-align:left; }
@@ -579,7 +585,7 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
      375). Se aprieta todo un punto y se cae la etiqueta "sort": el valor y
      la flecha ya dicen que es un desplegable, y al abrirlo la palabra esta
      dentro. Preferimos eso a partir la cabecera en dos pisos. */
-  .topbar{ gap:.5rem; padding: 14px 14px 0; }
+  .topbar{ gap:.5rem; padding: calc(14px + var(--safe-top)) 14px 0; }
   .controles{ gap:.55rem; }
   .vistas button, .menu .cabeza, .opciones button{ font-size:.72rem; }
   /* La palabra "sort" se va de la vista, pero no del arbol de accesibilidad:
@@ -597,13 +603,20 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   .vistas button, .menu .cabeza, .opciones button{
     padding:1.02rem .5rem; margin:-.8rem 0;
   }
-  .carta{ width: min(300px, 66vw); }
+  .carta{ width: min(300px, 66vw, 60dvh); }
+}
+
+/* Pantallas bajas (movil en horizontal): la barra del tiempo se arrima al
+   borde y encoge, que cada pixel de alto es escenario. */
+@media (max-height: 520px){
+  .tiempo{ bottom: calc(6px + env(safe-area-inset-bottom, 0px)); }
+  .barra{ height:2.4rem; }
 }
 
 /* Telefonos pequenos (iPhone SE y compania): un punto mas de apriete para
    que el renglon de arriba siga siendo uno solo. */
 @media (max-width: 360px){
-  .topbar{ gap:.4rem; padding: 12px 12px 0; }
+  .topbar{ gap:.4rem; padding: calc(12px + var(--safe-top)) 12px 0; }
   .controles{ gap:.45rem; }
   .vistas button, .menu .cabeza, .opciones button{ font-size:.68rem; }
   .nav{ font-size:.86em; }
