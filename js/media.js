@@ -63,3 +63,25 @@ if (videos.length) {
     });
   }
 }
+
+/* ============================================================
+   El video de YouTube del proyecto
+   ------------------------------------------------------------
+   Llega del generador como su fotograma con un boton de play, que
+   es un enlace a YouTube. Al darle se cambia por el reproductor, y
+   solo entonces: el de YouTube son medio mega de guiones, y en una
+   pagina que se abre para ver fotos no tiene por que bajarse nadie.
+   youtube-nocookie no deja cookies hasta que se reproduce.
+   ============================================================ */
+for (const a of document.querySelectorAll('.media a.yt[data-yt]')) {
+  a.addEventListener('click', e => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey) return;   // abrir en YouTube, como un enlace
+    e.preventDefault();
+    const f = document.createElement('iframe');
+    f.src = `https://www.youtube-nocookie.com/embed/${a.dataset.yt}?autoplay=1&rel=0&playsinline=1`;
+    f.title = a.getAttribute('aria-label') || 'YouTube';
+    f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+    f.allowFullscreen = true;
+    a.replaceWith(f);
+  });
+}

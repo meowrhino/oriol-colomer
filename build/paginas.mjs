@@ -218,12 +218,16 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
 <script type="module" src="${raiz('/js/bg.js')}"></script>`;
   }
 
-  function nav(lang, current) {
+  /** La barra de arriba. Dentro de un proyecto, su nombre ocupa el sitio
+      de "work" —se ve donde estas— y al clicarlo vuelves a work. */
+  function nav(lang, current, proyecto = null) {
     const item = n => {
       const label = esc(t(n.label, lang));
       // lab todavia no tiene destino: se ensena apagado y sin enlace
       if (!n.href) return `<span class="off" title="${esc(t(site.ui.aria.soon, lang))}">${label}</span>`;
       const href = url(lang, n.href.replace(/^\//, ''));
+      if (proyecto && n.id === current)
+        return `<a class="aqui" href="${href}" aria-current="page" title="${label}">${esc(proyecto.title)}</a>`;
       return n.id === current
         ? `<a href="${href}" aria-current="page">${label}</a>`
         : `<a href="${href}">${label}</a>`;
@@ -232,6 +236,24 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
          + site.nav.map(item).join('<span class="sep">/</span>')
          + `</nav>`;
   }
+
+  /** El id de un video de YouTube a partir de cualquiera de sus enlaces:
+      youtu.be/ID, watch?v=ID, embed/ID, shorts/ID, live/ID. */
+  const youtube = link => (/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/
+    .exec(String(link || '')) || [])[1] || null;
+
+  /** El video del enlace, primero del carrusel. No es el reproductor de
+      YouTube todavia: es su fotograma con un boton de play. El reproductor
+      (medio mega de guiones de Google) solo se carga al darle, y desde
+      youtube-nocookie. Sin JavaScript el boton es un enlace a YouTube. */
+  const embed = (id, p, lang) => `      <figure class="embed">
+        <a class="yt" href="${esc(p.link)}" target="_blank" rel="noopener" data-yt="${id}"
+           aria-label="${esc(t(site.ui.watch, lang))}: ${esc(p.title)}">
+          <img src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" alt="" decoding="async"
+               onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${id}/hqdefault.jpg'">
+          <span class="play" aria-hidden="true"></span>
+        </a>
+      </figure>`;
 
   function langs(lang, path) {
     return `<nav class="langs" aria-label="${esc(t(site.ui.aria.lang, lang))}">`
@@ -381,8 +403,11 @@ ${pageFoot(lang, 'work/')}
     const sub  = t(p.subheader, lang);
     const archivos = (p.media || []).map(m => enCarpeta(p, m));
 
-    const media = archivos.map((m, i) =>
-      `      <figure>${mediaTag(m, p, sub, i)}</figure>`).join('\n');
+    const yt = youtube(p.link);
+    const media = [
+      ...(yt ? [embed(yt, p, lang)] : []),
+      ...archivos.map((m, i) => `      <figure>${mediaTag(m, p, sub, i)}</figure>`),
+    ].join('\n');
 
     const roles = Object.entries(p.credits || {});
     const credits = roles.length ? `    <section class="credits">
@@ -416,7 +441,7 @@ ${roles.map(([role, people]) =>
             ({ '@type':'Person', name: h, sameAs: igUrl(h) }))),
       },
     })
-    + `${nav(lang, 'work')}
+    + `${nav(lang, 'work', p)}
 <main class="project">
   <div class="side">
     <div class="info">
@@ -429,21 +454,24 @@ ${roles.map(([role, people]) =>
       <div class="body">
 ${paras(desc).map(x => `        <p>${esc(x)}</p>`).join('\n')}
       </div>
-      ${p.link ? `<a class="watch" href="${esc(p.link)}" target="_blank" rel="noopener">${esc(t(site.ui.watch, lang))} →</a>` : ''}
+      ${p.link && !yt ? `<a class="watch" href="${esc(p.link)}" target="_blank" rel="noopener">${esc(t(site.ui.watch, lang))} →</a>` : ''}
     </div>
 ${credits}
+    <!-- Anterior y siguiente en la misma linea, y los idiomas debajo: todo
+         en el bloque del texto, que se queda quieto mientras bajas. -->
+    <div class="navega">
+      <nav class="pager" aria-label="${esc(t(site.ui.aria.projects, lang))}">
+        ${prev ? `<a class="ant" href="${url(lang, 'work/' + prev.slug + '/')}" title="${esc(prev.title)}"><span>←</span> <span class="tt">${esc(prev.title)}</span></a>` : '<span></span>'}
+        ${next ? `<a class="sgte" href="${url(lang, 'work/' + next.slug + '/')}" title="${esc(next.title)}"><span class="tt">${esc(next.title)}</span> <span>→</span></a>` : '<span></span>'}
+      </nav>
+      ${langs(lang, `work/${p.slug}/`)}
+    </div>
   </div>
 
   <div class="media">
 ${media || '      <!-- sin material grafico todavia -->'}
   </div>
-
-  <nav class="pager" aria-label="${esc(t(site.ui.aria.projects, lang))}">
-    ${prev ? `<a href="${url(lang, 'work/' + prev.slug + '/')}">← ${esc(prev.title)}</a>` : '<span></span>'}
-    ${next ? `<a class="r" href="${url(lang, 'work/' + next.slug + '/')}">${esc(next.title)} →</a>` : '<span></span>'}
-  </nav>
 </main>
-${pageFoot(lang, `work/${p.slug}/`)}
 <script type="module" src="${raiz('/js/media.js')}"></script>`
     + foot();
   }

@@ -101,6 +101,9 @@ img{ max-width:100%; display:block; }
 .nav a:hover{ color: var(--ink-hard); }
 .nav [aria-current="page"]{ color: var(--ink-hard); font-weight:700; }
 .nav .off{ color: var(--ink-faint); cursor:default; }   /* lab, todavia sin destino */
+/* dentro de un proyecto, su nombre en el sitio de "work": si es muy largo
+   se corta, que la barra es un renglon */
+.nav .aqui{ max-width:42ch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
 .nav--inline{ display:flex; align-items:baseline; gap:.5ch; }
 .nav--inline .sep{ color: var(--ink-faint); }
@@ -275,18 +278,31 @@ body.entrando .pista, body.entrando .langs{ opacity:0; transition: opacity .2s; 
 }
 /* En el DOM van .side (texto + creditos) y luego .media, que es el orden
    de movil. En escritorio se invierten con grid-column, sin tocar el HTML. */
-/* El .side es sticky y su caja de referencia es .project entera, no su fila:
-   cuando la media se acaba antes que el texto, el sticky sigue descolgandose
-   y se come el hueco que hay hasta la paginacion. El margen de abajo recorta
-   ese recorrido —el sticky se frena ahi— y asi el aire esta siempre. Los 4em
-   de mas son el alto del propio pager, que entra dentro de .project. */
-.side{
-  grid-column:2; grid-row:1; position:sticky; top: var(--pad); min-width:0;
-  margin-bottom: calc(var(--aire) + 4em);
-}
+/* El texto se queda quieto mientras la media baja. Lleva dentro todo lo
+   que se usa sin tener que llegar al final: creditos, anterior/siguiente e
+   idiomas. Antes la paginacion quedaba debajo de la ultima foto. */
+.side{ grid-column:2; grid-row:1; position:sticky; top: var(--pad); min-width:0; }
 .media{ grid-column:1; grid-row:1; display:grid; gap: clamp(6px,.7vw,12px); min-width:0; }
 .media figure{ margin:0; }
 .media img, .media video{ width:100%; height:auto; display:block; background:#f0f0f0; }
+
+/* El video del enlace: su fotograma con un play, y el reproductor al darle
+   (js/media.js). Mismo formato que el resto del carrusel. */
+.embed .yt, .embed iframe{ display:block; position:relative; width:100%; aspect-ratio:16/9; border:0; }
+.embed .yt img{ width:100%; height:100%; object-fit:cover; }
+.embed .play{
+  position:absolute; left:50%; top:50%; translate:-50% -50%;
+  width:clamp(52px, 5vw, 72px); aspect-ratio:1; border-radius:50%;
+  background: rgba(250,250,250,.86);
+  transition: transform .25s cubic-bezier(.2,.7,.2,1), background .25s ease;
+}
+.embed .play::after{                    /* el triangulo, algo a la derecha: centro optico */
+  content:''; position:absolute; left:54%; top:50%; translate:-50% -50%;
+  border-style:solid; border-width:.55em 0 .55em .95em;
+  border-color: transparent transparent transparent var(--ink-hard);
+  font-size:clamp(14px, 1.3vw, 19px);
+}
+.embed .yt:hover .play, .embed .yt:focus-visible .play{ transform:scale(1.08); background:#fff; }
 
 .info{ min-width:0; }
 
@@ -333,20 +349,16 @@ body.entrando .pista, body.entrando .langs{ opacity:0; transition: opacity .2s; 
 .credits dd a{ color:inherit; }
 .credits dd a:hover{ color: var(--ink-hard); }
 
-/* Paginacion entre proyectos: va en la columna del texto, no cruzada de
-   lado a lado, y sin raya que la separe. Los titulos son largos, asi que
-   en una sola columna van uno debajo del otro: anterior a la izquierda,
-   siguiente a la derecha. */
-.pager{
-  display:flex; flex-direction:column; align-items:stretch; gap:.5em;
-  grid-column:2; grid-row:2;
-  margin-top: var(--aire);
-  font-size: var(--fs-meta); color: var(--ink-faint);
-}
-.pager a{ color: var(--ink-soft); }
-.pager .r{ text-align:right; }
+/* Anterior a la izquierda y siguiente a la derecha, en la misma linea: los
+   titulos son largos, asi que cada uno se corta con puntos suspensivos y el
+   entero sale al pasar por encima. Los idiomas, debajo y a la derecha. */
+.navega{ margin-top: var(--aire); font-size: var(--fs-meta); }
+.pager{ display:flex; justify-content:space-between; align-items:baseline; gap:2ch; }
+.pager a{ display:flex; gap:.5ch; min-width:0; max-width:48%; color: var(--ink-soft); white-space:nowrap; }
+.pager .tt{ overflow:hidden; text-overflow:ellipsis; }
+.pager .sgte{ margin-left:auto; }
 .pager a:hover{ color: var(--ink-hard); }
-.pager span:empty{ display:none; }
+.navega .langs{ position:static; justify-content:flex-end; margin-top:1.2em; margin-right:-.3rem; }
 
 /* ============================================================
    ABOUT
@@ -568,9 +580,8 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   .info   { grid-column:1; grid-row:auto; order:1; }
   .media  { grid-column:1; grid-row:auto; order:2; }
   .credits{ grid-column:1; grid-row:auto; order:3; margin-top:0; }
-  .pager  { grid-column:1; grid-row:auto; order:4; }
-  /* en movil .side no es caja, asi que no hay sticky del que defenderse */
-  .side{ margin-bottom:0; }
+  .navega { grid-column:1; grid-row:auto; order:4; margin-top:0; }
+  .navega .langs{ padding:0; }
 
   /* En movil la tira vertical se vuelve carrusel horizontal con anclaje. */
   .media{
@@ -582,6 +593,7 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   .media::-webkit-scrollbar{ display:none; }
   .media figure{ scroll-snap-align:center; }
   .media img, .media video{ aspect-ratio:16/9; object-fit:cover; }
+  .nav .aqui{ max-width:38vw; }
 
   .index a{ grid-template-columns: 1fr auto; gap: 1.5ch; }
   .index .c{ display:none; }
