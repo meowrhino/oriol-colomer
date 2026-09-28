@@ -194,7 +194,6 @@ function head({ lang, title, desc, path, image, jsonld, vel, entrar, vista }) {
   <meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}">
   <meta name="theme-color" content="#fafafa">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='16' fill='%23a6a6a6'/%3E%3C/svg%3E">
-  <link rel="preload" as="font" type="font/woff2" href="${raiz('/assets/fonts/helvetica.woff2')}" crossorigin>
   <link rel="stylesheet" href="${raiz('/css/style.css')}">
   ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld)}</script>` : ''}
 </head>

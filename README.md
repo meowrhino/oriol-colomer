@@ -190,7 +190,7 @@ profundidad, y lo que más se nota en un teléfono, donde sólo cabe una carta e
 
 ## El peso
 
-Una web de fotos y vídeo se va de peso sola, así que hay tres piezas que lo
+Una web de fotos y vídeo se va de peso sola, así que hay tres cosas que lo
 sujetan. Ninguna se nota mirando la página; se notan todas en un móvil con
 mala cobertura.
 
@@ -200,8 +200,10 @@ para al salir. Con `autoplay` se bajaban los cuatro de golpe — la página de
 AMORE pesaba 9 MB, de los cuales 6 eran un clip que está al final del carrete.
 Sin JavaScript queda el `poster`, que es un fotograma del propio vídeo.
 
-**Las fuentes van en WOFF2.** En TTF iban sin comprimir: las cuatro pesaban
-1,2 MB y pesan 368 KB. La cursiva sola bajaba 583 KB, y la gasta una fecha.
+**No hay ficheros de fuente.** Helvetica es de pago (Monotype) y servirla
+desde la web pide licencia, así que se usa la que trae el sistema: en Mac e
+iPhone es Helvetica de verdad, en Windows y Android sale Arial, que casi no se
+distingue. Antes eran cuatro TTF que pesaban 1,2 MB; ahora, nada.
 
 **Las portadas tienen miniatura, y en WebP.** 720 px de ancho, que es el doble
 de lo que se ve. En WebP y no en JPEG porque a igual vista pesa la mitad larga:
@@ -210,9 +212,9 @@ además se ve mejor. Lo hace `build/thumbs.mjs`, dentro de `npm run media`.
 
 | página | antes | ahora |
 |---|---|---|
-| portada | 620 KB | 258 KB |
-| `/work/` | 2,3 MB | 429 KB |
-| un proyecto con vídeo | 9,0 MB | 896 KB |
+| portada | 620 KB | 58 KB |
+| `/work/` | 2,3 MB | 225 KB |
+| un proyecto con vídeo | 9,0 MB | 554 KB |
 
 ---
 

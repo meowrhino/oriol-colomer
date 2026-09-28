@@ -4,21 +4,10 @@
    sin radios: la jerarquia la hace el tamano y el gris.
    ============================================================ */
 
-/* WOFF2, no TTF. El TTF va sin comprimir: las cuatro pesaban 1,2 MB y
-   pesan 368 KB, el mismo dibujo. La cursiva sola bajaba 583 KB —y la
-   gasta una fecha—; ahora son 137. Un navegador tan viejo que no entienda
-   WOFF2 (Explorer, Android 4) se cae a la Helvetica del sistema, que es la
-   siguiente de la pila y aqui no se distingue. */
-@font-face { font-family: 'Helvetica Local'; src: url('../assets/fonts/helvetica.woff2') format('woff2');
-             font-weight: 400; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Helvetica Local'; src: url('../assets/fonts/helvetica-bold.woff2') format('woff2');
-             font-weight: 700; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Helvetica Local'; src: url('../assets/fonts/helvetica-oblique.woff2') format('woff2');
-             font-weight: 400; font-style: italic; font-display: swap; }
-/* El peso 300 no lo usa ninguna regla hoy: queda declarado porque el
-   fichero esta y no cuesta nada — no se baja si nadie lo pide. */
-@font-face { font-family: 'Helvetica Local'; src: url('../assets/fonts/helvetica-light-587ebe5a59211.woff2') format('woff2');
-             font-weight: 300; font-style: normal; font-display: swap; }
+/* Sin ficheros de fuente: Helvetica es de pago (Monotype) y servirla desde
+   aqui pide una licencia web. Se usa la del sistema: en Mac e iOS es
+   Helvetica de verdad; en Windows y Android cae a Arial, que casi no se
+   distingue. De paso la pagina no baja ni un byte de tipografia. */
 
 :root{
   --bg:        #fafafa;
@@ -71,7 +60,7 @@ body{
   min-height:100dvh;
   background: var(--bg);
   color: var(--ink);
-  font-family:'Helvetica Local', Helvetica, 'Helvetica Neue', Arial, sans-serif;
+  font-family:Helvetica, 'Helvetica Neue', Arial, sans-serif;
   font-weight:400;
   font-size: var(--fs-body);
   line-height: var(--lh);
