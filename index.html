@@ -1,0 +1,32 @@
+<!doctype html>
+<!--
+  VISTA PREVIA LOCAL
+  Este fichero no se publica: la web de verdad la escribe build/build.mjs
+  en GitHub. Esto es para revisar los cambios antes de subirlos, con la
+  extension Live Server de VS Code ("Go Live" abajo a la derecha).
+  Lee data/*.json y pinta la pagina con las mismas plantillas que el build.
+-->
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>vista previa — oriol colomer</title>
+  <style>
+    body{margin:0;padding:clamp(24px,6vw,80px);font:16px/1.5 Helvetica,Arial,sans-serif;
+         background:#fafafa;color:#7d7d7d}
+    p{max-width:62ch}
+  </style>
+</head>
+<body>
+  <p id="aviso">cargando la vista previa…</p>
+  <script>
+    // Abierto con doble clic desde el Finder, el navegador no deja leer los
+    // JSON ni cargar los modulos: hace falta un servidor, y ese es Live Server.
+    if (location.protocol === 'file:') document.getElementById('aviso').innerHTML =
+      'Esta pagina hay que abrirla con <b>Live Server</b>: en VS Code, boton ' +
+      '<b>Go Live</b> abajo a la derecha. Abierta con doble clic no puede leer los datos.';
+  </script>
+  <script type="module" src="build/preview.mjs"></script>
+</body>
+</html>

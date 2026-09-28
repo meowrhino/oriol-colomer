@@ -1,102 +1,39 @@
 /* ============================================================
    build.mjs — Jamstack sin dependencias.
    Lee data/*.json y escribe HTML plano, uno por proyecto e idioma.
-   El cliente solo toca los JSON: esto no se abre nunca.
+   Las plantillas viven en paginas.mjs, que es el mismo fichero que
+   usa la vista previa de Live Server: aqui solo se le dice como
+   mirar el disco y se escribe lo que devuelve.
        node build/build.mjs
    ============================================================ */
 import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { crearSitio, leerJSON } from './paginas.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT  = join(ROOT, 'dist');
-const read = f => JSON.parse(readFileSync(join(ROOT, f), 'utf8'));
+const leer = f => leerJSON(readFileSync(join(ROOT, f), 'utf8'), f);
 
-const site = read('data/site.json');
-const all  = read('data/projects.json');
-/* El orden de todo el sitio —indice, tunel, anterior/siguiente y sitemap—
-   es este, de mas reciente a mas antiguo. Antes era el orden del fichero y
-   funcionaba de milagro, porque estaba ordenado a mano: un proyecto pegado
-   en el sitio equivocado salia descolocado en las cuatro. El README ya
-   prometia que la fecha ordenaba sola; ahora es verdad. */
-const live = all.filter(p => p.published)           // FET? = FALSE no se publica
-                .sort((a, b) => b.date.localeCompare(a.date));
-const LANGS = site.langs;
-const DEF   = site.defaultLang;
+let site, proyectos;
+try {
+  site = leer('data/site.json');
+  proyectos = leer('data/projects.json');
+} catch (e) {
+  // En GitHub esto es lo que sale en rojo en la pestana Actions: que se
+  // entienda sin saber programar.
+  console.error('\n✗ ' + e.message + '\n');
+  process.exit(1);
+}
 
 /* Subcarpeta en la que se sirve el sitio. En GitHub Pages es el nombre del
    repo; en un dominio propio, cadena vacia. Se puede forzar con BASE=... */
-const B = (process.env.BASE ?? site.base ?? '').replace(/\/$/, '');
-/** Prefija una ruta absoluta del sitio con esa subcarpeta. */
-const raiz = p => (B + (p.startsWith('/') ? p : '/' + p));
+const base = process.env.BASE ?? site.base ?? '';
 
-/* ---------- utilidades ---------------------------------- */
-const esc = s => String(s ?? '')
-  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-
-const t  = (obj, l) => (obj && (obj[l] || obj[DEF])) || '';
-// prefijo de idioma: el idioma por defecto vive en la raiz, los otros en /es/ y /cat/
-const pre = l => (l === DEF ? '' : `/${l}`);
-const url = (l, path='') => B + `${pre(l)}/${path}`.replace(/\/{2,}/g,'/');
-const abs = p => site.baseUrl.replace(/\/$/,'') + p;   // p ya trae la subcarpeta
-
-/* Mismo formato en los tres idiomas, como la ficha original. */
-const fmtDate = iso => { const [y,m,d] = iso.split('-'); return `${d}/${m}/${y}`; };
-
-/** Corta el texto en parrafos por linea en blanco. */
-const paras = txt => String(txt).split(/\n{2,}/).map(s => s.trim()).filter(Boolean);
-
-/** El titulo lleva la @ en un span para poder darle su propio gris. */
-const titleHtml = tt => esc(tt).replace(/\s@\s/, ' <span class="at">@</span> ');
-
-/** 155 caracteres limpios para la meta description. */
-const metaDesc = txt => {
-  const flat = String(txt).replace(/\s+/g,' ').trim();
-  return flat.length <= 155 ? flat : flat.slice(0, 152).replace(/\s+\S*$/,'') + '…';
-};
-
-const igUrl = h => `https://instagram.com/${h.replace(/^@/,'')}`;
-
-const isVideo = m => /\.(mp4|webm)$/i.test(m);
-/** Fotograma de un video, generado por build/video.sh. */
-const poster  = m => m.replace(/\.mp4$/i, '.poster.jpg');
-/** La version chica de una imagen, si build/thumbs.mjs la hizo. Donde se
-    usa la portada —la carta del tunel y la vista previa del raton— se pinta
-    a 360 px como mucho, y se estaban bajando los originales: 1,7 MB de
-    fotos de hasta 2048 px en la pagina que mas se visita. Ahora son 156 KB.
-    Si no hay miniatura se usa el original, asi que esto nunca rompe nada. */
-const chica = m => {
-  const th = m.replace(/\.(jpe?g|png|webp)$/i, '.thumb.webp');
-  return th !== m && existsSync(join(ROOT, th)) ? th : m;
-};
-
-/** Primer fichero del proyecto: es la portada, sin campo aparte.
-    Si es un video se usa su poster, que es lo que cabe en un <img>. */
-const cover   = p => {
-  const m = p.media?.[0];
-  if (!m) return null;
-  if (!isVideo(m)) return chica(m);
-  const pj = poster(m);
-  if (existsSync(join(ROOT, pj))) return chica(pj);
-  const foto = p.media.find(x => !isVideo(x));
-  return foto ? chica(foto) : null;
-};
-/** Para og:image hace falta una imagen de verdad, no un mp4. */
-const ogImage = p => (p && p.media && p.media.find(m => !isVideo(m))) || null;
-/** La imagen con la que se comparte la portada y el indice: la del
-    proyecto mas reciente. Con todo en borrador no hay ninguno, y esto
-    devolvia `live[0].media` de un undefined y tumbaba el build entero. */
-const ogSitio = () => ogImage(live[0]);
-
-/** Ancho y alto reales de un jpg o un png, leidos de la cabecera del
-    fichero. Van al <img> para que el navegador reserve el hueco antes de
-    que baje la imagen: sin ellos la columna de media crece de golpe con
-    cada foto y el texto que hay debajo pega un salto.
-
-    Son treinta lineas de leer bytes, pero la alternativa era una
-    dependencia, y aqui no hay ninguna. En jpeg se buscan los marcadores
-    de inicio de fotograma (SOF0..SOF15, saltandose los que no lo son);
-    en png el alto y el ancho estan siempre en el mismo sitio. */
+/** Ancho y alto reales de una imagen, leidos de la cabecera del fichero.
+    Van al <img> para que el navegador reserve el hueco antes de que baje la
+    imagen: sin ellos la columna de media crece de golpe con cada foto.
+    Treinta lineas de leer bytes en vez de una dependencia. */
 const medidasCache = new Map();
 function medidas(rel) {
   if (medidasCache.has(rel)) return medidasCache.get(rel);
@@ -120,399 +57,59 @@ function medidas(rel) {
       }
     } else if (b.readUInt32BE(0) === 0x89504E47) {        // png
       r = { w: b.readUInt32BE(16), h: b.readUInt32BE(20) };
+    } else if (b.toString('ascii', 0, 4) === 'RIFF' && b.toString('ascii', 8, 12) === 'WEBP') {
+      // webp: tres variantes de cabecera, cada una guarda el tamano a su manera
+      const tipo = b.toString('ascii', 12, 16);
+      if (tipo === 'VP8X') r = { w: 1 + b.readUIntLE(24, 3), h: 1 + b.readUIntLE(27, 3) };
+      else if (tipo === 'VP8 ') r = { w: b.readUInt16LE(26) & 0x3FFF, h: b.readUInt16LE(28) & 0x3FFF };
+      else if (tipo === 'VP8L') {
+        const v = b.readUInt32LE(21);
+        r = { w: 1 + (v & 0x3FFF), h: 1 + ((v >> 14) & 0x3FFF) };
+      }
     }
   } catch { /* fichero ausente o ilegible: se sigue sin medidas */ }
   medidasCache.set(rel, r);
   return r;
 }
 
-/** Los @handle del texto de creditos se enlazan solos a Instagram. */
-const linkHandles = txt => esc(txt).replace(/@[\w.\-_]+/g,
-  h => `<a href="${igUrl(h)}" target="_blank" rel="noopener">${h}</a>`);
-
-/** Un item de media: imagen, o video en bucle mudo sin controles.
-    Del video se ofrecen los dos formatos y elige el navegador: primero
-    el webm, que casi siempre pesa menos, y el mp4 como respaldo. El JSON
-    solo guarda el mp4 — el webm se detecta aqui si el fichero existe.
-
-    El video sale parado y sin pedir nada: lo arranca js/media.js cuando
-    entra en pantalla. Con `autoplay` se bajaban los cuatro de golpe —
-    `autoplay` manda sobre `preload`, asi que el preload="none" de los
-    ultimos no servia de nada y una pagina llegaba a pesar 9 MB. */
-const mediaTag = (m, p, sub, i) => {
-  const label = `${esc(p.title)} — ${esc(sub)}`;
-  if (!isVideo(m)) {
-    const d = medidas(m);
-    return `<img src="${raiz('/' + esc(m))}" alt="${label}"
-      ${d ? `width="${d.w}" height="${d.h}"` : ''}
-      loading="${i < 2 ? 'eager' : 'lazy'}" decoding="async">`;
-  }
-  const webm = m.replace(/\.mp4$/i, '.webm');
-  const has  = existsSync(join(ROOT, webm));
-  const pj = poster(m);
-  const hayPoster = existsSync(join(ROOT, pj));
-  // El video tambien deja hueco: sus medidas son las del poster, que es un
-  // fotograma suyo. Sin esto no se sabe cuanto ocupa hasta que baja el
-  // primer trozo del video, y con preload perezoso eso es al hacer scroll.
-  const d = hayPoster ? medidas(pj) : null;
-  return `<video muted loop playsinline preload="none"
-      ${hayPoster ? `poster="${raiz('/' + esc(pj))}"` : ''}
-      ${d ? `width="${d.w}" height="${d.h}"` : ''}
-      aria-label="${label}">`
-    + (has ? `<source src="${raiz('/' + esc(webm))}" type="video/webm">` : '')
-    + `<source src="${raiz('/' + esc(m))}" type="video/mp4"></video>`;
-};
-
-/* ---------- parciales ----------------------------------- */
-/* Velocidad del fondo dentro del sitio. La portada va a 1: es lo unico que
-   hay en pantalla y puede permitirse moverse. Dentro, el fondo es el telon
-   del trabajo, asi que va despacio — se nota que esta vivo sin competir con
-   las fotos ni con el tunel. */
-const DENTRO = 0.38;
-
-function head({ lang, title, desc, path, image, jsonld, vel, entrar, vista }) {
-  const alts = LANGS.map(l =>
-    `<link rel="alternate" hreflang="${l === 'cat' ? 'ca' : l}" href="${abs(url(l, path))}">`
-  ).join('\n  ');
-  return `<!doctype html>
-<html lang="${lang === 'cat' ? 'ca' : lang}">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>${esc(title)}</title>
-  <meta name="description" content="${esc(desc)}">
-  <link rel="canonical" href="${abs(url(lang, path))}">
-  ${alts}
-  <link rel="alternate" hreflang="x-default" href="${abs(url(DEF, path))}">
-  <meta property="og:type" content="${path.startsWith('work/') && path !== 'work/' ? 'article' : 'website'}">
-  <meta property="og:title" content="${esc(title)}">
-  <meta property="og:description" content="${esc(desc)}">
-  <meta property="og:url" content="${abs(url(lang, path))}">
-  <meta property="og:site_name" content="${esc(site.shortName)}">
-  <meta property="og:locale" content="${lang === 'cat' ? 'ca_ES' : lang === 'es' ? 'es_ES' : 'en_GB'}">
-  ${image ? `<meta property="og:image" content="${abs(raiz('/' + image))}">` : ''}
-  <meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}">
-  <meta name="theme-color" content="#fafafa">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='16' fill='%23a6a6a6'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="${raiz('/css/style.css')}">
-  ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld)}</script>` : ''}
-</head>
-<body${entrar ? ` data-entrar="${entrar}"` : ''}${vista ? ` data-vista="${vista}"` : ''}>
-<!-- El fondo se mueve en todas las paginas; la velocidad es lo unico que
-     cambia entre la portada y el resto. El campo sale de data/site.json:
-     uno de los cinco, o "aleatorio" para que lo sortee cada visita. -->
-<canvas class="dots" id="bg" data-vel="${vel ?? DENTRO}" data-campo="${esc(site.fondo || 'terreno')}" aria-hidden="true"></canvas>
-<script type="module" src="${raiz('/js/bg.js')}"></script>`;
-}
-
-function nav(lang, current) {
-  const item = n => {
-    const label = esc(t(n.label, lang));
-    // lab todavia no tiene destino: se ensena apagado y sin enlace
-    if (!n.href) return `<span class="off" title="${esc(t(site.ui.aria.soon, lang))}">${label}</span>`;
-    const href = url(lang, n.href.replace(/^\//,''));
-    return n.id === current
-      ? `<a href="${href}" aria-current="page">${label}</a>`
-      : `<a href="${href}">${label}</a>`;
-  };
-  return `<nav class="nav nav--inline">`
-       + site.nav.map(item).join('<span class="sep">/</span>')
-       + `</nav>`;
-}
-
-function langs(lang, path) {
-  // Sin separadores y sin adornos: los separa el espacio y el activo se
-  // distingue por peso. El dingbat de la referencia se cae — en el png
-  // se lee como un icono, pero como texto sale como un simbolo suelto.
-  return `<nav class="langs" aria-label="${esc(t(site.ui.aria.lang, lang))}">`
-    + LANGS.map(l => l === lang
-        ? `<span aria-current="true">${l}</span>`
-        : `<a href="${url(l, path)}" hreflang="${l === 'cat' ? 'ca' : l}">${l}</a>`
-      ).join('')
-    + `</nav>`;
-}
-
-const sig = () =>
-  `<p class="sig">${esc(site.credit.label)}: `
-  + `<a href="${site.credit.url}" target="_blank" rel="noopener">${esc(site.credit.name)}</a></p>`;
-
-/** Pie de las paginas que scrollean. La firma sale solo en about: es el
-    unico sitio donde toca hablar de quien ha hecho la web, y repetirla en
-    cada proyecto le robaba sitio al trabajo. En la landing no hay pie —
-    los idiomas van anclados a la esquina, que la pagina cabe entera. */
-const pageFoot = (lang, path, { firma = false } = {}) =>
-  `<footer class="foot">${firma ? sig() : ''}${langs(lang, path)}</footer>`;
-
-const foot = () => `</body>\n</html>\n`;
-
-/* ---------- paginas ------------------------------------- */
-function landing(lang) {
-  return head({
-    lang, path: '', vel: 1, entrar: url(lang, 'work/'),
-    title: `${site.name} — ${t(site.tagline, lang)}`,
-    desc: t(site.tagline, lang),
-    image: ogSitio(),
-    jsonld: {
-      '@context':'https://schema.org', '@type':'Person',
-      name: site.name, url: abs(url(lang)),
-      jobTitle: t(site.tagline, lang), email: `mailto:${site.email}`,
-      address: { '@type':'PostalAddress', addressLocality:'Barcelona', addressCountry:'ES' },
-    },
-  })
-  + `<main class="landing">
-  <div class="hero">
-    <div class="eye" id="eye">
-      <div class="lens">
-        <!-- El contorno viene en blanco sobre transparente, asi que va de
-             mascara y el color lo pone el CSS. -->
-        <span class="shape" aria-hidden="true"></span>
-        <!-- La pupila se dibuja en el CSS (ver .eye .pupil): antes era un PNG
-             difuso con el centro mas claro que el borde. Ahorra una peticion
-             y se lee mucho mejor; el png sigue en assets por si acaso. -->
-        <span class="pupil" id="pupil" aria-hidden="true"></span>
-      </div>
-      <h1 class="name">${esc(site.name)}</h1>
-    </div>
-    <p class="pista">${esc(t(site.ui.enter, lang))}</p>
-  </div>
-  ${langs(lang, '')}
-</main>
-<script type="module" src="${raiz('/js/welcome.js')}"></script>`
-  + foot();
-}
-
-function workIndex(lang) {
-  const tags = [...new Set(live.flatMap(p => p.tags))];
-
-  // La lista va en el HTML siempre: es lo que lee Google y lo que queda si
-  // no corre JavaScript. El tunel se construye leyendo esta misma lista,
-  // asi que filtro y orden valen igual en las dos vistas.
-  const rows = live.map(p => {
-    const portada = cover(p);          // una sola vez: cada llamada toca disco
-    return `      <li data-tags="${esc(p.tags.join(' '))}"
-          data-date="${p.date}" data-client="${esc(p.client.toLowerCase())}" data-title="${esc(p.title.toLowerCase())}">
-        <a href="${url(lang, 'work/' + p.slug + '/')}"${portada ? ` data-peek="${raiz('/' + esc(portada))}"` : ''}>
-          <span class="t">${titleHtml(p.title)}<small>${esc(t(p.subheader, lang))}</small></span>
-          <span class="c">${esc(fmtDate(p.date))}</span>
-          <span class="g">${esc(p.tags.join(' '))}</span>
-        </a>
-      </li>`;
-  }).join('\n');
-
-  /** Menu desplegable. El boton ensena el valor puesto; al abrirlo salen
-      todas las opciones, incluida la activa, que va marcada. */
-  const menu = (id, etiqueta, opciones) => `      <div class="menu" data-menu="${id}">
-        <button type="button" class="cabeza" aria-expanded="false" aria-haspopup="true">
-          <span class="et">${esc(etiqueta)}</span><span class="val"></span>
-        </button>
-        <div class="opciones" role="menu" hidden>
-${opciones.map(([v, l], i) => `          <button type="button" role="menuitemradio" data-v="${esc(v)}"
-            aria-checked="${i === 0}">${esc(l)}</button>`).join('\n')}
-        </div>
-      </div>`;
-
-  const orden  = [['date', t(site.ui.byDate, lang)], ['client', t(site.ui.byClient, lang)],
-                  ['title', t(site.ui.byTitle, lang)]];
-  const filtro = [['', t(site.ui.all, lang)], ...tags.map(g => [g, g])];
-
-  return head({
-    lang, path: 'work/',
-    // La vista por defecto ya viene puesta en el HTML. Antes la ponia
-    // work.js al arrancar, asi que hasta entonces no se aplicaba el
-    // `display:none` del indice y la lista entera se pintaba y desaparecia.
-    // El guion sigue mandando: si hay otra guardada, la cambia.
-    vista: 'tunel',
-    title: `work — ${site.shortName}`,
-    desc: t(site.tagline, lang),
-    image: ogSitio(),
-    jsonld: {
-      '@context':'https://schema.org', '@type':'CollectionPage',
-      name:'work', url: abs(url(lang,'work/')),
-      hasPart: live.map(p => ({ '@type':'CreativeWork', name:p.title, url: abs(url(lang,'work/'+p.slug+'/')) })),
-    },
-  })
-  + `<div class="topbar">
-  ${nav(lang, 'work')}
-  <!-- Los mismos controles en las dos vistas: solo cambia como se pinta
-       la lista debajo, no como se manda sobre ella. -->
-  <div class="controles">
-    <div class="vistas" role="group" aria-label="${esc(t(site.ui.aria.view, lang))}">
-      <button type="button" data-vista="tunel" aria-pressed="true">${esc(t(site.ui.tunnel, lang))}</button>
-      <button type="button" data-vista="lista" aria-pressed="false">${esc(t(site.ui.list, lang))}</button>
-    </div>
-${menu('sort', t(site.ui.sort, lang), orden)}
-${menu('tag', '', filtro)}
-  </div>
-</div>
-
-<main class="wrap">
-  <!-- El encabezado no se ve: la barra de arriba ya dice donde estas, pero
-       un buscador o un lector de pantalla necesitan el h1 igual. -->
-  <h1 class="sr">${esc(t(site.nav[1].label, lang))}</h1>
-
-  <!-- vista tunel -->
-  <div class="escena" id="escena">
-    <div class="tunel" id="tunel"></div>
-  </div>
-
-  <!-- vista lista -->
-  <ul class="index" id="index">
-${rows}
-  </ul>
-</main>
-
-<!-- Linea del tiempo: sin raya, solo los proyectos. Cada uno cae donde
-     le toca por fecha, no a intervalos iguales. -->
-<footer class="tiempo" id="tiempo">
-  <a class="rotulo" id="rotulo" href=""></a>
-  <div class="barra" id="barra"><div class="marcas" id="marcas"></div></div>
-</footer>
-
-<div class="peek" id="peek" aria-hidden="true"><img src="" alt=""></div>
-${pageFoot(lang, 'work/')}
-<script type="module" src="${raiz('/js/work.js')}"></script>
-<script type="module" src="${raiz('/js/tunnel.js')}"></script>`
-  + foot();
-}
-
-function projectPage(p, lang, prev, next) {
-  const desc = t(p.description, lang);
-  const sub  = t(p.subheader, lang);
-
-  const media = p.media.map((m, i) =>
-    `      <figure>${mediaTag(m, p, sub, i)}</figure>`).join('\n');
-
-  const roles = Object.entries(p.credits);
-  const credits = roles.length ? `    <section class="credits">
-      <h2>${esc(t(site.ui.credits, lang))}</h2>
-      <dl>
-${roles.map(([role, people]) =>
-  `        <div class="row"><dt>${esc(role)}</dt> <dd>${linkHandles(people)}</dd></div>`).join('\n')}
-      </dl>
-    </section>` : '';
-
-  return head({
-    lang, path: `work/${p.slug}/`,
-    title: `${p.title} — ${sub} — ${site.shortName}`,
-    desc: metaDesc(desc),
-    image: ogImage(p),
-    jsonld: {
-      '@context':'https://schema.org', '@type':'CreativeWork',
-      name: p.title, headline: p.title, abstract: sub,
-      description: metaDesc(desc),
-      datePublished: p.date,
-      url: abs(url(lang, `work/${p.slug}/`)),
-      inLanguage: lang === 'cat' ? 'ca' : lang,
-      creator: { '@type':'Person', name: site.name, url: site.baseUrl },
-      about: p.client,
-      keywords: p.tags.join(', '),
-      ...(ogImage(p) ? { image: abs(raiz('/' + ogImage(p))) } : {}),
-      ...(p.link  ? { sameAs: [p.link] } : {}),
-      contributor: roles.flatMap(([, people]) =>
-        (people.match(/@[\w.\-_]+/g) || []).map(h =>
-          ({ '@type':'Person', name: h, sameAs: igUrl(h) }))),
-    },
-  })
-  + `${nav(lang, 'work')}
-<main class="project">
-  <!-- El orden del DOM es el de movil: titulo, media, creditos.
-       En escritorio .side vuelve a ser columna y la media sube al lado. -->
-  <div class="side">
-    <div class="info">
-      <h1 class="title">${titleHtml(p.title)}</h1>
-      <div class="meta">
-        <span class="d">${esc(fmtDate(p.date))}</span>
-        <span class="c">${esc(p.client)}</span>
-        <span class="g">${esc(p.tags.join(' '))}</span>
-      </div>
-      <div class="body">
-${paras(desc).map(x => `        <p>${esc(x)}</p>`).join('\n')}
-      </div>
-      ${p.link ? `<a class="watch" href="${esc(p.link)}" target="_blank" rel="noopener">${esc(t(site.ui.watch, lang))} →</a>` : ''}
-    </div>
-${credits}
-  </div>
-
-  <div class="media">
-${media || '      <!-- sin material grafico todavia -->'}
-  </div>
-
-  <nav class="pager" aria-label="${esc(t(site.ui.aria.projects, lang))}">
-    ${prev ? `<a href="${url(lang,'work/'+prev.slug+'/')}">← ${esc(prev.title)}</a>` : '<span></span>'}
-    ${next ? `<a class="r" href="${url(lang,'work/'+next.slug+'/')}">${esc(next.title)} →</a>` : '<span></span>'}
-  </nav>
-</main>
-${pageFoot(lang, `work/${p.slug}/`)}
-<script type="module" src="${raiz('/js/media.js')}"></script>`
-  + foot();
-}
-
-function aboutPage(lang) {
-  const ps = site.about[lang] || site.about[DEF];
-  return head({
-    lang, path: 'about/',
-    title: `about — ${site.shortName}`,
-    desc: metaDesc(ps[0]),
-    jsonld: {
-      '@context':'https://schema.org','@type':'AboutPage',
-      url: abs(url(lang,'about/')),
-      mainEntity: { '@type':'Person', name: site.name, description: metaDesc(ps[0]),
-                    email:`mailto:${site.email}`, url: site.baseUrl },
-    },
-  })
-  + `${nav(lang, 'about')}
-<main class="about">
-  <h1>${esc(site.name)}</h1>
-${ps.map(x => `  <p>${esc(x)}</p>`).join('\n')}
-  <p class="contact"><a href="mailto:${esc(site.email)}">${esc(site.email)}</a> ·
-     <a href="${igUrl(site.instagram)}" target="_blank" rel="noopener">${esc(site.instagram)}</a></p>
-</main>
-${pageFoot(lang, 'about/', { firma: true })}`
-  + foot();
-}
+const sitio = crearSitio({
+  site, proyectos, base, medidas,
+  existe: rel => existsSync(join(ROOT, rel)),
+});
 
 /* ---------- escribir ------------------------------------ */
-const write = (path, html) => {
-  const file = join(OUT, path, 'index.html');
-  mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, html);
-};
-
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
-for (const dir of ['css','js','assets','media']) {
+for (const dir of ['css', 'js', 'assets', 'media']) {
   if (existsSync(join(ROOT, dir))) cpSync(join(ROOT, dir), join(OUT, dir), { recursive: true });
 }
 
-let n = 0;
-for (const lang of LANGS) {
-  const base = lang === DEF ? '' : lang;
-  write(join(base),          landing(lang));   n++;
-  write(join(base,'work'),   workIndex(lang)); n++;
-  write(join(base,'about'),  aboutPage(lang)); n++;
-  live.forEach((p, i) => {
-    write(join(base,'work',p.slug), projectPage(p, lang, live[i-1], live[i+1]));
-    n++;
-  });
+const rutas = sitio.rutas();
+for (const r of rutas) {
+  const file = join(OUT, r.ruta, 'index.html');
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, r.pintar());
 }
 
 /* sitemap + robots, del mismo JSON */
-const urls = [];
-for (const lang of LANGS) {
-  urls.push([url(lang), null]);
-  urls.push([url(lang,'work/'), null]);
-  urls.push([url(lang,'about/'), null]);
-  for (const p of live) urls.push([url(lang,`work/${p.slug}/`), p.date]);
-}
 const NS = 'http://www.sitemaps.org/schemas/sitemap/0.9';
+const publica = r => site.baseUrl.replace(/\/$/, '') + base.replace(/\/$/, '') + r.ruta;
 writeFileSync(join(OUT, 'sitemap.xml'),
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="${NS}">\n`
-  + urls.map(([u, d]) =>
-      `  <url><loc>${abs(u)}</loc>${d ? `<lastmod>${d}</lastmod>` : ''}</url>`).join('\n')
+  + rutas.map(r =>
+      `  <url><loc>${publica(r)}</loc>${r.fecha ? `<lastmod>${r.fecha}</lastmod>` : ''}</url>`).join('\n')
   + `\n</urlset>\n`);
 
-writeFileSync(join(OUT,'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${abs(raiz('/sitemap.xml'))}\n`);
-writeFileSync(join(OUT,'.nojekyll'), '');
+writeFileSync(join(OUT, 'robots.txt'),
+  `User-agent: *\nAllow: /\nSitemap: ${site.baseUrl.replace(/\/$/, '')}${sitio.raiz('/sitemap.xml')}\n`);
+writeFileSync(join(OUT, '.nojekyll'), '');
+if (site.domain) writeFileSync(join(OUT, 'CNAME'), site.domain + '\n');
 
-console.log(`${n} paginas · ${live.length} proyectos publicados de ${all.length} · ${LANGS.length} idiomas`);
-console.log(`borradores (published:false): ${all.filter(p=>!p.published).map(p=>p.slug).join(', ')}`);
+console.log(`${rutas.length} paginas · ${sitio.live.length} proyectos publicados de ${proyectos.length} · ${sitio.LANGS.length} idiomas`);
+const borradores = proyectos.filter(p => !p.published).map(p => p.slug);
+if (borradores.length) console.log(`borradores (published:false): ${borradores.join(', ')}`);
+
+/* Los avisos no paran el build —una foto que falta no justifica dejar la
+   web sin actualizar—, pero salen bien visibles en el log de Actions. */
+const avisos = sitio.revisar();
+for (const a of avisos) console.warn(`⚠ ${a.quien}: ${a.texto}`);
