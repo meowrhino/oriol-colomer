@@ -1,10 +1,10 @@
 /* ============================================================
    Controles de work: vista, orden y filtro.
    ------------------------------------------------------------
-   La unica fuente de verdad es el <ul class="index"> del HTML.
-   Aqui se reordena y se ocultan elementos; el tunel escucha el
-   evento 'lista:cambia' y se reconstruye desde ese mismo <ul>.
-   Asi las dos vistas nunca pueden discrepar.
+   La lista es el <ul class="index"> del HTML: aqui se reordena y
+   se ocultan elementos. El orden y el filtro son solo de la lista;
+   el tunel lee el mismo <ul> pero siempre entero y por fecha, y
+   del evento 'lista:cambia' solo usa el cambio de vista.
    ============================================================ */
 import { portada } from './util.js';
 

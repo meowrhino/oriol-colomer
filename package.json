@@ -5,7 +5,6 @@
   "scripts": {
     "build": "node build/build.mjs",
     "dev": "node build/serve.mjs",
-    "import": "python3 build/import-csv.py",
     "media": "node build/media.mjs"
   }
 }

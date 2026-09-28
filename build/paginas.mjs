@@ -18,7 +18,6 @@ export const esc = s => String(s ?? '')
   .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
 export const esVideo = m => /\.(mp4|webm)$/i.test(m);
-export const esImagen = m => /\.(jpe?g|png|webp|gif|avif)$/i.test(m);
 
 /** Lee un JSON y, si esta mal, dice donde. El error de JSON.parse da una
     posicion en caracteres ("at position 1432"), que para quien edita el
@@ -195,11 +194,8 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
   /** El correo no va escrito en el HTML: va del reves y en base64, y lo
       monta js/correo.js al clicar. Los robots que buscan correos leen el
       HTML, no lo ejecutan. */
-  const cifrado = mail => {
-    const r = [...String(mail)].reverse().join('');
-    return typeof btoa === 'function' ? btoa(unescape(encodeURIComponent(r)))
-                                      : Buffer.from(r, 'utf8').toString('base64');
-  };
+  const cifrado = mail => btoa(String.fromCharCode(
+    ...new TextEncoder().encode([...String(mail)].reverse().join(''))));
   const correo = (lang, clase = '') => site.email
     ? `<button type="button" class="correo ${clase}" data-c="${cifrado(site.email)}">${esc(t(site.ui.mail, lang))}</button>`
     + `<noscript>${esc(site.email.replace('@', ' [at] '))}</noscript>`
