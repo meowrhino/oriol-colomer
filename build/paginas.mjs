@@ -63,8 +63,11 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
   /* El orden de todo el sitio —indice, tunel, anterior/siguiente y sitemap—
      es este, de mas reciente a mas antiguo. Un proyecto pegado en cualquier
      sitio del fichero sale donde le toca por fecha. */
-  const live = proyectos.filter(p => p && p.published)
-                        .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  const porFecha = (a, b) => String(b.date).localeCompare(String(a.date));
+  /* Los que llevan "lab": true no son de work: salen en la pagina del lab
+     (experimentos, piezas interactivas) y no en el tunel ni en la lista. */
+  const live = proyectos.filter(p => p && p.published && !p.lab).sort(porFecha);
+  const labs = proyectos.filter(p => p && p.published && p.lab).sort(porFecha);
 
   /* ---------- rutas ---------- */
   const raiz = p => B + (p.startsWith('/') ? p : '/' + p);
@@ -260,7 +263,9 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
     const item = n => {
       const label = esc(t(n.label, lang));
       // lab todavia no tiene destino: se ensena apagado y sin enlace
-      if (!n.href) return `<span class="off" title="${esc(t(site.ui.aria.soon, lang))}">${label}</span>`;
+      // sin destino —o el lab sin nada publicado— se ensena apagado y sin enlace
+      if (!n.href || (n.id === 'lab' && !labs.length))
+        return `<span class="off" title="${esc(t(site.ui.aria.soon, lang))}">${label}</span>`;
       const href = url(lang, n.href.replace(/^\//, ''));
       if (proyecto && n.id === current)
         return `<a class="aqui" href="${href}" aria-current="page" title="${label}">${esc(proyecto.title)}</a>`;
@@ -454,13 +459,7 @@ ${pageFoot(lang, 'work/')}
     ].join('\n');
 
     const roles = Object.entries(p.credits || {});
-    const credits = roles.length ? `    <section class="credits">
-      <h2>${esc(t(site.ui.credits, lang))}</h2>
-      <dl>
-${roles.map(([role, people]) =>
-  `        <div class="row"><dt>${esc(role)}</dt> <dd>${linkHandles(people)}</dd></div>`).join('\n')}
-      </dl>
-    </section>` : '';
+    const credits = creditos(p, lang);
 
     const og = ogImage(p);
     return head({
@@ -524,6 +523,59 @@ ${media || '      <!-- sin material grafico todavia -->'}
     + foot();
   }
 
+  /** La ficha tecnica: "rol": "quien", con los @ enlazados a Instagram. */
+  function creditos(p, lang) {
+    const roles = Object.entries(p.credits || {});
+    return roles.length ? `    <section class="credits">
+      <h2>${esc(t(site.ui.credits, lang))}</h2>
+      <dl>
+${roles.map(([role, people]) =>
+  `        <div class="row"><dt>${esc(role)}</dt> <dd>${linkHandles(people)}</dd></div>`).join('\n')}
+      </dl>
+    </section>` : '';
+  }
+
+  /** El lab: las piezas una debajo de otra, cada una con su ficha al lado.
+      Sin pagina propia por pieza: son pocas, y se juegan aqui mismo. */
+  function labPage(lang) {
+    const piezas = labs.map(p => {
+      const sub = t(p.subheader, lang), desc = t(p.description, lang);
+      const media = (p.media || []).map(m => enCarpeta(p, m))
+        .map((m, i) => `      <figure>${mediaTag(m, p, sub, i)}</figure>`).join('\n');
+      return `  <article class="pieza-lab" id="${esc(p.slug)}">
+    <div class="media">
+${media}
+    </div>
+    <div class="ficha">
+      <h2>${titleHtml(p.title)}</h2>
+      <p class="meta-lab"><span class="d">${esc(fmtDate(p.date))}</span>${sub ? ` · ${esc(sub)}` : ''}</p>
+${paras(desc).map(x => `      <p>${esc(x)}</p>`).join('\n')}
+      ${p.link ? `<a class="watch" href="${esc(p.link)}" target="_blank" rel="noopener">${esc(t(site.ui.watch, lang))} →</a>` : ''}
+${creditos(p, lang)}
+    </div>
+  </article>`;
+    }).join('\n');
+    return head({
+      lang, path: 'lab/',
+      title: `lab — ${site.shortName}`,
+      desc: t(site.tagline, lang),
+      image: ogImage(labs[0]),
+      jsonld: {
+        '@context':'https://schema.org', '@type':'CollectionPage',
+        name:'lab', url: abs(lang, 'lab/'),
+        hasPart: labs.map(p => ({ '@type':'CreativeWork', name: p.title, url: abs(lang, 'lab/') + '#' + p.slug })),
+      },
+    })
+    + `${nav(lang, 'lab')}
+<main class="lab">
+  <h1 class="sr">lab</h1>
+${piezas}
+</main>
+${pageFoot(lang, 'lab/')}
+<script type="module" src="${raiz('/js/media.js')}"></script>`
+    + foot();
+  }
+
   function aboutPage(lang) {
     const ps = site.about[lang] || site.about[DEF];
     return head({
@@ -560,6 +612,7 @@ ${pageFoot(lang, 'about/', { firma: true })}
       r.push({ ruta: ruta(lang),          pintar: () => landing(lang) });
       r.push({ ruta: ruta(lang, 'work/'), pintar: () => workIndex(lang) });
       r.push({ ruta: ruta(lang, 'about/'), pintar: () => aboutPage(lang) });
+      if (labs.length) r.push({ ruta: ruta(lang, 'lab/'), pintar: () => labPage(lang) });
       live.forEach((p, i) => r.push({
         ruta: ruta(lang, `work/${p.slug}/`), fecha: p.date,
         pintar: () => projectPage(p, lang, live[i - 1], live[i + 1]),
@@ -612,5 +665,5 @@ ${pageFoot(lang, 'about/', { firma: true })}
     return avisos;
   }
 
-  return { live, rutas, revisar, raiz, abs, LANGS, DEF, enCarpeta, poster, fuentes };
+  return { live, labs, rutas, revisar, raiz, abs, LANGS, DEF, enCarpeta, poster, fuentes };
 }

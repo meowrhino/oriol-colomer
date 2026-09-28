@@ -105,7 +105,8 @@ writeFileSync(join(OUT, 'robots.txt'),
 writeFileSync(join(OUT, '.nojekyll'), '');
 if (site.domain) writeFileSync(join(OUT, 'CNAME'), site.domain + '\n');
 
-console.log(`${rutas.length} paginas · ${sitio.live.length} proyectos publicados de ${proyectos.length} · ${sitio.LANGS.length} idiomas`);
+console.log(`${rutas.length} paginas · ${sitio.live.length} proyectos publicados de ${proyectos.length}`
+  + `${sitio.labs.length ? ` · ${sitio.labs.length} en el lab` : ''} · ${sitio.LANGS.length} idiomas`);
 const borradores = proyectos.filter(p => !p.published).map(p => p.slug);
 if (borradores.length) console.log(`borradores (published:false): ${borradores.join(', ')}`);
 

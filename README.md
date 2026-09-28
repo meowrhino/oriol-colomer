@@ -66,9 +66,10 @@ de minutos.
 | `date` | `AAAA-MM-DD`. Ordena la web sola: el túnel, la lista y la línea del tiempo. |
 | `tags` | Las letras de siempre: `lx`, `vs`, `dc`, `xy`, `rs`. |
 | `credits` | `"rol": "quién"`. El rol sale en **negrita**. Los `@handle` se enlazan solos a Instagram. |
-| `link` | Si es de **YouTube**, el vídeo sale embebido el primero del carrusel. Si es otra cosa, sale como "Watch →". Se puede quitar. |
+| `link` | Si es de **YouTube**, el vídeo sale embebido el primero, antes de las fotos. Si es otra cosa, sale como "Watch →". Se puede quitar. |
 | `thumb` | La portada del túnel y de la lista. Puede ser una foto, un **webp animado** o un **vídeo** (`.webm`), y entonces se mueve. Si no lo pones, se usa el primero de `media`. |
 | `media` | Fotos y vídeos del proyecto, en orden. Basta el nombre del fichero: se busca en `media/<slug>/`. También puede ir una **pieza interactiva** (ver abajo). |
+| `lab` | `true` = no es de work sino del **lab**: sale en `/lab/` y no en el túnel ni en la lista. `lab` se enciende en el menú en cuanto hay uno publicado. |
 | `published` | `false` = escrito pero sin publicar. No sale en la web (pero se puede ver en la vista previa). |
 
 Cuidado con las comas: entre campo y campo va una, y **después del último no**.
@@ -100,7 +101,8 @@ media/spacetime/web/index.html
 media/spacetime/web/Build/...
 ```
 ```json
-"media": ["web/index.html"]
+"media": ["web/index.html"],
+"lab": true
 ```
 
 En la página sale un marco con un play, y la pieza solo se carga al darle: una

@@ -3,9 +3,9 @@
     "slug": "spacetime",
     "title": "spacetime",
     "subheader": {
-      "en": "Interactive piece (Unity WebGL)",
-      "es": "Pieza interactiva (Unity WebGL)",
-      "cat": "Peça interactiva (Unity WebGL)"
+      "en": "Interactive piece (Unity)",
+      "es": "Pieza interactiva (Unity)",
+      "cat": "Peça interactiva (Unity)"
     },
     "client": "",
     "date": "2026-09-28",
@@ -20,7 +20,8 @@
     "media": [
       "web/index.html"
     ],
-    "published": false
+    "lab": true,
+    "published": true
   },
   {
     "slug": "liquid-latex-rmx-llum",
