@@ -84,13 +84,20 @@ if (zona && lista && escena) {
 
   /* ---- la linea del tiempo ----------------------------------
      T[i] = donde cae el proyecto i en la barra, de 0 (el mas antiguo, a
-     la izquierda) a 1 (el mas reciente). Por fecha real: dos del mismo mes
-     salen pegados y un ano sin nada deja hueco. */
+     la izquierda) a 1 (el mas reciente).
+
+     En pantalla ancha, por fecha real: dos del mismo mes salen pegados y un
+     ano sin nada deja hueco. En el movil no: con el dedo, dos bolas a medio
+     centimetro son imposibles de acertar, asi que van todas a la misma
+     distancia. */
+  let porFecha = null;
+  const igual = () => datos.map((_, i) => (ultimo ? 1 - i / ultimo : .5));
   function repartir() {
+    porFecha = !movil();
     const f = datos.map(d => dias(d.fecha));
     const t0 = Math.min(...f), span = Math.max(...f) - t0;
-    T = span > 0 ? f.map(v => (v - t0) / span)
-                 : datos.map((_, i) => (ultimo ? 1 - i / ultimo : .5));
+    T = porFecha && span > 0 ? f.map(v => (v - t0) / span) : igual();
+    puntos.forEach((b, i) => b && (b.style.left = (T[i] * 100).toFixed(3) + '%'));
   }
   /** profundidad (fraccionaria) -> sitio en la barra, 0..1 */
   function enBarra(d) {
@@ -198,6 +205,7 @@ if (zona && lista && escena) {
      por estrecha que sea la ventana. */
   function medir() {
     an = innerWidth; al = innerHeight;
+    if (datos.length && porFecha !== !movil()) repartir();   // se ha cruzado el corte movil
     if (!cartas.length) return;
     const arriba = (document.querySelector('.topbar')?.offsetHeight || 0) + 8;
     const abajo  = (document.getElementById('tiempo')?.offsetHeight || 0) + 24;

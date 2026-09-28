@@ -136,6 +136,11 @@ img{ max-width:100%; display:block; }
 .langs .tipo:hover{ color: var(--btn-subtle-hover); }
 .langs .tipo[aria-pressed="true"]{ color: var(--ink-hard); font-weight:600; }
 .langs .tipo[hidden]{ display:none; }
+.langs .tipo .wd{ font-family: Webdings; font-size:1.25em; line-height:.8; font-weight:400; }
+.langs .tipo[aria-pressed="true"] .wd,
+.langs .tipo[aria-pressed="false"] .aa{ display:none; }
+/* la regla de abajo pone Helvetica a todo lo de .langs; el ojo, no */
+html.webdings .langs .tipo .wd{ font-family: Webdings; }
 
 /* Webdings en toda la web, menos en lo que hace falta para volver: los
    idiomas y el propio boton. */
@@ -408,28 +413,33 @@ main.about, main.project{ flex:1 0 auto; }
    grupos quedaban desperdigados. */
 .topbar{
   display:flex; align-items:baseline; gap:1rem;
+  font-size: var(--fs-nav);
   padding: calc(var(--pad-top) + var(--safe-top)) var(--pad) 0;
   /* Por encima de la escena del tunel, que ocupa la pantalla entera */
   position:relative; z-index:4;
 }
-.topbar .nav{ padding:0; flex:0 0 auto; }
+.topbar .nav{ padding:0; flex:0 0 auto; font-size:inherit; }
 .controles{ display:flex; align-items:baseline; gap:.9rem; margin-left:auto; flex:0 0 auto; }
 
-/* botones sueltos y cabeceras de menu, mismo criterio en todos */
-.vistas{ display:flex; align-items:baseline; gap:.15rem; }
+/* Tunel / lista se escribe igual que home / work / about, pero a la
+   derecha: mismo tamano, mismos grises, la barra de separacion y el activo
+   en negrita. Antes era mas pequeno y de otro gris, y la cabecera parecia
+   hecha de dos piezas. Los desplegables de la lista, al mismo tamano. */
+.vistas{ display:flex; align-items:baseline; gap:.5ch; }
+.vistas .sep{ color: var(--ink-faint); }
 .vistas button, .menu .cabeza, .opciones button{
-  font:inherit; font-size:.8rem; line-height:1;
-  background:none; border:0; padding:.2rem .3rem; cursor:pointer;
-  color: var(--btn-subtle); transition: color .2s ease;
+  font:inherit; line-height:inherit;
+  background:none; border:0; padding:0; cursor:pointer;
+  color: var(--ink-soft); transition: color .2s ease;
 }
-.vistas button:hover, .menu .cabeza:hover, .opciones button:hover{ color: var(--btn-subtle-hover); }
-.vistas button[aria-pressed="true"]{ color: var(--ink-hard); font-weight:600; }
+.vistas button:hover, .menu .cabeza:hover, .opciones button:hover{ color: var(--ink-hard); }
+.vistas button[aria-pressed="true"]{ color: var(--ink-hard); font-weight:700; }
 /* El activo va en negrita y la negrita es mas ancha: sin esto el boton
    bailaba un pixel al cambiar de vista. Cada boton reserva ya el ancho de
    su texto en negrita, con una copia invisible de alto cero. */
 .vistas button{ display:inline-grid; }
 .vistas button::after{
-  content: attr(data-texto); font-weight:600; height:0; overflow:hidden; visibility:hidden;
+  content: attr(data-texto); font-weight:700; height:0; overflow:hidden; visibility:hidden;
 }
 .vistas button:focus-visible, .menu button:focus-visible{
   outline:1px solid var(--ink-hard); outline-offset:3px;
@@ -438,8 +448,8 @@ main.about, main.project{ flex:1 0 auto; }
 /* ---------- desplegables ---------- */
 .menu{ position:relative; }
 .menu .cabeza{ display:flex; align-items:baseline; gap:.45ch; white-space:nowrap; }
-.menu .et{ color: var(--btn-subtle); }
-.menu .val{ color: var(--ink-hard); font-weight:600; }
+.menu .et{ color: var(--ink-faint); }
+.menu .val{ color: var(--ink-hard); }
 .menu .cabeza::after{
   content:''; width:0; height:0; margin-left:.2ch;
   border:3px solid transparent; border-top-color: currentColor;
@@ -459,9 +469,9 @@ main.about, main.project{ flex:1 0 auto; }
 }
 /* display:flex gana al [hidden] del navegador, hay que decirlo aparte */
 .opciones[hidden]{ display:none; }
-.opciones button{ text-align:right; padding:.3rem .5rem; }
+.opciones button{ text-align:right; padding:.3rem .5rem; font-size:.9em; }
 /* la activa sale marcada, no escondida: la lista de opciones es completa */
-.opciones button[aria-checked="true"]{ color: var(--ink-hard); font-weight:600; }
+.opciones button[aria-checked="true"]{ color: var(--ink-hard); font-weight:700; }
 
 /* ---------- que se ve en cada vista ---------- */
 body[data-vista="tunel"] .index,
@@ -583,15 +593,16 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
    en dos sitios distintos del fichero.
    ============================================================ */
 @media (max-width: 820px){
-  /* .side deja de ser caja para que sus hijos entren en la misma rejilla
-     que .media: asi el orden es texto -> carrusel -> creditos. */
+  /* .side deja de ser caja para que sus hijos entren en la misma columna
+     que .media. El orden: primero lo que en el ordenador va a la derecha
+     (texto y creditos), luego la media, y al pie la navegacion. */
   /* En columna y en flex, no en rejilla: asi la navegacion puede irse al
      pie de la pantalla (margin-top:auto) cuando el proyecto es corto. */
   .project{ display:flex; flex-direction:column; align-items:stretch; gap: clamp(26px,6vw,44px); }
   .side{ display:contents; }
   .info   { grid-column:1; grid-row:auto; order:1; }
-  .media  { grid-column:1; grid-row:auto; order:2; }
-  .credits{ grid-column:1; grid-row:auto; order:3; margin-top:0; }
+  .credits{ grid-column:1; grid-row:auto; order:2; margin-top:0; }
+  .media  { grid-column:1; grid-row:auto; order:3; }
   .navega { grid-column:1; grid-row:auto; order:4; margin-top:auto; padding-top:0; }
   .navega .langs{ padding:0; }
 
@@ -622,8 +633,9 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
      la flecha ya dicen que es un desplegable, y al abrirlo la palabra esta
      dentro. Preferimos eso a partir la cabecera en dos pisos. */
   .topbar{ gap:.5rem; padding: calc(14px + var(--safe-top)) 14px 0; }
-  .controles{ gap:.55rem; }
-  .vistas button, .menu .cabeza, .opciones button{ font-size:.72rem; }
+  .controles{ gap:.7rem; }
+  .topbar{ font-size: calc(var(--fs-nav) * .92); }
+  .vistas{ gap:.35ch; }
   /* La palabra "sort" se va de la vista, pero no del arbol de accesibilidad:
      con display:none el boton se anunciaria solo como "date" y no habria
      forma de saber que es el control de orden. Se esconde como el h1. */
@@ -637,7 +649,7 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   /* 19px de alto era la mitad del objetivo tactil. El margen negativo se come
      el relleno extra, asi que la barra se ve exactamente igual. */
   .vistas button, .menu .cabeza, .opciones button{
-    padding:1.02rem .5rem; margin:-.8rem 0;
+    padding:1.02rem 0; margin:-.8rem 0;
   }
   .carta{ width: min(300px, 66vw, 60dvh); }
 }
@@ -654,7 +666,7 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
 @media (max-width: 360px){
   .topbar{ gap:.4rem; padding: calc(12px + var(--safe-top)) 12px 0; }
   .controles{ gap:.45rem; }
-  .vistas button, .menu .cabeza, .opciones button{ font-size:.68rem; }
+  .topbar{ font-size: calc(var(--fs-nav) * .86); }
   .nav{ font-size:.86em; }
 }
 

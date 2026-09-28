@@ -300,7 +300,10 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
       // letra normal o webdings. Sale escondido: js/tipo.js lo ensena solo si
       // el aparato tiene la fuente (Windows y Mac si, moviles no)
       + `<button type="button" class="tipo" aria-pressed="false" title="${esc(t(site.ui.tipo, lang))}" hidden>`
-      + `<span aria-hidden="true">Aa</span><span class="sr">${esc(t(site.ui.tipo, lang))}</span></button>`
+      // apagado se ensena algo escrito en Webdings (la N es un ojo); encendido,
+      // "Aa" en letra normal, que es a lo que vuelve
+      + `<span class="wd" aria-hidden="true">N</span><span class="aa" aria-hidden="true">Aa</span>`
+      + `<span class="sr">${esc(t(site.ui.tipo, lang))}</span></button>`
       + `</nav>`;
   }
 
@@ -401,8 +404,7 @@ ${opciones.map(([v, l], i) => `          <button type="button" role="menuitemrad
 ${menu('sort', t(site.ui.sort, lang), orden)}
 ${menu('tag', '', filtro)}
     <div class="vistas" role="group" aria-label="${esc(t(site.ui.aria.view, lang))}">
-      <button type="button" data-vista="tunel" data-texto="${esc(t(site.ui.tunnel, lang))}" aria-pressed="true">${esc(t(site.ui.tunnel, lang))}</button>
-      <button type="button" data-vista="lista" data-texto="${esc(t(site.ui.list, lang))}" aria-pressed="false">${esc(t(site.ui.list, lang))}</button>
+      <button type="button" data-vista="tunel" data-texto="${esc(t(site.ui.tunnel, lang))}" aria-pressed="true">${esc(t(site.ui.tunnel, lang))}</button><span class="sep" aria-hidden="true">/</span><button type="button" data-vista="lista" data-texto="${esc(t(site.ui.list, lang))}" aria-pressed="false">${esc(t(site.ui.list, lang))}</button>
     </div>
   </div>
 </div>
