@@ -14,7 +14,7 @@
   --ink:       #7d7d7d;   /* cuerpo de texto */
   --ink-soft:  #a6a6a6;   /* titulos, secundario */
   --ink-faint: #c4c4c4;   /* inactivo, lab */
-  --ink-hard:  #4f4f4f;   /* activo, roles en bold */
+  --ink-hard:  #646464;   /* activo, roles en bold */
 
   --btn-subtle:       rgba(0,0,0,.30);
   --btn-subtle-hover: rgba(0,0,0,.60);
@@ -30,6 +30,10 @@
   --halo-y: 70%;
 
   --pad:   clamp(20px, 3.2vw, 52px);   /* margen exterior */
+  /* Arriba la cabecera va mas pegada que a los lados: con --pad tambien
+     arriba, en una pantalla grande el menu caia a 52px del borde y se leia
+     descolgado, como si fuera parte del contenido. */
+  --pad-top: clamp(16px, 1.6vw, 28px);
   --gap:   clamp(24px, 4vw, 72px);     /* separacion entre columnas */
 
   --fs-nav:   clamp(14px, 1.05vw, 17px);
@@ -91,7 +95,7 @@ img{ max-width:100%; display:block; }
    ============================================================ */
 .nav{
   position:relative; z-index:2;
-  padding: var(--pad);
+  padding: var(--pad-top) var(--pad) var(--pad);
   font-size: var(--fs-nav);
   color: var(--ink-soft);
 }
@@ -393,7 +397,10 @@ body.entrando .pista, body.entrando .langs{ opacity:0; transition: opacity .2s; 
    grupos quedaban desperdigados. */
 .topbar{
   display:flex; align-items:baseline; gap:1rem;
-  padding: var(--pad) var(--pad) 0;
+  padding: var(--pad-top) var(--pad) 0;
+  /* Por encima del tunel: la sombra de las cartas pasa por debajo del menu
+     en vez de cortarse contra el. */
+  position:relative; z-index:4;
 }
 .topbar .nav{ padding:0; flex:0 0 auto; }
 .controles{ display:flex; align-items:baseline; gap:.9rem; margin-left:auto; flex:0 0 auto; }
@@ -458,7 +465,13 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   height: calc(100dvh - 11.5rem);
   perspective: 900px;                 /* mismo valor que P en tunnel.js */
   perspective-origin: 50% 46%;
-  overflow:hidden;
+  /* Recorte solo a los lados. Con overflow:hidden la sombra de la carta de
+     delante se cortaba en seco contra la cabecera, una raya horizontal a
+     todo lo ancho; ahora pasa por debajo del menu. A los lados si hay que
+     cortar —la escena ocupa todo el ancho, asi que el corte cae en el borde
+     de la pantalla—: sin eso la pagina se podia arrastrar de lado. `clip` y
+     no `hidden` porque es el unico que deja el otro eje en visible. */
+  overflow-x:clip; overflow-y:visible;
   touch-action:none; cursor:grab;
 }
 .escena.arrastrando{ cursor:grabbing; }
