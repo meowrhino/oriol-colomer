@@ -262,7 +262,7 @@ body.entrando .pista, body.entrando .langs{ opacity:0; transition: opacity .2s; 
   position:fixed; z-index:5; width: 240px; pointer-events:none;
   opacity:0; transition: opacity .18s ease;
 }
-.peek img{ width:100%; aspect-ratio:16/9; object-fit:cover; }
+.peek img, .peek video, .peek .sin{ display:block; width:100%; aspect-ratio:16/9; object-fit:cover; background:#f0f0f0; }
 .peek.on{ opacity:1; }
 
 /* ============================================================
@@ -483,7 +483,7 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   transform-style:preserve-3d; will-change:transform,opacity;
   color: var(--ink-soft);
 }
-.carta img, .carta .sin{
+.carta img, .carta video, .carta .sin{
   display:block; width:100%; aspect-ratio:16/9;
   object-fit:cover; background:#f0f0f0;
   -webkit-user-drag:none; user-select:none;
@@ -526,7 +526,7 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
 .carta.foco::before{ --halo-nucleo:.92; }
 
 /* la foto por delante de su propia sombra */
-.carta img, .carta .sin{ position:relative; }
+.carta img, .carta video, .carta .sin{ position:relative; }
 
 @media (hover:hover) and (pointer:fine){
   .carta:hover img{ transform:scale(1.025); }

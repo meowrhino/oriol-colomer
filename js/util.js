@@ -29,6 +29,31 @@ export const ms = nombre => {
   return v.endsWith('ms') ? parseFloat(v) : (parseFloat(v) || 0) * 1000;
 };
 
+/** La portada de un proyecto, tal como la deja el generador en la lista:
+    data-peek es la imagen fija y data-peek-video, si la portada se mueve,
+    las fuentes del video separadas por |. Devuelve el elemento a pintar:
+    un <video> mudo en bucle con la imagen de poster, o un <img>. */
+export function portada(a) {
+  const img = a.dataset.peek || '', video = a.dataset.peekVideo;
+  if (video && !seco) {
+    const v = document.createElement('video');
+    v.muted = v.loop = v.playsInline = v.autoplay = true;
+    v.setAttribute('muted', '');                   // Safari lo quiere tambien como atributo
+    v.preload = 'auto';
+    if (img) v.poster = img;
+    for (const src of video.split('|')) {
+      const s = document.createElement('source');
+      s.src = src; s.type = src.endsWith('.webm') ? 'video/webm' : 'video/mp4';
+      v.append(s);
+    }
+    return v;
+  }
+  if (!img) { const s = document.createElement('span'); s.className = 'sin'; return s; }
+  const i = new Image();
+  i.src = img; i.alt = ''; i.draggable = false; i.decoding = 'async';
+  return i;
+}
+
 /** Un numero del CSS ya calculado, en px. Sirve para no repetir en el JS
     valores que el CSS ya declara —la perspectiva del tunel, por ejemplo—
     y que si se copian acaban discrepando. */

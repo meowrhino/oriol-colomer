@@ -10,7 +10,7 @@
    filtro o el orden cambian, work.js avisa y esto se rehace: no
    hay dos listas que puedan discrepar.
    ============================================================ */
-import { seco, lim, mez, suave, px } from './util.js';
+import { seco, lim, mez, suave, px, portada } from './util.js';
 
 const zona   = document.getElementById('tunel');
 const escena = document.getElementById('escena');
@@ -75,8 +75,8 @@ if (zona && lista && escena) {
     datos = [...lista.children].filter(li => !li.hidden).map(li => {
       const a = li.querySelector('a');
       return {
+        a,
         href: a.getAttribute('href'),
-        img:  a.dataset.peek || '',
         fecha: li.dataset.date,
         rotulo: a.querySelector('.t').childNodes[0].textContent.trim(),
         pie: a.querySelector('.c').textContent.trim(),
@@ -98,8 +98,7 @@ if (zona && lista && escena) {
       // Sin pie de foto: el rotulo de la linea del tiempo ya dice cual es
       // el proyecto de delante, y repetirlo aqui chocaba con las cartas
       // del fondo. El nombre accesible va en el propio enlace.
-      el.innerHTML = d.img ? `<img src="${d.img}" alt="" draggable="false">`
-                           : '<span class="sin"></span>';
+      el.append(portada(d.a));
       el.setAttribute('aria-label', `${d.rotulo}, ${d.pie}`);
       dx = aparte(azar(), dx); dy = aparte(azar(), dy);
       el.style.setProperty('--dx', dx.toFixed(3));

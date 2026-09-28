@@ -6,6 +6,8 @@
    evento 'lista:cambia' y se reconstruye desde ese mismo <ul>.
    Asi las dos vistas nunca pueden discrepar.
    ============================================================ */
+import { portada } from './util.js';
+
 const lista = document.getElementById('index');
 
 if (lista) {
@@ -90,14 +92,15 @@ if (lista) {
 
   /* ---- miniatura al pasar por la lista -------------------- */
   // En pantalla tactil no hay hover, asi que la miniatura no se monta.
+  // Puede ser una foto, un webp animado o un video: la pinta portada().
   const peek = matchMedia('(hover: none)').matches ? null : document.getElementById('peek');
   if (peek) {
-    const img = peek.querySelector('img');
+    let actual = null;
 
     lista.addEventListener('pointerover', e => {
-      const a = e.target.closest('a[data-peek]');
+      const a = e.target.closest('a[data-peek], a[data-peek-video]');
       if (!a) return;
-      if (img.getAttribute('src') !== a.dataset.peek) img.src = a.dataset.peek;
+      if (a !== actual) { actual = a; peek.replaceChildren(portada(a)); }
       peek.classList.add('on');
     });
     lista.addEventListener('pointerout', e => {

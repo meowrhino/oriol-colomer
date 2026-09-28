@@ -123,21 +123,28 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
     return th !== m && existe(th) ? th : m;
   };
 
-  /** La portada de un proyecto en el tunel y en la lista.
+  /** La portada de un proyecto en el tunel y en la lista:
+      { img, video } — img es una imagen fija (puede ser un webp animado)
+      y video, si la portada se mueve, la lista de fuentes.
+
       Si el JSON trae "thumb", esa, sea foto, webp animado o video. Si no,
-      el primer fichero de media; y si es un video, su poster. */
+      el primer fichero de media; si es un video, su poster, que pesa poco:
+      un video por carta en el tunel serian megas. Quien quiera que se
+      mueva pone un "thumb" corto y chico. */
   const cover = p => {
     if (p.thumb) {
       const th = enCarpeta(p, p.thumb);
-      return { src: esVideo(th) ? th : chica(th), video: esVideo(th) ? fuentes(th) : null };
+      if (!esVideo(th)) return { img: chica(th), video: null };
+      const pj = poster(th);
+      return { img: pj ? chica(pj) : '', video: fuentes(th) };
     }
     const m = p.media?.[0] && enCarpeta(p, p.media[0]);
     if (!m) return null;
-    if (!esVideo(m)) return { src: chica(m), video: null };
+    if (!esVideo(m)) return { img: chica(m), video: null };
     const pj = poster(m);
-    if (pj) return { src: chica(pj), video: null };
+    if (pj) return { img: chica(pj), video: null };
     const foto = p.media.map(x => enCarpeta(p, x)).find(x => !esVideo(x));
-    return foto ? { src: chica(foto), video: null } : null;
+    return foto ? { img: chica(foto), video: null } : null;
   };
   /** Para og:image hace falta una imagen de verdad, no un video. */
   const ogImage = p => {
@@ -285,7 +292,8 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
       const portada = cover(p);
       return `      <li data-tags="${esc((p.tags || []).join(' '))}"
           data-date="${esc(p.date)}" data-client="${esc(String(p.client || '').toLowerCase())}" data-title="${esc(String(p.title).toLowerCase())}">
-        <a href="${url(lang, 'work/' + p.slug + '/')}"${portada ? ` data-peek="${raiz('/' + esc(portada.src))}"` : ''}>
+        <a href="${url(lang, 'work/' + p.slug + '/')}"${portada?.img ? ` data-peek="${raiz('/' + esc(portada.img))}"` : ''}${
+          portada?.video ? ` data-peek-video="${portada.video.map(f => raiz('/' + esc(f))).join('|')}"` : ''}>
           <span class="t">${titleHtml(p.title)}<small>${esc(t(p.subheader, lang))}</small></span>
           <span class="c">${esc(fmtDate(p.date))}</span>
           <span class="g">${esc((p.tags || []).join(' '))}</span>
@@ -354,7 +362,7 @@ ${rows}
   <div class="barra" id="barra"><div class="marcas" id="marcas"></div></div>
 </footer>
 
-<div class="peek" id="peek" aria-hidden="true"><img src="" alt=""></div>
+<div class="peek" id="peek" aria-hidden="true"></div>
 ${pageFoot(lang, 'work/')}
 <script type="module" src="${raiz('/js/work.js')}"></script>
 <script type="module" src="${raiz('/js/tunnel.js')}"></script>`

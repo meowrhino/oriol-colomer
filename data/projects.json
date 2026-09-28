@@ -24,7 +24,7 @@
     },
     "link": "https://www.youtube.com/watch?v=oW6wDRj_OKc",
     "media": [
-      "media/liquid-latex-rmx-llum/vlcsnap-2026-07-06-13h55m44s139.jpg"
+      "vlcsnap-2026-07-06-13h55m44s139.webp"
     ],
     "published": true
   },
@@ -52,7 +52,7 @@
     },
     "link": "http://youtube.com/watch?v=WEkgPxdjCYE",
     "media": [
-      "media/el-nino-bola-mori/mori-bcn01.jpg"
+      "mori-bcn01.webp"
     ],
     "published": true
   },
@@ -79,13 +79,14 @@
       "edit": "oriol colomer"
     },
     "link": "https://www.youtube.com/watch?v=qnSf366ULiw",
+    "thumb": "thumb.webm",
     "media": [
-      "media/la-roda-ouineta/trim02-ezgif-com-video-to-gif-converter.mp4",
-      "media/la-roda-ouineta/ezgif-com-video-to-gif-converter.mp4",
-      "media/la-roda-ouineta/trim01-ezgif-com-video-to-gif-converter.mp4",
-      "media/la-roda-ouineta/trim05-ezgif-com-video-to-gif-converter.mp4",
-      "media/la-roda-ouineta/trim06-ezgif-com-video-to-gif-converter.mp4",
-      "media/la-roda-ouineta/trim07-ezgif-com-video-to-gif-converter.mp4"
+      "trim02-ezgif-com-video-to-gif-converter.webm",
+      "ezgif-com-video-to-gif-converter.webm",
+      "trim01-ezgif-com-video-to-gif-converter.webm",
+      "trim05-ezgif-com-video-to-gif-converter.webm",
+      "trim06-ezgif-com-video-to-gif-converter.webm",
+      "trim07-ezgif-com-video-to-gif-converter.webm"
     ],
     "published": true
   },
@@ -139,12 +140,12 @@
     },
     "link": "https://youtu.be/8Sa7vvJxJzc?si=3URamNEYD7QL_wS1",
     "media": [
-      "media/listen-xicu-promo/thumbnail.jpg",
-      "media/listen-xicu-promo/vlcsnap-2026-03-09-11h03m39s714.jpg",
-      "media/listen-xicu-promo/vlcsnap-2026-03-09-11h03m58s060.jpg",
-      "media/listen-xicu-promo/vlcsnap-2026-03-09-11h04m16s732.jpg",
-      "media/listen-xicu-promo/vlcsnap-2026-03-09-11h05m01s328.jpg",
-      "media/listen-xicu-promo/vlcsnap-2026-03-09-11h05m38s482.jpg"
+      "thumbnail.webp",
+      "vlcsnap-2026-03-09-11h03m39s714.webp",
+      "vlcsnap-2026-03-09-11h03m58s060.webp",
+      "vlcsnap-2026-03-09-11h04m16s732.webp",
+      "vlcsnap-2026-03-09-11h05m01s328.webp",
+      "vlcsnap-2026-03-09-11h05m38s482.webp"
     ],
     "published": true
   },
@@ -199,19 +200,19 @@
     },
     "link": "https://www.youtube.com/watch?v=KoBBsKgxERA",
     "media": [
-      "media/listen-xicu-visualizers/listenvisualizer-molly.jpg",
-      "media/listen-xicu-visualizers/vlcsnap-2026-02-11-18h19m29s478.jpg",
-      "media/listen-xicu-visualizers/vlcsnap-2026-02-11-18h19m50s073.jpg",
-      "media/listen-xicu-visualizers/vlcsnap-2026-02-11-18h19m58s567.jpg",
-      "media/listen-xicu-visualizers/vlcsnap-2026-02-11-18h20m33s629.jpg",
-      "media/listen-xicu-visualizers/vlcsnap-2026-02-11-18h20m50s542.jpg",
-      "media/listen-xicu-visualizers/vlcsnap-2026-02-11-18h20m59s841.jpg",
-      "media/listen-xicu-visualizers/vlcsnap-2026-02-11-18h21m21s198.jpg",
-      "media/listen-xicu-visualizers/vlcsnap-2026-02-11-18h21m31s303.jpg",
-      "media/listen-xicu-visualizers/vlcsnap-2026-02-11-18h21m41s689.jpg",
-      "media/listen-xicu-visualizers/vlcsnap-2026-02-11-18h23m46s887.jpg",
-      "media/listen-xicu-visualizers/vlcsnap-2026-02-11-18h24m14s154.jpg",
-      "media/listen-xicu-visualizers/vlcsnap-2026-02-11-18h24m25s605.jpg"
+      "listenvisualizer-molly.webp",
+      "vlcsnap-2026-02-11-18h19m29s478.webp",
+      "vlcsnap-2026-02-11-18h19m50s073.webp",
+      "vlcsnap-2026-02-11-18h19m58s567.webp",
+      "vlcsnap-2026-02-11-18h20m33s629.webp",
+      "vlcsnap-2026-02-11-18h20m50s542.webp",
+      "vlcsnap-2026-02-11-18h20m59s841.webp",
+      "vlcsnap-2026-02-11-18h21m21s198.webp",
+      "vlcsnap-2026-02-11-18h21m31s303.webp",
+      "vlcsnap-2026-02-11-18h21m41s689.webp",
+      "vlcsnap-2026-02-11-18h23m46s887.webp",
+      "vlcsnap-2026-02-11-18h24m14s154.webp",
+      "vlcsnap-2026-02-11-18h24m25s605.webp"
     ],
     "published": true
   },
@@ -293,16 +294,17 @@
       "music xicu (@xicu__)": ""
     },
     "link": "https://www.youtube.com/watch?v=tHU8d8UUBMU",
+    "thumb": "thumb.webm",
     "media": [
-      "media/u-n-me-bby-xicu/u-n-me-bby-xicu-trim06a.mp4",
-      "media/u-n-me-bby-xicu/u-n-me-bby-xicu-trim01a.mp4",
-      "media/u-n-me-bby-xicu/u-n-me-bby-xicu-trim01b.mp4",
-      "media/u-n-me-bby-xicu/u-n-me-bby-xicu-trim02.mp4",
-      "media/u-n-me-bby-xicu/u-n-me-bby-xicu-trim06b.mp4",
-      "media/u-n-me-bby-xicu/vlcsnap-2025-11-21-14h21m40s894.jpg",
-      "media/u-n-me-bby-xicu/vlcsnap-2025-11-21-14h22m38s944.jpg",
-      "media/u-n-me-bby-xicu/vlcsnap-2025-11-21-14h23m51s763.jpg",
-      "media/u-n-me-bby-xicu/vlcsnap-2025-11-21-14h24m11s874.jpg"
+      "u-n-me-bby-xicu-trim06a.webm",
+      "u-n-me-bby-xicu-trim01a.webm",
+      "u-n-me-bby-xicu-trim01b.webm",
+      "u-n-me-bby-xicu-trim02.webm",
+      "u-n-me-bby-xicu-trim06b.webm",
+      "vlcsnap-2025-11-21-14h21m40s894.webp",
+      "vlcsnap-2025-11-21-14h22m38s944.webp",
+      "vlcsnap-2025-11-21-14h23m51s763.webp",
+      "vlcsnap-2025-11-21-14h24m11s874.webp"
     ],
     "published": true
   },
@@ -330,11 +332,11 @@
     },
     "link": "",
     "media": [
-      "media/lechatelier-sala-apolo-2025/image00001-e.jpg",
-      "media/lechatelier-sala-apolo-2025/image00003-e.jpg",
-      "media/lechatelier-sala-apolo-2025/image00006-e.jpg",
-      "media/lechatelier-sala-apolo-2025/image00018.jpg",
-      "media/lechatelier-sala-apolo-2025/image00047-e.jpg"
+      "image00001-e.webp",
+      "image00003-e.webp",
+      "image00006-e.webp",
+      "image00018.webp",
+      "image00047-e.webp"
     ],
     "published": true
   },
@@ -489,11 +491,12 @@
       "photography": "@armandcarrillo_"
     },
     "link": "",
+    "thumb": "thumb.webm",
     "media": [
-      "media/amore-razzmatazz-2/coreo01.mp4",
-      "media/amore-razzmatazz-2/20250313-acarrillo-amore-razz-0075.jpg",
-      "media/amore-razzmatazz-2/amorevideoshow1-e-ezgif-com-video-to-gif-converter.mp4",
-      "media/amore-razzmatazz-2/coreo02.mp4"
+      "coreo01.webm",
+      "20250313-acarrillo-amore-razz-0075.webp",
+      "amorevideoshow1-e-ezgif-com-video-to-gif-converter.webm",
+      "coreo02.webm"
     ],
     "published": true
   }
