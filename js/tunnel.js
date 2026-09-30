@@ -331,7 +331,7 @@ if (zona && lista && escena) {
      la pagina. Se escucha en window y se deja pasar lo que va a los
      controles (menu de arriba, barra del tiempo, idiomas). */
   const enTunelActivo = () => document.body.dataset.vista === 'tunel';
-  const esControl = t => t.closest('.topbar, .tiempo, .langs, #vista-previa');
+  const esControl = t => t.closest('.topbar, .tiempo, .langs');
 
   addEventListener('wheel', e => {
     if (!enTunelActivo() || esControl(e.target)) return;

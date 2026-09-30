@@ -460,6 +460,9 @@ ${menu('tag', '', filtro)}
   <ul class="index" id="index">
 ${rows}
   </ul>
+  <!-- en el movil, en la lista, idioma, letra y tema van aqui, al final
+       del scroll, y no arriba: la barra ya lleva orden y filtro -->
+  <div class="pie-lista">${langs(lang, `${sec}/`)}</div>
 </main>
 
 <!-- Linea del tiempo: una raya de lado a lado y cada proyecto en su fecha.

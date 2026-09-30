@@ -182,17 +182,16 @@ En VS Code, con la extensión **Live Server**: abre la carpeta del proyecto y da
 a **Go Live** (abajo a la derecha). Se abre la web entera, leyendo tus JSON tal
 como están, y **se recarga sola cada vez que guardas**.
 
-Abajo a la izquierda sale un recuadro que dice si todo cuadra. Si algo falla, lo
-lista: una foto que no está en su carpeta, una fecha mal escrita, un slug
-repetido, un `published` entre comillas, **una foto de más de 1 MB o un vídeo
-de más de 12 MB** (señal de que no ha pasado por los conversores), un GIF… Si el JSON está roto (una coma, unas
-comillas), en vez de la web sale el error con la línea donde mirar.
+Si el JSON está roto (una coma, unas comillas), en vez de la web sale el error
+con la línea donde mirar.
 
 Para ver un borrador, entra en su dirección:
-`http://127.0.0.1:5500/?p=/work/<slug>/`. Estando ahí, el recuadro revisa
-también sus ficheros.
+`http://127.0.0.1:5500/?p=/work/<slug>/`.
 
-Los mismos avisos salen en GitHub, en la pestaña **Actions**, al publicar.
+Lo que no cuadra (una foto que no está en su carpeta, una fecha mal escrita, un
+slug repetido, un `published` entre comillas, **una foto de más de 1 MB o un
+vídeo de más de 12 MB**, un GIF…) sale en GitHub, en la pestaña **Actions**, al
+publicar.
 
 ### El resto: `data/site.json`
 

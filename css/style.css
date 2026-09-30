@@ -703,11 +703,15 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   .barra{ height:2.4rem; }
 }
 
-/* En la lista, con orden y filtro, el centro de la barra no tiene sitio:
-   idioma, letra y tema bajan a un renglon propio, centrados */
-@media (max-width: 560px){
-  body[data-vista="lista"] .topbar{ padding-bottom:1.8rem; }
-  body[data-vista="lista"] .controles .langs{ top:auto; bottom:0; }
+/* Work en el movil: en el tunel, idioma, letra y tema van en la barra,
+   a la izquierda de tunel/lista (y aqui si sale el idioma). En la lista
+   la barra ya lleva orden y filtro: los tres bajan al final del scroll */
+.pie-lista{ display:none; }
+@media (max-width: 820px){
+  body[data-vista="tunel"] .controles .langs{ position:static; translate:none; order:-1; align-self:center; }
+  body[data-vista="tunel"] .langs .idioma{ display:inline-flex; }
+  body[data-vista="lista"] .controles .langs{ display:none; }
+  body[data-vista="lista"] .pie-lista{ display:block; padding-top: var(--pad); }
 }
 
 /* Telefonos pequenos (iPhone SE y compania): un punto mas de apriete para

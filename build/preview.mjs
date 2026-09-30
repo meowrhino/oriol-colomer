@@ -10,9 +10,8 @@
    Las paginas son una sola, el index.html de la raiz, y la ruta
    va en ?p=:   /?p=/es/work/la-roda-ouineta/
 
-   Encima de la pagina sale un recuadro con lo que no cuadra en
-   los JSON: una foto que no esta, una fecha mal escrita... Es lo
-   que hay que mirar antes de subir nada.
+   Lo que no cuadra en los JSON (una foto que no esta, una fecha
+   mal escrita...) lo dice el build: npm run build.
    ============================================================ */
 import { crearSitio, leerJSON, unir, esc } from './paginas.mjs';
 
@@ -50,36 +49,6 @@ function pantallaDeError(titulo, texto) {
 h1{font-weight:400;font-size:28px;margin:0 0 .6em;color:#b3261e}p{max-width:62ch}code{background:#eee;padding:.1em .3em}</style>
 </head><body><h1>${esc(titulo)}</h1><p>${esc(texto)}</p>
 <p>Arreglalo, guarda, y esta pagina se recarga sola.</p></body></html>`);
-}
-
-/** El recuadro de la vista previa: dice que esto no es la web publicada y
-    lista los avisos de los JSON. Va dentro de un shadow root para que ni
-    el CSS de la web le afecte ni el suyo se escape a la web. */
-function recuadro(avisos, extra) {
-  const lista = avisos.map(a => `<li><b>${esc(a.quien)}</b> ${esc(a.texto)}</li>`).join('');
-  const estado = avisos.length
-    ? `${avisos.length} aviso${avisos.length > 1 ? 's' : ''} en los JSON`
-    : 'los JSON estan bien';
-  const contenido = `<style>
-  :host{all:initial}
-  .caja{position:fixed;left:12px;bottom:12px;z-index:2147483647;max-width:min(560px,calc(100vw - 24px));
-    font:12px/1.45 Helvetica,Arial,sans-serif;color:#4f4f4f;background:#fff;border:1px solid #e2e2e2;
-    box-shadow:0 6px 20px rgba(0,0,0,.08)}
-  summary{cursor:pointer;padding:6px 10px;list-style:none;display:flex;gap:8px;align-items:center}
-  summary::-webkit-details-marker{display:none}
-  .p{width:8px;height:8px;border-radius:50%;background:${avisos.length ? '#e0a100' : '#3a9d5d'}}
-  ul{margin:0;padding:4px 10px 10px 26px;max-height:40vh;overflow:auto}
-  li{margin:.2em 0} b{font-weight:600} .x{padding:0 10px 8px;color:#8a8a8a}
-</style>
-<details class="caja"${avisos.length || extra ? ' open' : ''}>
-  <summary><span class="p"></span>vista previa local · ${estado}</summary>
-  ${extra ? `<div class="x">${extra}</div>` : ''}
-  ${lista ? `<ul>${lista}</ul>` : ''}
-</details>`;
-  return `<div id="vista-previa"></div><script>
-  (function(){var h=document.getElementById('vista-previa').attachShadow({mode:'open'});
-  h.innerHTML=${JSON.stringify(contenido)};})();
-</script>`;
 }
 
 async function arrancar() {
@@ -124,9 +93,6 @@ async function arrancar() {
 
   const sitio = montar(r => hay.get(r) === true);
   const pagina = sitio.rutas().find(r => r.ruta === pedida);
-  // Con el borrador que se esta viendo dentro: asi tambien se revisan sus
-  // ficheros, que es justo lo que se quiere mirar antes de publicarlo
-  const avisos = sitio.revisar();
 
   if (!pagina) {
     pantallaDeError('Esta pagina no existe',
@@ -134,10 +100,7 @@ async function arrancar() {
     return;
   }
 
-  const extra = borrador
-    ? `Este proyecto es un borrador ("published": false): aqui se ve, pero en la web no sale hasta ponerlo a true.`
-    : '';
-  escribir(pagina.pintar().replace('</body>', recuadro(avisos, extra) + '</body>'));
+  escribir(pagina.pintar());
 }
 
 arrancar().catch(e => pantallaDeError('La vista previa ha fallado', e.message));
