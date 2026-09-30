@@ -538,10 +538,10 @@ body[data-vista="lista"] .tiempo{ display:none; }
 /* Orden y filtro son cosa de la lista: el tunel es siempre la linea del
    tiempo entera, en orden de fecha. */
 body[data-vista="tunel"] .menu{ display:none; }
-/* En el tunel no hay idioma (los titulos son iguales en todos) y letra y
-   tema se van arriba al centro: abajo a la derecha esta la linea del tiempo */
+/* En work, idioma, letra y tema van arriba al centro, en las dos vistas.
+   En el tunel no hay idioma: los titulos son iguales en todos */
 body[data-vista="tunel"] .langs .idioma{ display:none; }
-body[data-vista="tunel"] .controles .langs{ position:absolute; left:50%; right:auto; bottom:auto; translate:-50% 0; margin:0; }
+.controles .langs{ position:absolute; left:50%; right:auto; bottom:auto; translate:-50% 0; margin:0; }
 /* Sin scroll ni rebote: en el tunel el gesto es de la camara. */
 body[data-vista="tunel"]{ overflow:hidden; overscroll-behavior:none; }
 html:has(body[data-vista="tunel"]){ overscroll-behavior:none; }
@@ -684,8 +684,8 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
      dentro. Preferimos eso a partir la cabecera en dos pisos. */
   .topbar{ gap:.5rem; padding: calc(14px + var(--safe-top)) 14px 0; }
   .controles{ gap:.7rem; }
-  /* En el tunel cabe todo en un renglon. En la lista, con orden y filtro,
-     no: idioma, letra y tema bajan a uno propio, pegados a la derecha */
+  /* Por si en un telefono muy estrecho no cabe, lo ultimo baja a otro
+     renglon, pegado a la derecha, en vez de salirse */
   .controles{ flex:0 1 auto; min-width:0; flex-wrap:wrap; justify-content:flex-end; row-gap:.3rem; }
   .topbar{ font-size: calc(var(--fs-nav) * .92); }
   .vistas{ gap:.35ch; }
@@ -712,6 +712,13 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
 @media (max-height: 520px){
   .tiempo{ bottom: calc(6px + env(safe-area-inset-bottom, 0px)); }
   .barra{ height:2.4rem; }
+}
+
+/* En la lista, con orden y filtro, el centro de la barra no tiene sitio:
+   idioma, letra y tema bajan a un renglon propio, centrados */
+@media (max-width: 560px){
+  body[data-vista="lista"] .topbar{ padding-bottom:1.8rem; }
+  body[data-vista="lista"] .controles .langs{ top:auto; bottom:0; }
 }
 
 /* Telefonos pequenos (iPhone SE y compania): un punto mas de apriete para
