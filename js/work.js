@@ -78,14 +78,18 @@ if (lista) {
   });
 
   /* ---- conmutar vista ------------------------------------- */
-  const vistas = [...document.querySelectorAll('.vistas button')];
   const aplicar = v => {
     document.body.dataset.vista = v;
-    vistas.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.vista === v)));
     try { localStorage.setItem('vista', v); } catch {}
     avisar();
   };
-  vistas.forEach(b => b.addEventListener('click', () => aplicar(b.dataset.vista)));
+  // con fundido si el navegador sabe (View Transitions); si no, de golpe
+  document.querySelector('.vistas .vista')?.addEventListener('click', () => {
+    const otra = document.body.dataset.vista === 'tunel' ? 'lista' : 'tunel';
+    if (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches)
+      document.startViewTransition(() => aplicar(otra)).ready.catch(() => {}); // pestana oculta: se salta el fundido
+    else aplicar(otra);
+  });
   let guardada = 'tunel';
   try { guardada = localStorage.getItem('vista') || 'tunel'; } catch {}
   aplicar(guardada);

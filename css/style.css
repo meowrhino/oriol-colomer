@@ -148,7 +148,7 @@ img{ max-width:100%; display:block; }
   position:fixed; right: var(--edge-x); bottom: var(--edge-y); z-index:3;
   display:flex; align-items:center; gap:.3rem;
 }
-.langs summary, .langs .tipo, .langs .tema{
+.langs .idioma, .langs .tipo, .langs .tema{
   /* los tres (idioma, letra y tema) igual de altos; letra y tema, cuadrados */
   position:relative;
   display:inline-flex; align-items:center; justify-content:center;
@@ -157,12 +157,12 @@ img{ max-width:100%; display:block; }
   background:none; border:0; cursor:pointer; color: var(--btn-subtle); transition: color .2s ease;
 }
 /* se ven pequenos, pero se pulsan en 44px de alto (y hasta el vecino) */
-.langs summary::before, .langs .tipo::before, .langs .tema::before{
+.langs .idioma::before, .langs .tipo::before, .langs .tema::before{
   content:''; position:absolute; left:50%; top:50%; translate:-50% -50%;
   width:calc(100% + .3rem); height:44px;
 }
-.langs summary:hover, .langs .tipo:hover, .langs .tema:hover{ color: var(--btn-subtle-hover); }
-.langs .tipo[aria-pressed="true"], .langs details[open] summary{ color: var(--ink-hard); }
+.langs .idioma:hover, .langs .tipo:hover, .langs .tema:hover{ color: var(--btn-subtle-hover); }
+.langs .tipo[aria-pressed="true"]{ color: var(--ink-hard); }
 
 /* los iconos: dibujos negros sobre transparente (assets/iconos/) usados
    de mascara, asi toman el color del boton en claro y en oscuro */
@@ -170,7 +170,6 @@ img{ max-width:100%; display:block; }
   display:block; width:1rem; height:1rem; background:currentColor;
   -webkit-mask: var(--i) center / contain no-repeat; mask: var(--i) center / contain no-repeat;
 }
-.langs .bandera{ --i:url(../assets/iconos/lang.png); }
 .langs .ojo{ --i:url(../assets/iconos/text.png); }
 .langs .mano{ --i:url(../assets/iconos/wing-bold.png); }
 .langs .sol{ --i:url(../assets/iconos/bright.png); }
@@ -178,29 +177,8 @@ img{ max-width:100%; display:block; }
 .langs .tipo[aria-pressed="true"] .ojo,
 .langs .tipo[aria-pressed="false"] .mano{ display:none; }
 
-/* idioma: la bandera abre un bocadillo, centrado y con el pico hacia
-   ella. Se abre hacia arriba, que casi siempre esta al pie; en la barra
-   de work, hacia abajo */
-.langs details{ position:relative; }
-.langs summary{ list-style:none; }
-.langs summary::-webkit-details-marker{ display:none; }
-.langs .opciones{
-  top:auto; bottom:100%; right:auto; left:50%; translate:-50% 0;
-  margin:0 0 .6em; font-size:.8rem; border-radius:.6rem;
-}
-.controles .langs .opciones{ top:100%; bottom:auto; margin:.6em 0 0; }
-/* el pico: un cuadrado girado, con el borde solo en los dos lados de fuera */
-.langs .opciones::after{
-  content:''; position:absolute; left:50%; bottom:-.3rem; width:.5rem; height:.5rem;
-  translate:-50% 0; rotate:45deg;
-  background: var(--caja); border:solid var(--caja-borde); border-width:0 1px 1px 0;
-}
-.controles .langs .opciones::after{ bottom:auto; top:-.3rem; border-width:1px 0 0 1px; }
-.langs .opciones a, .langs .opciones span{
-  padding:.3rem .5rem; text-align:right; color: var(--btn-subtle); transition: color .2s ease;
-}
-.langs .opciones a:hover{ color: var(--btn-subtle-hover); }
-.langs .opciones [aria-current]{ color: var(--ink-hard); font-weight:600; }
+/* idioma: el codigo del actual, en mayusculas */
+.langs .idioma{ padding:0 .15rem; text-decoration:none; }
 
 /* sol y luna uno encima del otro, se funden al conmutar (y el boton da
    una vuelta, ver js/ajustes.js). Igual que en meowrhino.studio */
@@ -498,22 +476,19 @@ main.about, main.project{ flex:1 0 auto; }
    derecha: mismo tamano, mismos grises, la barra de separacion y el activo
    en negrita. Antes era mas pequeno y de otro gris, y la cabecera parecia
    hecha de dos piezas. Los desplegables de la lista, al mismo tamano. */
-.vistas{ display:flex; align-items:baseline; gap:.5ch; }
-.vistas .sep{ color: var(--ink-faint); }
+.vistas{ display:flex; align-items:baseline; }
 .vistas button, .menu .cabeza, .opciones button{
   font:inherit; line-height:inherit;
   background:none; border:0; padding:0; cursor:pointer;
   color: var(--ink-soft); transition: color .2s ease;
 }
 .vistas button:hover, .menu .cabeza:hover, .opciones button:hover{ color: var(--ink-hard); }
-.vistas button[aria-pressed="true"]{ color: var(--ink-hard); font-weight:700; }
-/* El activo va en negrita y la negrita es mas ancha: sin esto el boton
-   bailaba un pixel al cambiar de vista. Cada boton reserva ya el ancho de
-   su texto en negrita, con una copia invisible de alto cero. */
-.vistas button{ display:inline-grid; }
-.vistas button::after{
-  content: attr(data-texto); font-weight:700; height:0; overflow:hidden; visibility:hidden;
-}
+/* Un boton con las dos palabras en la misma casilla: se ve la de la
+   vista actual y la otra guarda el ancho, asi no baila al cambiar */
+.vistas button{ display:inline-grid; color: var(--ink-hard); font-weight:700; }
+.vistas button span{ grid-area:1/1; text-align:right; }
+body[data-vista="tunel"] .vistas [data-vista="lista"],
+body[data-vista="lista"] .vistas [data-vista="tunel"]{ visibility:hidden; }
 .vistas button:focus-visible, .menu button:focus-visible{
   outline:1px solid var(--ink-hard); outline-offset:3px;
 }
@@ -703,7 +678,6 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
      renglon, pegado a la derecha, en vez de salirse */
   .controles{ flex:0 1 auto; min-width:0; flex-wrap:wrap; justify-content:flex-end; row-gap:.3rem; }
   .topbar{ font-size: calc(var(--fs-nav) * .92); }
-  .vistas{ gap:.35ch; }
   /* La palabra "sort" se va de la vista, pero no del arbol de accesibilidad:
      con display:none el boton se anunciaria solo como "date" y no habria
      forma de saber que es el control de orden. Se esconde como el h1. */
@@ -770,6 +744,14 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
     cursor: url("../assets/cursor/hover.png") 1 1, pointer !important;
     cursor: image-set(url("../assets/cursor/hover.png") 1x, url("../assets/cursor/hover@2x.png") 2x) 1 1, pointer !important;
   }
+}
+
+/* Fundido al ir de una pagina a otra y al cambiar tunel / lista. Lo hace
+   el navegador (View Transitions); el que no lo sabe cambia de golpe,
+   como antes. Quien pide menos movimiento no lo ve. */
+@media (prefers-reduced-motion: no-preference){
+  @view-transition{ navigation: auto; }
+  ::view-transition-old(root), ::view-transition-new(root){ animation-duration:.35s; }
 }
 
 @media (prefers-reduced-motion: reduce){

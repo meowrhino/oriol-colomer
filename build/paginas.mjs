@@ -322,27 +322,21 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
       </figure>`;
 
   function langs(lang, path) {
+    const sig = LANGS[(LANGS.indexOf(lang) + 1) % LANGS.length];
     return `<nav class="langs" aria-label="${esc(t(site.ui.aria.lang, lang))}">`
-      // el idioma: una bandera que abre un bocadillo con los tres.
-      // <details> se abre y se cierra solo; js/ajustes.js lo cierra al pulsar fuera
-      + `<details class="idioma"><summary title="${esc(t(site.ui.aria.lang, lang))}">`
-      + `<span class="ico bandera" aria-hidden="true"></span><span class="sr">${lang}</span></summary><div class="opciones">`
-      + LANGS.map(l => l === lang
-          ? `<span aria-current="true">${l}</span>`
-          : `<a href="${url(l, path)}" hreflang="${iso(l)}">${l}</a>`
-        ).join('')
-      + `</div></details>`
+      // claro u oscuro: sol y luna, uno encima del otro. Escondido hasta que
+      // hay JS que lo mueva
+      + `<button type="button" class="tema" aria-pressed="false" title="${esc(t(site.ui.tema, lang))}" hidden>`
+      + `<span class="ico sol" aria-hidden="true"></span><span class="ico luna" aria-hidden="true"></span>`
+      + `<span class="sr">${esc(t(site.ui.tema, lang))}</span></button>`
       // letra normal o wingdings. Sale escondido: js/ajustes.js lo ensena solo si
       // el aparato tiene la fuente (Windows y Mac si, moviles no).
       // Apagado, un ojo; encendido, la mano
       + `<button type="button" class="tipo" aria-pressed="false" title="${esc(t(site.ui.tipo, lang))}" hidden>`
       + `<span class="ico ojo" aria-hidden="true"></span><span class="ico mano" aria-hidden="true"></span>`
       + `<span class="sr">${esc(t(site.ui.tipo, lang))}</span></button>`
-      // claro u oscuro: sol y luna, uno encima del otro. Escondido hasta que
-      // hay JS que lo mueva
-      + `<button type="button" class="tema" aria-pressed="false" title="${esc(t(site.ui.tema, lang))}" hidden>`
-      + `<span class="ico sol" aria-hidden="true"></span><span class="ico luna" aria-hidden="true"></span>`
-      + `<span class="sr">${esc(t(site.ui.tema, lang))}</span></button>`
+      // el idioma: dice el actual y al pulsar pasa al siguiente de los tres
+      + `<a class="idioma" href="${url(sig, path)}" hreflang="${iso(sig)}" title="${esc(t(site.ui.aria.lang, lang))}: ${sig}">${lang.toUpperCase()}</a>`
       + `</nav>`;
   }
 
@@ -444,7 +438,9 @@ ${opciones.map(([v, l], i) => `          <button type="button" role="menuitemrad
 ${menu('sort', t(site.ui.sort, lang), orden)}
 ${menu('tag', '', filtro)}
     <div class="vistas" role="group" aria-label="${esc(t(site.ui.aria.view, lang))}">
-      <button type="button" data-vista="tunel" data-texto="${esc(t(site.ui.tunnel, lang))}" aria-pressed="true">${esc(t(site.ui.tunnel, lang))}</button><span class="sep" aria-hidden="true">/</span><button type="button" data-vista="lista" data-texto="${esc(t(site.ui.list, lang))}" aria-pressed="false">${esc(t(site.ui.list, lang))}</button>
+      <!-- un solo boton: dice la vista en la que estas y pulsado pasa a la otra.
+           Las dos palabras ocupan la misma casilla, asi no baila de ancho -->
+      <button type="button" class="vista"><span data-vista="tunel">${esc(t(site.ui.tunnel, lang))}</span><span data-vista="lista">${esc(t(site.ui.list, lang))}</span></button>
     </div>
     <!-- idiomas, letra y tema a la derecha de tunel/lista: en el tunel la
          pagina no scrollea y el pie no se veria nunca -->
