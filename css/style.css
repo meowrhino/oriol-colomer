@@ -248,8 +248,9 @@ body.entrando .pupil{ scale: 1 .06; }
 }
 
 /* Salida: el ojo parpadea y la portada se funde. Sin zoom: el tunel, al
-   otro lado, tambien aparece fundido, asi que se lee como un solo corte
-   suave. El fundido espera al parpadeo para que se vea cerrarse el ojo. */
+   otro lado, llega con el fundido entre paginas (@view-transition, al
+   final), asi que se lee como un solo corte suave. El fundido espera al
+   parpadeo para que se vea cerrarse el ojo. */
 body.entrando .landing{
   opacity:0;
   transition: opacity var(--fundido) ease var(--parpadeo);
@@ -549,9 +550,6 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   user-select:none; -webkit-user-select:none;
 }
 .escena.arrastrando{ cursor:grabbing; }
-/* Desde la portada el tunel no llega volando: aparece. */
-.escena.aparece{ animation: aparecer .9s ease both; }
-@keyframes aparecer{ from{ opacity:0; } }
 
 .tunel{ position:absolute; inset:0; transform-style:preserve-3d; }
 

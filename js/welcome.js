@@ -81,7 +81,6 @@ if (ojo && destino) {
     if (yendo) return;
     if (e && e.target && e.target.closest && e.target.closest('a, button')) return;   // idiomas: no entran
     yendo = true;
-    try { sessionStorage.setItem('entrando', '1'); } catch {}            // lo lee el tunel
     if (seco) { location.href = destino; return; }
     document.body.classList.add('entrando');          // parpadea, y luego funde
     setTimeout(() => { location.href = destino; }, ms('--parpadeo') + ms('--fundido'));

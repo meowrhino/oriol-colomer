@@ -55,7 +55,7 @@ Sale `home / La Roda - Ouineta / about / lab`, y el proyecto parece una sección
 - ★ A) `home / work / about / lab` fijo; el título ya está en grande en la página.
 - B) `work › La Roda`.
 
-### 7. Lab: un solo proyecto y sin portada
+### ~~7. Lab: un solo proyecto y sin portada~~ — hecho 7A (captura de la pieza en `media/spacetime/thumb.webp`)
 En el túnel sale una carta gris vacía y una línea del tiempo de una sola bola.
 - ★ A) Ponerle portada a spacetime (vale una captura). Hace falta pase lo que pase.
 - B) Que lab abra en lista mientras tenga menos de 3 proyectos.
@@ -65,7 +65,7 @@ El ojo de "wingdings" no se adivina, y en móvil no hay tooltip.
 - ★ A) Aceptarlo: es un guiño, y el cambio se ve al instante al pulsarlo.
 - B) Cambiar el ojo por un icono más claro.
 
-### 9. Probablemente hay tres fundidos al entrar desde la portada
+### ~~9. Probablemente hay tres fundidos al entrar desde la portada~~ — hecho (fuera el `aparece`)
 Parpadeo y fundido de la portada, luego el fundido entre páginas y luego el
 `aparece` del túnel. Falta comprobarlo a la vista.
 - ★ Quitar el `aparece` del túnel: el fundido entre páginas ya lo cubre. ~5 min.

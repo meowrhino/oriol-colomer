@@ -478,10 +478,5 @@ if (zona && lista && escena) {
   addEventListener('resize', () => { medir(); pintar(); despertar(); });
 
   construir();
-  // Desde la portada no se entra volando: el tunel aparece fundido.
-  if (sessionStorage.getItem('entrando') === '1') {
-    sessionStorage.removeItem('entrando');
-    if (!seco) escena.classList.add('aparece');
-  }
   despertar();
 }
