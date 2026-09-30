@@ -323,26 +323,25 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
 
   function langs(lang, path) {
     return `<nav class="langs" aria-label="${esc(t(site.ui.aria.lang, lang))}">`
-      // el idioma es un desplegable: se ve el activo y al abrirlo, los tres.
+      // el idioma: una bandera que abre un bocadillo con los tres.
       // <details> se abre y se cierra solo; js/ajustes.js lo cierra al pulsar fuera
-      + `<details class="idioma"><summary>${lang}</summary><div class="opciones">`
+      + `<details class="idioma"><summary title="${esc(t(site.ui.aria.lang, lang))}">`
+      + `<span class="ico bandera" aria-hidden="true"></span><span class="sr">${lang}</span></summary><div class="opciones">`
       + LANGS.map(l => l === lang
           ? `<span aria-current="true">${l}</span>`
           : `<a href="${url(l, path)}" hreflang="${iso(l)}">${l}</a>`
         ).join('')
       + `</div></details>`
       // letra normal o wingdings. Sale escondido: js/ajustes.js lo ensena solo si
-      // el aparato tiene la fuente (Windows y Mac si, moviles no)
+      // el aparato tiene la fuente (Windows y Mac si, moviles no).
+      // Apagado, un ojo; encendido, la mano
       + `<button type="button" class="tipo" aria-pressed="false" title="${esc(t(site.ui.tipo, lang))}" hidden>`
-      // apagado se ensena un ojo (la N en Webdings: Wingdings no tiene); encendido,
-      // "Aa" en letra normal, que es a lo que vuelve
-      + `<span class="wd" aria-hidden="true">N</span><span class="aa" aria-hidden="true">Aa</span>`
+      + `<span class="ico ojo" aria-hidden="true"></span><span class="ico mano" aria-hidden="true"></span>`
       + `<span class="sr">${esc(t(site.ui.tipo, lang))}</span></button>`
-      // claro u oscuro: sol y luna encima, como en meowrhino.studio. Escondido
-      // hasta que hay JS que lo mueva
+      // claro u oscuro: sol y luna, uno encima del otro. Escondido hasta que
+      // hay JS que lo mueva
       + `<button type="button" class="tema" aria-pressed="false" title="${esc(t(site.ui.tema, lang))}" hidden>`
-      + `<svg class="luna" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`
-      + `<svg class="sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`
+      + `<span class="ico sol" aria-hidden="true"></span><span class="ico luna" aria-hidden="true"></span>`
       + `<span class="sr">${esc(t(site.ui.tema, lang))}</span></button>`
       + `</nav>`;
   }
