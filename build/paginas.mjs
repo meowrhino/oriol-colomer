@@ -439,6 +439,9 @@ ${menu('tag', '', filtro)}
     <div class="vistas" role="group" aria-label="${esc(t(site.ui.aria.view, lang))}">
       <button type="button" data-vista="tunel" data-texto="${esc(t(site.ui.tunnel, lang))}" aria-pressed="true">${esc(t(site.ui.tunnel, lang))}</button><span class="sep" aria-hidden="true">/</span><button type="button" data-vista="lista" data-texto="${esc(t(site.ui.list, lang))}" aria-pressed="false">${esc(t(site.ui.list, lang))}</button>
     </div>
+    <!-- idiomas, letra y tema a la derecha de tunel/lista: en el tunel la
+         pagina no scrollea y el pie no se veria nunca -->
+    ${langs(lang, `${sec}/`)}
   </div>
 </div>
 
@@ -469,7 +472,6 @@ ${rows}
 </footer>
 
 <div class="peek" id="peek" aria-hidden="true"></div>
-${pageFoot(lang, `${sec}/`)}
 <script type="module" src="${raiz('/js/work.js')}"></script>
 <script type="module" src="${raiz('/js/tunnel.js')}"></script>`
     + foot();

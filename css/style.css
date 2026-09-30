@@ -463,6 +463,7 @@ main.about, main.project{ flex:1 0 auto; }
 }
 .topbar .nav{ padding:0; flex:0 0 auto; font-size:inherit; }
 .controles{ display:flex; align-items:baseline; gap:.9rem; margin-left:auto; flex:0 0 auto; }
+.controles .langs{ position:static; padding:0; margin-right:-.3rem; }
 
 /* Tunel / lista se escribe igual que home / work / about, pero a la
    derecha: mismo tamano, mismos grises, la barra de separacion y el activo
@@ -666,6 +667,10 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
      dentro. Preferimos eso a partir la cabecera en dos pisos. */
   .topbar{ gap:.5rem; padding: calc(14px + var(--safe-top)) 14px 0; }
   .controles{ gap:.7rem; }
+  /* idiomas, letra y tema ya no caben en ese renglon: bajan a uno propio,
+     debajo de tunel/lista y pegados a la derecha */
+  .controles{ flex:0 1 auto; min-width:0; flex-wrap:wrap; justify-content:flex-end; row-gap:.3rem; }
+  .controles .langs{ flex-basis:100%; justify-content:flex-end; }
   .topbar{ font-size: calc(var(--fs-nav) * .92); }
   .vistas{ gap:.35ch; }
   /* La palabra "sort" se va de la vista, pero no del arbol de accesibilidad:
