@@ -315,10 +315,14 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
 
   function langs(lang, path) {
     return `<nav class="langs" aria-label="${esc(t(site.ui.aria.lang, lang))}">`
+      // el idioma es un desplegable: se ve el activo y al abrirlo, los tres.
+      // <details> se abre y se cierra solo; js/ajustes.js lo cierra al pulsar fuera
+      + `<details class="idioma"><summary>${lang}</summary><div class="opciones">`
       + LANGS.map(l => l === lang
           ? `<span aria-current="true">${l}</span>`
           : `<a href="${url(l, path)}" hreflang="${l === 'cat' ? 'ca' : l}">${l}</a>`
         ).join('')
+      + `</div></details>`
       // letra normal o wingdings. Sale escondido: js/ajustes.js lo ensena solo si
       // el aparato tiene la fuente (Windows y Mac si, moviles no)
       + `<button type="button" class="tipo" aria-pressed="false" title="${esc(t(site.ui.tipo, lang))}" hidden>`

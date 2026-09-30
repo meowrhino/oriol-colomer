@@ -50,3 +50,9 @@ interruptor('.langs .tema', 'oscuro', 'tema', 'oscuro', 'claro');
 for (const b of document.querySelectorAll('.langs .tema'))
   b.addEventListener('click', () =>
     b.animate([{ transform: 'rotate(0)' }, { transform: 'rotate(360deg)' }], { duration: 500, easing: 'ease-in-out' }));
+
+// el desplegable del idioma se cierra al pulsar fuera
+addEventListener('pointerdown', e => {
+  for (const d of document.querySelectorAll('.langs details[open]'))
+    if (!d.contains(e.target)) d.open = false;
+});

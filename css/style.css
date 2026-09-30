@@ -148,21 +148,36 @@ img{ max-width:100%; display:block; }
   position:fixed; right: var(--edge-x); bottom: var(--edge-y); z-index:3;
   display:flex; align-items:center; gap:.3rem;
 }
-.langs > a, .langs > span, .langs .tipo, .langs .tema{
-  /* los cinco (idiomas, letra y tema) en la misma caja */
+.langs summary, .langs .tipo, .langs .tema{
+  /* los tres (idioma, letra y tema) igual de altos; letra y tema, cuadrados */
+  position:relative;
   display:inline-flex; align-items:center; justify-content:center;
-  width:1.9rem; height:1.5rem; padding:0; flex:none;
+  min-width:1.4rem; height:1.5rem; padding:0; flex:none;
   font:inherit; font-size:.8rem; line-height:1;
-  background:none; border:0; color: var(--btn-subtle); transition: color .2s ease;
+  background:none; border:0; cursor:pointer; color: var(--btn-subtle); transition: color .2s ease;
 }
-.langs a:hover{ color: var(--btn-subtle-hover); }
-.langs [aria-current]{ color: var(--ink-hard); font-weight:600; }
-/* letra normal o wingdings, y tema claro u oscuro (js/ajustes.js): dos
-   botones mas a la derecha de los idiomas */
-.langs .tipo, .langs .tema{ cursor:pointer; }
-.langs .tipo{ margin-left:.35rem; }
-.langs .tipo:hover, .langs .tema:hover{ color: var(--btn-subtle-hover); }
+/* se ven pequenos, pero se pulsan en 44px de alto (y hasta el vecino) */
+.langs summary::before, .langs .tipo::before, .langs .tema::before{
+  content:''; position:absolute; left:50%; top:50%; translate:-50% -50%;
+  width:calc(100% + .3rem); height:44px;
+}
+.langs summary:hover, .langs .tipo:hover, .langs .tema:hover{ color: var(--btn-subtle-hover); }
 .langs .tipo[aria-pressed="true"]{ color: var(--ink-hard); font-weight:600; }
+
+/* idioma: el activo y una flecha (la de los desplegables de la lista). Se
+   abre hacia arriba, que casi siempre esta al pie; en la barra de work,
+   hacia abajo */
+.langs details{ position:relative; }
+.langs summary{ list-style:none; gap:.45ch; color: var(--ink-hard); font-weight:600; }
+.langs summary::-webkit-details-marker{ display:none; }
+.langs .opciones{ top:auto; bottom:100%; margin:0 0 .5em; font-size:.8rem; }
+.controles .langs .opciones{ top:100%; bottom:auto; margin:.5em 0 0; }
+.langs .opciones a, .langs .opciones span{
+  padding:.3rem .5rem; text-align:right; color: var(--btn-subtle); transition: color .2s ease;
+}
+.langs .opciones a:hover{ color: var(--btn-subtle-hover); }
+.langs .opciones [aria-current]{ color: var(--ink-hard); font-weight:600; }
+
 /* sol y luna uno encima del otro, se funden al conmutar (y el boton da
    una vuelta, ver js/ajustes.js). Igual que en meowrhino.studio */
 .langs .tema{ position:relative; }
@@ -463,7 +478,7 @@ main.about, main.project{ flex:1 0 auto; }
 }
 .topbar .nav{ padding:0; flex:0 0 auto; font-size:inherit; }
 .controles{ display:flex; align-items:baseline; gap:.9rem; margin-left:auto; flex:0 0 auto; }
-.controles .langs{ position:static; padding:0; margin-right:-.3rem; }
+.controles .langs{ position:static; padding:0; margin-right:-.2rem; }
 
 /* Tunel / lista se escribe igual que home / work / about, pero a la
    derecha: mismo tamano, mismos grises, la barra de separacion y el activo
@@ -494,12 +509,12 @@ main.about, main.project{ flex:1 0 auto; }
 .menu .cabeza{ display:flex; align-items:baseline; gap:.45ch; white-space:nowrap; }
 .menu .et{ color: var(--ink-faint); }
 .menu .val{ color: var(--ink-hard); }
-.menu .cabeza::after{
+.menu .cabeza::after, .langs summary::after{
   content:''; width:0; height:0; margin-left:.2ch;
   border:3px solid transparent; border-top-color: currentColor;
   translate:0 1px; transition: rotate .2s ease;
 }
-.menu .cabeza[aria-expanded="true"]::after{ rotate:180deg; }
+.menu .cabeza[aria-expanded="true"]::after, .langs details[open] summary::after{ rotate:180deg; }
 
 .opciones{
   position:absolute; top:100%; right:0; z-index:20;
@@ -667,10 +682,9 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
      dentro. Preferimos eso a partir la cabecera en dos pisos. */
   .topbar{ gap:.5rem; padding: calc(14px + var(--safe-top)) 14px 0; }
   .controles{ gap:.7rem; }
-  /* idiomas, letra y tema ya no caben en ese renglon: bajan a uno propio,
-     debajo de tunel/lista y pegados a la derecha */
+  /* En el tunel cabe todo en un renglon. En la lista, con orden y filtro,
+     no: idioma, letra y tema bajan a uno propio, pegados a la derecha */
   .controles{ flex:0 1 auto; min-width:0; flex-wrap:wrap; justify-content:flex-end; row-gap:.3rem; }
-  .controles .langs{ flex-basis:100%; justify-content:flex-end; }
   .topbar{ font-size: calc(var(--fs-nav) * .92); }
   .vistas{ gap:.35ch; }
   /* La palabra "sort" se va de la vista, pero no del arbol de accesibilidad:
