@@ -593,7 +593,7 @@ ${ps.map(x => `  <p>${esc(x)}</p>`).join('\n')}
      ${redes()}
   </p>
 </main>
-<footer class="foot">${sig()}${langs(lang, 'about/')}</footer>
+<footer class="foot">${langs(lang, 'about/')}${sig()}</footer>
 <script type="module" src="${raiz('/js/correo.js')}"></script>`
     + foot();
   }
