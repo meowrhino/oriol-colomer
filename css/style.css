@@ -525,9 +525,7 @@ body[data-vista="lista"] .tiempo{ display:none; }
 /* Orden y filtro son cosa de la lista: el tunel es siempre la linea del
    tiempo entera, en orden de fecha. */
 body[data-vista="tunel"] .menu{ display:none; }
-/* En work, idioma, letra y tema van arriba al centro, en las dos vistas.
-   En el tunel no hay idioma: los titulos son iguales en todos */
-body[data-vista="tunel"] .langs .idioma{ display:none; }
+/* En work, idioma, letra y tema van arriba al centro, en las dos vistas. */
 .controles .langs{ position:absolute; left:50%; right:auto; bottom:auto; translate:-50% 0; margin:0; }
 /* Sin scroll ni rebote: en el tunel el gesto es de la camara. */
 body[data-vista="tunel"]{ overflow:hidden; overscroll-behavior:none; }
@@ -701,16 +699,18 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
 }
 
 /* Work en el movil: en el tunel, idioma, letra y tema van en la barra,
-   a la izquierda de tunel/lista (y aqui si sale el idioma). En la lista
-   la barra ya lleva orden y filtro: los tres bajan al final del scroll */
+   a la izquierda de tunel/lista. En la lista la barra ya lleva orden y
+   filtro: los tres bajan al pie, al final del scroll o al pie de la
+   pantalla si la lista es corta */
 .pie-lista{ display:none; }
 /* en la portada, abajo al centro */
 .landing .langs{ right:auto; left:50%; translate:-50% 0; }
 @media (max-width: 820px){
   body[data-vista="tunel"] .controles .langs{ position:static; translate:none; order:-1; align-self:center; }
-  body[data-vista="tunel"] .langs .idioma{ display:inline-flex; }
   body[data-vista="lista"] .controles .langs{ display:none; }
-  body[data-vista="lista"] .pie-lista{ display:block; padding-top: var(--pad); }
+  body[data-vista="lista"]{ display:flex; flex-direction:column; min-height:100dvh; }
+  body[data-vista="lista"] .wrap{ flex:1; display:flex; flex-direction:column; padding-bottom:0; }
+  body[data-vista="lista"] .pie-lista{ display:block; margin-top:auto; padding-top: calc(var(--pad) * 2); }
   .pie-lista .langs, .landing .langs{ justify-content:center; translate:none; }
 }
 
