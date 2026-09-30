@@ -313,16 +313,21 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
         </a>
       </figure>`;
 
+  /* Idioma, letra y tema: un solo boton (una bola mitad llena) que abre una
+     cajita con los tres. La barra queda para navegar. <details> se abre y
+     se cierra solo; js/ajustes.js lo cierra al pulsar fuera o con Esc. */
   function langs(lang, path) {
-    return `<nav class="langs" aria-label="${esc(t(site.ui.aria.lang, lang))}">`
-      // el idioma es un desplegable: se ve el activo y al abrirlo, los tres.
-      // <details> se abre y se cierra solo; js/ajustes.js lo cierra al pulsar fuera
-      + `<details class="idioma"><summary>${lang}</summary><div class="opciones">`
+    const nombre = esc(t(site.ui.aria.ajustes, lang));
+    return `<nav class="langs" aria-label="${nombre}"><details>`
+      + `<summary title="${nombre}"><svg viewBox="0 0 24 24" aria-hidden="true">`
+      + `<circle cx="12" cy="12" r="8.5"/><path class="lleno" d="M12 3.5a8.5 8.5 0 0 1 0 17z"/></svg>`
+      + `<span class="sr">${nombre}</span></summary>`
+      + `<div class="opciones"><div class="fila">`
       + LANGS.map(l => l === lang
           ? `<span aria-current="true">${l}</span>`
           : `<a href="${url(l, path)}" hreflang="${l === 'cat' ? 'ca' : l}">${l}</a>`
         ).join('')
-      + `</div></details>`
+      + `</div><div class="fila">`
       // letra normal o wingdings. Sale escondido: js/ajustes.js lo ensena solo si
       // el aparato tiene la fuente (Windows y Mac si, moviles no)
       + `<button type="button" class="tipo" aria-pressed="false" title="${esc(t(site.ui.tipo, lang))}" hidden>`
@@ -336,7 +341,7 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
       + `<svg class="luna" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`
       + `<svg class="sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`
       + `<span class="sr">${esc(t(site.ui.tema, lang))}</span></button>`
-      + `</nav>`;
+      + `</div></div></details></nav>`;
   }
 
   const sig = () =>

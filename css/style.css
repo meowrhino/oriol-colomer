@@ -148,35 +148,37 @@ img{ max-width:100%; display:block; }
   position:fixed; right: var(--edge-x); bottom: var(--edge-y); z-index:3;
   display:flex; align-items:center; gap:.3rem;
 }
-.langs summary, .langs .tipo, .langs .tema{
-  /* los tres (idioma, letra y tema) igual de altos; letra y tema, cuadrados */
-  position:relative;
-  display:inline-flex; align-items:center; justify-content:center;
-  min-width:1.4rem; height:1.5rem; padding:0; flex:none;
+/* el boton: una bola mitad llena, en el gris de los controles */
+.langs details{ position:relative; }
+.langs summary{
+  position:relative; display:flex; align-items:center; justify-content:center;
+  width:1.5rem; height:1.5rem; list-style:none; cursor:pointer;
+  color: var(--btn-subtle); transition: color .2s ease;
+}
+.langs summary::-webkit-details-marker{ display:none; }
+/* se ve pequeno, pero se pulsa en 44px */
+.langs summary::before{ content:''; position:absolute; inset:50% auto auto 50%; translate:-50% -50%; width:44px; height:44px; }
+.langs summary:hover, .langs details[open] summary{ color: var(--ink-hard); }
+.langs summary svg{ width:1rem; height:1rem; fill:none; stroke:currentColor; stroke-width:1.5; }
+.langs summary .lleno{ fill:currentColor; stroke:none; }
+
+/* la cajita: la de los desplegables de la lista, con dos filas —idiomas
+   y letra + tema— separadas por una raya. Sale con un fundido. Se abre
+   hacia arriba, que casi siempre esta al pie; en la barra de work, abajo */
+.langs .opciones{ top:auto; bottom:100%; margin:0 0 .5em; gap:.25rem; animation: aparece .18s ease; }
+.controles .langs .opciones{ top:100%; bottom:auto; margin:.5em 0 0; }
+@keyframes aparece{ from{ opacity:0; translate:0 3px; } }
+.langs .fila{ display:flex; justify-content:center; gap:.15rem; }
+.langs .fila + .fila{ border-top:1px solid var(--caja-borde); padding-top:.25rem; }
+/* los cinco, cuadrados e iguales */
+.langs .fila > *{
+  position:relative; display:inline-flex; align-items:center; justify-content:center;
+  width:2rem; height:2rem; padding:0;
   font:inherit; font-size:.8rem; line-height:1;
   background:none; border:0; cursor:pointer; color: var(--btn-subtle); transition: color .2s ease;
 }
-/* se ven pequenos, pero se pulsan en 44px de alto (y hasta el vecino) */
-.langs summary::before, .langs .tipo::before, .langs .tema::before{
-  content:''; position:absolute; left:50%; top:50%; translate:-50% -50%;
-  width:calc(100% + .3rem); height:44px;
-}
-.langs summary:hover, .langs .tipo:hover, .langs .tema:hover{ color: var(--btn-subtle-hover); }
-.langs .tipo[aria-pressed="true"]{ color: var(--ink-hard); font-weight:600; }
-
-/* idioma: el activo y una flecha (la de los desplegables de la lista). Se
-   abre hacia arriba, que casi siempre esta al pie; en la barra de work,
-   hacia abajo */
-.langs details{ position:relative; }
-.langs summary{ list-style:none; gap:.45ch; color: var(--ink-hard); font-weight:600; }
-.langs summary::-webkit-details-marker{ display:none; }
-.langs .opciones{ top:auto; bottom:100%; margin:0 0 .5em; font-size:.8rem; }
-.controles .langs .opciones{ top:100%; bottom:auto; margin:.5em 0 0; }
-.langs .opciones a, .langs .opciones span{
-  padding:.3rem .5rem; text-align:right; color: var(--btn-subtle); transition: color .2s ease;
-}
-.langs .opciones a:hover{ color: var(--btn-subtle-hover); }
-.langs .opciones [aria-current]{ color: var(--ink-hard); font-weight:600; }
+.langs .fila > a:hover, .langs .tipo:hover, .langs .tema:hover{ color: var(--btn-subtle-hover); }
+.langs [aria-current], .langs .tipo[aria-pressed="true"]{ color: var(--ink-hard); font-weight:600; }
 
 /* sol y luna uno encima del otro, se funden al conmutar (y el boton da
    una vuelta, ver js/ajustes.js). Igual que en meowrhino.studio */
@@ -478,7 +480,7 @@ main.about, main.project{ flex:1 0 auto; }
 }
 .topbar .nav{ padding:0; flex:0 0 auto; font-size:inherit; }
 .controles{ display:flex; align-items:baseline; gap:.9rem; margin-left:auto; flex:0 0 auto; }
-.controles .langs{ position:static; padding:0; margin-right:-.2rem; }
+.controles .langs{ position:static; padding:0; margin-right:-.25rem; }
 
 /* Tunel / lista se escribe igual que home / work / about, pero a la
    derecha: mismo tamano, mismos grises, la barra de separacion y el activo
@@ -509,12 +511,12 @@ main.about, main.project{ flex:1 0 auto; }
 .menu .cabeza{ display:flex; align-items:baseline; gap:.45ch; white-space:nowrap; }
 .menu .et{ color: var(--ink-faint); }
 .menu .val{ color: var(--ink-hard); }
-.menu .cabeza::after, .langs summary::after{
+.menu .cabeza::after{
   content:''; width:0; height:0; margin-left:.2ch;
   border:3px solid transparent; border-top-color: currentColor;
   translate:0 1px; transition: rotate .2s ease;
 }
-.menu .cabeza[aria-expanded="true"]::after, .langs details[open] summary::after{ rotate:180deg; }
+.menu .cabeza[aria-expanded="true"]::after{ rotate:180deg; }
 
 .opciones{
   position:absolute; top:100%; right:0; z-index:20;

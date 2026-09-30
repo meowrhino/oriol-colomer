@@ -103,10 +103,10 @@
       "cat": "llista"
     },
     "aria": {
-      "lang": {
-        "en": "language",
-        "es": "idioma",
-        "cat": "idioma"
+      "ajustes": {
+        "en": "language and appearance",
+        "es": "idioma y aspecto",
+        "cat": "idioma i aspecte"
       },
       "view": {
         "en": "view",
