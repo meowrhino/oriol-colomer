@@ -115,8 +115,11 @@ suben nada a ningún sitio y dejan los ficheros con el peso justo para la web:
 
 - **Fotos** → [imgToWeb](https://meowrhino.github.io/imgToWeb/), calidad **85 %**.
   Salen en WebP. Un GIF animado sale como WebP animado, que sirve de `thumb`.
-- **Vídeos** → [videoToWeb](https://meowrhino.github.io/videoToWeb/), preset **720p**.
-  Salen en WebM.
+- **Vídeos** → [videoToWeb](https://meowrhino.github.io/videoToWeb/), preset **720p**,
+  con las tres casillas marcadas: **fotograma**, **sin audio** y **numerar**. Ordena
+  las tarjetas como quieras que salgan y dale a "descargar todo": el ZIP trae
+  `01.webm`, `01.poster.webp`, `02.webm`… listos para la carpeta. Se recuerdan,
+  así que solo hay que marcarlas la primera vez.
 
 **No subas GIF ni fotos de móvil sin convertir**: una foto de 5 MB tarda más en
 cargar que todo el resto de la página y hunde el posicionamiento.
@@ -136,10 +139,13 @@ media/la-roda-ouineta/
 - **Nombres**: `01`, `02`, `03`… en el orden en que salen. Con dos cifras, para
   que en la carpeta se vean en orden.
 - **El fotograma de un vídeo** (`.poster.webp`) es lo que se ve mientras el vídeo
-  carga, y lo que sale en el túnel si ese vídeo es la portada. Si no está, el
-  vídeo funciona igual, pero hasta que carga hay un hueco. Para hacerlo: para
-  el vídeo en un buen momento, haz una captura (`cmd + shift + 4`), pásala por
-  imgToWeb y llámala como el vídeo con `.poster.webp` al final.
+  carga, y lo que sale en el túnel si ese vídeo es la portada. Lo hace
+  videoToWeb con la casilla "fotograma". Si no está, el vídeo funciona igual,
+  pero hasta que carga hay un hueco.
+- **Si numeras las fotos y los vídeos por separado** (imgToWeb y videoToWeb
+  cuentan cada uno desde `01`), cambia el nombre a mano para que no se repita:
+  un vídeo `01.webm` y una foto `01.webp` pueden convivir, pero se lee mejor
+  seguido.
 - **La portada** (`thumb`) es opcional. Puede ser una foto (`thumb.webp`), un GIF
   pasado por imgToWeb (`thumb.webp`, animado) o un vídeo corto: 3–6 s en **480p**
   (`thumb.webm` y su `thumb.poster.webp`). En el túnel se ven todas las portadas a
