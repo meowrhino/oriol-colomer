@@ -19,6 +19,13 @@
   --btn-subtle:       rgba(0,0,0,.30);
   --btn-subtle-hover: rgba(0,0,0,.60);
 
+  --linea:      #ececec;              /* rayas de la lista */
+  --hueco:      #f0f0f0;              /* lo que se ve antes de que cargue una foto */
+  --caja:       #fff;                 /* los menus desplegables */
+  --caja-borde: #e9e9e9;
+  --luz:        #fff;                 /* el brillo de la bola */
+  --dot-rgb:    226,226,226;          /* los puntos del fondo (js/bg.js) */
+
   --edge-x: 3dvw;                      /* separacion de los botones al borde */
   /* Abajo se suma la zona segura: en un iPhone sin boton la barra del
      tiempo y los idiomas caian encima de la raya de inicio. La pagina va
@@ -28,8 +35,8 @@
 
   /* La bola: el punto de la linea del tiempo, el pomo, la pupila del ojo
      y el favicon son la misma pieza. Luz arriba a la izquierda. */
-  --bola:        radial-gradient(circle at 34% 30%, #fff 0%, var(--ink-soft) 80%);
-  --bola-activa: radial-gradient(circle at 34% 30%, #fff 0%, var(--ink) 82%);
+  --bola:        radial-gradient(circle at 34% 30%, var(--luz) 0%, var(--ink-soft) 80%);
+  --bola-activa: radial-gradient(circle at 34% 30%, var(--luz) 0%, var(--ink) 82%);
 
   --pad:   clamp(20px, 3.2vw, 52px);   /* margen exterior */
   /* Arriba la cabecera va mas pegada que a los lados: con --pad tambien
@@ -58,6 +65,27 @@
   --fundido:  480ms;
 
   font-size: 16px;
+}
+
+/* Modo oscuro: el mismo gris sobre gris, del reves. Cada tinta queda a la
+   misma distancia del fondo que en claro, asi que la jerarquia no cambia.
+   La clase la pone el <head> antes de pintar (ver paginas.mjs): la que se
+   eligio con el boton o, si nunca se ha tocado, la del sistema. */
+html.oscuro{
+  color-scheme: dark;
+  --bg:        #151515;
+  --ink:       #929292;
+  --ink-soft:  #696969;
+  --ink-faint: #4b4b4b;
+  --ink-hard:  #ababab;
+  --btn-subtle:       rgba(255,255,255,.30);
+  --btn-subtle-hover: rgba(255,255,255,.60);
+  --linea:      #252525;
+  --hueco:      #1e1e1e;
+  --caja:       #1c1c1c;
+  --caja-borde: #2b2b2b;
+  --luz:        #d6d6d6;
+  --dot-rgb:    46,46,46;
 }
 
 *,*::before,*::after{ box-sizing:border-box; }
@@ -90,7 +118,6 @@ img{ max-width:100%; display:block; }
    la referencia el halftone es papel, no contenido. */
 .dots{
   position:fixed; inset:0; z-index:-1; pointer-events:none;
-  --dot-rgb: 226,226,226;
 }
 
 /* ============================================================
@@ -127,14 +154,22 @@ img{ max-width:100%; display:block; }
 }
 .langs a:hover{ color: var(--btn-subtle-hover); }
 .langs [aria-current]{ color: var(--ink-hard); font-weight:600; }
-/* letra normal o wingdings (js/tipo.js): un idioma mas, a la derecha */
-.langs .tipo{
+/* letra normal o wingdings, y tema claro u oscuro (js/ajustes.js): dos
+   botones mas a la derecha de los idiomas */
+.langs .tipo, .langs .tema{
   font:inherit; font-size:.8rem; line-height:1; padding:.2rem .3rem; margin-left:.35rem;
   background:none; border:0; cursor:pointer; color: var(--btn-subtle); transition: color .2s ease;
 }
-.langs .tipo:hover{ color: var(--btn-subtle-hover); }
+.langs .tipo:hover, .langs .tema:hover{ color: var(--btn-subtle-hover); }
 .langs .tipo[aria-pressed="true"]{ color: var(--ink-hard); font-weight:600; }
-.langs .tipo[hidden]{ display:none; }
+/* media bola llena y media vacia: la mitad oscura cambia de lado al conmutar */
+.langs .tema .luna{
+  display:block; width:.72rem; height:.72rem; border-radius:50%;
+  border:1px solid currentColor;
+  background: linear-gradient(90deg, currentColor 50%, transparent 50%);
+}
+.langs .tema[aria-pressed="true"] .luna{ background: linear-gradient(90deg, transparent 50%, currentColor 50%); }
+.langs [hidden]{ display:none; }
 .langs .tipo .wd{ font-family: Webdings; font-size:1.25em; line-height:.8; font-weight:400; }
 .langs .tipo[aria-pressed="true"] .wd,
 .langs .tipo[aria-pressed="false"] .aa{ display:none; }
@@ -217,8 +252,8 @@ body.entrando .landing{
 .wrap{ padding: 0 var(--pad) calc(var(--pad) * 3); }
 
 .index{ list-style:none; margin:0; padding:0; }
-.index li{ border-top:1px solid #ececec; }
-.index li:last-child{ border-bottom:1px solid #ececec; }
+.index li{ border-top:1px solid var(--linea); }
+.index li:last-child{ border-bottom:1px solid var(--linea); }
 .index a{
   display:grid; align-items:baseline; gap: var(--gap);
   grid-template-columns: 1fr 14ch 6ch;
@@ -236,7 +271,7 @@ body.entrando .landing{
   position:fixed; z-index:5; width: 240px; pointer-events:none;
   opacity:0; transition: opacity .18s ease;
 }
-.peek img, .peek video, .peek .sin{ display:block; width:100%; aspect-ratio:16/9; object-fit:cover; background:#f0f0f0; }
+.peek img, .peek video, .peek .sin{ display:block; width:100%; aspect-ratio:16/9; object-fit:cover; background: var(--hueco); }
 .peek.on{ opacity:1; }
 
 /* ============================================================
@@ -246,8 +281,8 @@ body.entrando .landing{
 /* About y proyecto ocupan al menos la pantalla entera, para que lo que va
    al pie (firma, idiomas, anterior/siguiente) quede al pie de verdad y no
    flotando con un hueco debajo. */
-body:has(> main.about, > main.project, > main.lab){ display:flex; flex-direction:column; min-height:100dvh; }
-main.about, main.project, main.lab{ flex:1 0 auto; }
+body:has(> main.about, > main.project){ display:flex; flex-direction:column; min-height:100dvh; }
+main.about, main.project{ flex:1 0 auto; }
 
 .project{
   display:grid; gap: var(--gap);
@@ -268,7 +303,7 @@ main.about, main.project, main.lab{ flex:1 0 auto; }
 }
 .media{ grid-column:1; grid-row:1; display:grid; gap: clamp(6px,.7vw,12px); min-width:0; }
 .media figure{ margin:0; }
-.media img, .media video{ width:100%; height:auto; display:block; background:#f0f0f0; }
+.media img, .media video{ width:100%; height:auto; display:block; background: var(--hueco); }
 /* Sin width/height (la vista previa no lee las medidas) una foto por cargar
    mide cero, y la columna pegaba un salto con cada una. Mientras no llega,
    hueco 16:9; en cuanto llega, su proporcion de verdad. */
@@ -360,31 +395,6 @@ main.about, main.project, main.lab{ flex:1 0 auto; }
 .pager a:hover, .navega .volver:hover{ color: var(--ink-hard); }
 .navega .volver{ color: var(--ink-soft); }
 .navega .langs{ position:static; margin-left:auto; margin-right:-.3rem; }
-
-/* ============================================================
-   LAB
-   Las piezas una debajo de otra: grande a la izquierda, que es lo
-   que se juega, y su ficha al lado. En el movil, ficha y luego pieza,
-   como en los proyectos.
-   ============================================================ */
-/* align-content:start: la pagina mide al menos la pantalla, y sin esto la
-   rejilla repartia el alto sobrante entre las filas y separaba la pieza de
-   su ficha */
-.lab{ display:grid; gap: var(--aire); padding: 0 var(--pad) var(--pad); align-content:start; }
-.pieza-lab{
-  display:grid; gap: var(--gap); align-items:start; align-content:start;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-}
-.pieza-lab .media{ grid-column:1; grid-row:1; }
-.pieza-lab .ficha{ grid-column:2; grid-row:1; min-width:0; }
-.ficha h2{
-  margin:0 0 .35em; font-weight:400; line-height:1.05; color: var(--ink-soft);
-  font-size: clamp(24px, 2.6vw, 38px); letter-spacing:-.01em;
-}
-.meta-lab{ margin:0 0 1.2em; font-size: var(--fs-meta); color: var(--ink-soft); }
-.meta-lab .d{ font-style:italic; }
-.ficha p{ margin:0 0 1em; text-align:justify; hyphens:auto; }
-.ficha .credits{ margin-top:2em; }
 
 /* ============================================================
    ABOUT
@@ -492,7 +502,7 @@ main.about, main.project, main.lab{ flex:1 0 auto; }
   margin-top:.5em; padding:.35rem;
   /* Blanco, no el gris del papel: flota sobre el contenido y tiene que
      despegarse de el. Es el unico sitio de la web con sombra. */
-  background:#fff; border:1px solid #e9e9e9;
+  background: var(--caja); border:1px solid var(--caja-borde);
   box-shadow: 0 6px 20px rgba(0,0,0,.055);
   min-width: max-content;
 }
@@ -551,7 +561,7 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
 }
 .carta img, .carta canvas, .carta .sin{
   display:block; width:100%; height:100%;
-  object-fit:cover; background:#f0f0f0 center/cover;
+  object-fit:cover; background: var(--hueco) center/cover;
   -webkit-user-drag:none; user-select:none; pointer-events:none;
   transition: transform .28s cubic-bezier(.2,.7,.2,1);
 }
@@ -635,9 +645,6 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   .navega { order:4; margin-top:0; padding-top:0; }
   .navega .langs{ padding:0; }
   .nav .aqui{ max-width:38vw; }
-  .pieza-lab{ grid-template-columns: 1fr; gap: clamp(18px,4vw,28px); }
-  .pieza-lab .ficha{ grid-column:1; grid-row:1; }
-  .pieza-lab .media{ grid-column:1; grid-row:2; }
 
   .index a{ grid-template-columns: 1fr auto; gap: 1.5ch; }
   .index .c{ display:none; }

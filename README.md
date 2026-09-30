@@ -15,7 +15,8 @@ Todo lo que cambia está en tres ficheros y una carpeta:
 
 ```
 data/work.json        los proyectos de work: el túnel y la lista
-data/lab.json         los del lab: experimentos, piezas interactivas
+data/lab.json         los del lab: experimentos, piezas interactivas.
+                      Funciona igual que work: túnel, lista y una página por proyecto
 data/site.json        el about, las redes, el correo, los textos
 media/<slug>/         las fotos y vídeos de cada proyecto
 ```
@@ -48,7 +49,7 @@ Solo se hace una vez.
    si es del lab) y cambia los campos. Pégalo en su sitio por fecha, **el más
    nuevo arriba**: la web ordena sola, pero así en el fichero lo encuentras todo.
    Pasar un proyecto de lab a work es cortar su bloque de un fichero y pegarlo
-   en el otro.
+   en el otro (y su dirección pasa de `/lab/<slug>/` a `/work/<slug>/`).
 5. **Revísalo con la vista previa** (ver abajo) antes de subir.
 6. **Súbelo** (ver abajo).
 
@@ -93,7 +94,7 @@ Arriba lo que dice qué es, si está publicado y de cuándo; abajo lo largo.
 
 | campo | qué es |
 |---|---|
-| `slug` | La dirección: `/work/<slug>/`, y el nombre de su carpeta en `media/`. No se puede repetir, tampoco entre work y lab. |
+| `slug` | La dirección: `/work/<slug>/` (o `/lab/<slug>/`), y el nombre de su carpeta en `media/`. No se puede repetir, tampoco entre work y lab. |
 | `published` | `false` = escrito pero sin publicar. No sale en la web (pero se puede ver en la vista previa). |
 | `title` | No se traduce. Sale tal cual. |
 | `subheader`, `description` | Los tres idiomas. Si dejas `es` o `cat` vacíos, sale el inglés. Una línea en blanco (`\n\n`) separa párrafos. |
@@ -153,7 +154,8 @@ media/la-roda-ouineta/
 
 Una build de Unity WebGL o cualquier web hecha a mano se sube entera a una
 subcarpeta del proyecto y se pone su `index.html` en `media`. Suelen ir en
-`data/lab.json` (`lab` se enciende en el menú en cuanto hay uno publicado):
+`data/lab.json` (`lab` sale en el menú en cuanto hay uno publicado). Ponle un
+`thumb`: la pieza no tiene fotograma, y sin él su carta del túnel sale gris.
 
 ```
 media/spacetime/web/index.html
@@ -204,6 +206,13 @@ un terreno invisible —como un mapa de montañas— y crece o desaparece según
 El terreno se mueve: las cumbres nacen y se deshacen. Cada visita empieza en un
 momento distinto, así que el paisaje nunca sale igual. Está en `js/bg.js`.
 
+### Claro y oscuro
+
+Abajo a la derecha, junto a los idiomas, la bola partida cambia entre claro y
+oscuro, y se recuerda. Quien no la ha tocado nunca ve el que tenga puesto en su
+ordenador o su móvil. Los colores de los dos están al principio de
+`css/style.css` (`:root` el claro, `html.oscuro` el oscuro).
+
 ### Dominio propio
 
 Cuando esté comprado (`oriolcolomerdelgado.com`, por ejemplo), en `site.json`:
@@ -224,23 +233,7 @@ y en el proveedor del dominio, los DNS apuntando a GitHub Pages (registros `A` a
 Todo lo que hace falta para que la web exista está dentro del repositorio: el
 código, los JSON, las fotos y la receta para publicar
 (`.github/workflows/deploy.yml`). No hay nada fuera. Quien tiene el repositorio
-tiene la web.
-
-**Dejarlo en meowrhino** (lo más sencillo): en GitHub → Settings →
-Collaborators, se añade a Oriol. Puede editar y subir desde VS Code igual que
-ahora. Con dominio propio, la dirección no dice meowrhino en ningún sitio.
-
-**Pasárselo a Oriol**: GitHub → Settings → *Transfer ownership*, a su usuario. La
-receta de publicar viaja con el repositorio. Después, en su copia:
-
-1. Settings → Pages → *Source*: **GitHub Actions**.
-2. En `site.json`, `baseUrl` a `https://<su-usuario>.github.io` (o el dominio,
-   ver arriba).
-3. Un push cualquiera, y se publica.
-
-`meowrhino.github.io/oriol-colomer` deja de funcionar al transferir: GitHub
-redirige el repositorio, pero no la web. Para quedarnos una copia, antes de
-transferir: `git clone --mirror`, o un *fork* desde meowrhino después.
+tiene la web. Cómo pasarle una copia a Oriol: [TRASPASO.md](TRASPASO.md).
 
 ---
 
@@ -277,6 +270,8 @@ Una página por proyecto y por idioma:
 /                            /es/                /cat/
 /work/                       /es/work/           /cat/work/
 /work/<slug>/                /es/work/<slug>/    /cat/work/<slug>/
+/lab/                        /es/lab/            /cat/lab/
+/lab/<slug>/                 /es/lab/<slug>/     /cat/lab/<slug>/
 /about/                      /es/about/          /cat/about/
 sitemap.xml   robots.txt     (CNAME si hay dominio)
 ```
@@ -305,7 +300,7 @@ js/work.js             vista, orden y filtro de la lista
 js/tunnel.js           el tunel y la linea del tiempo
 js/media.js            videos del proyecto al verlos, YouTube, bloque de texto
 js/correo.js           el boton del correo
-js/tipo.js             el boton de wingdings
+js/ajustes.js          los botones de wingdings y de claro / oscuro
 assets/cursor/         los cursores (32 px y @2x de 64 px)
 media/<slug>/          fotos y videos
 ```

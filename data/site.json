@@ -129,6 +129,11 @@
       "es": "cambiar a wingdings",
       "cat": "canviar a wingdings"
     },
+    "tema": {
+      "en": "dark mode",
+      "es": "modo oscuro",
+      "cat": "mode fosc"
+    },
     "back": {
       "en": "back",
       "es": "volver",

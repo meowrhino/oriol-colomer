@@ -44,8 +44,8 @@ export function leerJSON(texto, nombre) {
 
 /** Junta data/work.json y data/lab.json en una sola lista. El fichero
     decide la seccion: lo que esta en lab.json sale en /lab/, lo demas en
-    work. Las direcciones (/work/<slug>/) son de los dos, asi que se revisan
-    juntos: un slug no se puede repetir aunque este en ficheros distintos. */
+    work. La carpeta media/<slug>/ es de los dos, asi que se revisan juntos:
+    un slug no se puede repetir aunque este en ficheros distintos. */
 export function unir(work, lab) {
   for (const [lista, f] of [[work, 'data/work.json'], [lab, 'data/lab.json']])
     if (!Array.isArray(lista)) throw new Error(`${f} tiene que ser una lista: empieza por [ y acaba por ]`);
@@ -76,10 +76,15 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
      es este, de mas reciente a mas antiguo. Un proyecto pegado en cualquier
      sitio del fichero sale donde le toca por fecha. */
   const porFecha = (a, b) => String(b.date).localeCompare(String(a.date));
-  /* Los que llevan "lab": true no son de work: salen en la pagina del lab
-     (experimentos, piezas interactivas) y no en el tunel ni en la lista. */
+  /* Dos secciones que funcionan igual —tunel, lista y una pagina por
+     proyecto—: work y lab (experimentos, piezas interactivas). Cada
+     proyecto va en la suya segun el fichero del que viene (ver unir()). */
   const live = proyectos.filter(p => p && p.published && !p.lab).sort(porFecha);
   const labs = proyectos.filter(p => p && p.published && p.lab).sort(porFecha);
+  const de   = sec => (sec === 'lab' ? labs : live);
+  /** La seccion de un proyecto y su direccion: work/<slug>/ o lab/<slug>/ */
+  const secDe = p => (p.lab ? 'lab' : 'work');
+  const dir   = p => `${secDe(p)}/${p.slug}/`;
 
   /* ---------- rutas ---------- */
   const raiz = p => B + (p.startsWith('/') ? p : '/' + p);
@@ -245,7 +250,7 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
   <link rel="canonical" href="${abs(lang, path)}">
   ${alts}
   <link rel="alternate" hreflang="x-default" href="${abs(DEF, path)}">
-  <meta property="og:type" content="${path.startsWith('work/') && path !== 'work/' ? 'article' : 'website'}">
+  <meta property="og:type" content="${/^(work|lab)\/.+/.test(path) ? 'article' : 'website'}">
   <meta property="og:title" content="${esc(title)}">
   <meta property="og:description" content="${esc(desc)}">
   <meta property="og:url" content="${abs(lang, path)}">
@@ -253,12 +258,14 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
   <meta property="og:locale" content="${lang === 'cat' ? 'ca_ES' : lang === 'es' ? 'es_ES' : 'en_GB'}">
   ${image ? `<meta property="og:image" content="${absFichero(image)}">` : ''}
   <meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}">
-  <meta name="theme-color" content="#fafafa">
+  <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#151515" media="(prefers-color-scheme: dark)">
   <link rel="icon" href="${FAVICON}">
   <link rel="stylesheet" href="${raiz('/css/style.css')}">
-  <!-- La letra elegida (normal o wingdings) se aplica antes de pintar nada,
-       para que no parpadee al cargar. El boton lo lleva js/tipo.js. -->
-  <script>try{if(localStorage.getItem('tipo')==='wingdings')document.documentElement.classList.add('wingdings')}catch(e){}</script>
+  <!-- La letra (normal o wingdings) y el tema (claro u oscuro) se aplican
+       antes de pintar nada, para que no parpadee al cargar. El tema, si nunca
+       se ha tocado el boton, es el del sistema. Los botones: js/ajustes.js. -->
+  <script>try{var s=localStorage,h=document.documentElement.classList,t=s.getItem('tema');if(s.getItem('tipo')==='wingdings')h.add('wingdings');if(t?t==='oscuro':matchMedia('(prefers-color-scheme: dark)').matches)h.add('oscuro')}catch(e){}</script>
   ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld)}</script>` : ''}
 </head>
 <body${entrar ? ` data-entrar="${entrar}"` : ''}${auto ? ` data-auto="${auto}"` : ''}${vista ? ` data-vista="${vista}"` : ''}>
@@ -266,7 +273,7 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
      cambia entre la portada y el resto. -->
 <canvas class="dots" id="bg" data-vel="${vel ?? DENTRO}" aria-hidden="true"></canvas>
 <script type="module" src="${raiz('/js/bg.js')}"></script>
-<script type="module" src="${raiz('/js/tipo.js')}"></script>`;
+<script type="module" src="${raiz('/js/ajustes.js')}"></script>`;
   }
 
   /** La barra de arriba. Dentro de un proyecto, su nombre ocupa el sitio
@@ -312,13 +319,16 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
           ? `<span aria-current="true">${l}</span>`
           : `<a href="${url(l, path)}" hreflang="${l === 'cat' ? 'ca' : l}">${l}</a>`
         ).join('')
-      // letra normal o wingdings. Sale escondido: js/tipo.js lo ensena solo si
+      // letra normal o wingdings. Sale escondido: js/ajustes.js lo ensena solo si
       // el aparato tiene la fuente (Windows y Mac si, moviles no)
       + `<button type="button" class="tipo" aria-pressed="false" title="${esc(t(site.ui.tipo, lang))}" hidden>`
       // apagado se ensena un ojo (la N en Webdings: Wingdings no tiene); encendido,
       // "Aa" en letra normal, que es a lo que vuelve
       + `<span class="wd" aria-hidden="true">N</span><span class="aa" aria-hidden="true">Aa</span>`
       + `<span class="sr">${esc(t(site.ui.tipo, lang))}</span></button>`
+      // claro u oscuro: una bola partida. Escondido hasta que hay JS que lo mueva
+      + `<button type="button" class="tema" aria-pressed="false" title="${esc(t(site.ui.tema, lang))}" hidden>`
+      + `<span class="luna" aria-hidden="true"></span><span class="sr">${esc(t(site.ui.tema, lang))}</span></button>`
       + `</nav>`;
   }
 
@@ -363,18 +373,20 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
     + foot();
   }
 
-  function workIndex(lang) {
-    const tags = [...new Set(live.flatMap(p => p.tags || []))];
+  /** El indice de una seccion: el tunel y la lista. Work y lab son iguales. */
+  function indice(lang, sec) {
+    const items = de(sec);
+    const tags = [...new Set(items.flatMap(p => p.tags || []))];
 
     // La lista va en el HTML siempre: es lo que lee Google y lo que queda si
     // no corre JavaScript. El tunel se construye leyendo esta misma lista.
-    const rows = live.map(p => {
+    const rows = items.map(p => {
       const portada = cover(p);
       // la proporcion de la portada: el tunel y la miniatura la respetan
       const d = portada?.img ? medidas(portada.img) : null;
       return `      <li data-tags="${esc((p.tags || []).join(' '))}"
           data-date="${esc(p.date)}" data-client="${esc(String(p.client || '').toLowerCase())}" data-title="${esc(String(p.title).toLowerCase())}">
-        <a href="${url(lang, 'work/' + p.slug + '/')}"${portada?.img ? ` data-peek="${raiz('/' + esc(portada.img))}"` : ''}${
+        <a href="${url(lang, dir(p))}"${portada?.img ? ` data-peek="${raiz('/' + esc(portada.img))}"` : ''}${
           d ? ` data-ratio="${(d.w / d.h).toFixed(4)}"` : ''}${
           portada?.video ? ` data-peek-video="${portada.video.map(f => raiz('/' + esc(f))).join('|')}"` : ''}>
           <span class="t">${titleHtml(p.title)}<small>${esc(t(p.subheader, lang))}</small></span>
@@ -401,21 +413,21 @@ ${opciones.map(([v, l], i) => `          <button type="button" role="menuitemrad
     const filtro = [['', t(site.ui.all, lang)], ...tags.map(g => [g, g])];
 
     return head({
-      lang, path: 'work/',
+      lang, path: `${sec}/`,
       // La vista por defecto ya viene puesta en el HTML: si la pusiera el
       // guion, la lista entera se pintaria y desapareceria al cargar.
       vista: 'tunel',
-      title: `work — ${site.shortName}`,
+      title: `${sec} — ${site.shortName}`,
       desc: t(site.tagline, lang),
-      image: ogSitio(),
+      image: ogImage(items[0]),
       jsonld: {
         '@context':'https://schema.org', '@type':'CollectionPage',
-        name:'work', url: abs(lang, 'work/'),
-        hasPart: live.map(p => ({ '@type':'CreativeWork', name:p.title, url: abs(lang, 'work/' + p.slug + '/') })),
+        name: sec, url: abs(lang, `${sec}/`),
+        hasPart: items.map(p => ({ '@type':'CreativeWork', name:p.title, url: abs(lang, dir(p)) })),
       },
     })
     + `<div class="topbar">
-  ${nav(lang, 'work')}
+  ${nav(lang, sec)}
   <!-- Orden y filtro a la izquierda del cambio de vista: solo salen en la
        lista, y asi el boton tunel/lista no se mueve de sitio al cambiar. -->
   <div class="controles">
@@ -428,7 +440,7 @@ ${menu('tag', '', filtro)}
 </div>
 
 <main class="wrap">
-  <h1 class="sr">work</h1>
+  <h1 class="sr">${sec}</h1>
 
   <!-- vista tunel -->
   <div class="escena" id="escena">
@@ -454,7 +466,7 @@ ${rows}
 </footer>
 
 <div class="peek" id="peek" aria-hidden="true"></div>
-${pageFoot(lang, 'work/')}
+${pageFoot(lang, `${sec}/`)}
 <script type="module" src="${raiz('/js/work.js')}"></script>
 <script type="module" src="${raiz('/js/tunnel.js')}"></script>`
     + foot();
@@ -476,7 +488,7 @@ ${pageFoot(lang, 'work/')}
 
     const og = ogImage(p);
     return head({
-      lang, path: `work/${p.slug}/`,
+      lang, path: dir(p),
       title: `${p.title} — ${sub} — ${site.shortName}`,
       desc: metaDesc(desc),
       image: og,
@@ -485,7 +497,7 @@ ${pageFoot(lang, 'work/')}
         name: p.title, headline: p.title, abstract: sub,
         description: metaDesc(desc),
         datePublished: p.date,
-        url: abs(lang, `work/${p.slug}/`),
+        url: abs(lang, dir(p)),
         inLanguage: lang === 'cat' ? 'ca' : lang,
         creator: { '@type':'Person', name: site.name, url: site.baseUrl },
         about: p.client,
@@ -497,7 +509,7 @@ ${pageFoot(lang, 'work/')}
             ({ '@type':'Person', name: h, sameAs: igUrl(h) }))),
       },
     })
-    + `${nav(lang, 'work', p)}
+    + `${nav(lang, secDe(p), p)}
 <main class="project">
   <div class="side">
     <div class="info">
@@ -518,12 +530,12 @@ ${credits}
          siguiente). -->
     <div class="navega">
       <nav class="pager" aria-label="${esc(t(site.ui.aria.projects, lang))}">
-        ${prev ? `<a class="ant" href="${url(lang, 'work/' + prev.slug + '/')}" title="${esc(prev.title)}"><span>←</span> <span class="tt">${esc(prev.title)}</span></a>` : '<span></span>'}
-        ${next ? `<a class="sgte" href="${url(lang, 'work/' + next.slug + '/')}" title="${esc(next.title)}"><span class="tt">${esc(next.title)}</span> <span>→</span></a>` : '<span></span>'}
+        ${prev ? `<a class="ant" href="${url(lang, dir(prev))}" title="${esc(prev.title)}"><span>←</span> <span class="tt">${esc(prev.title)}</span></a>` : '<span></span>'}
+        ${next ? `<a class="sgte" href="${url(lang, dir(next))}" title="${esc(next.title)}"><span class="tt">${esc(next.title)}</span> <span>→</span></a>` : '<span></span>'}
       </nav>
       <div class="abajo">
-        <a class="volver" href="${url(lang, 'work/')}">${esc(t(site.ui.back, lang))}</a>
-        ${langs(lang, `work/${p.slug}/`)}
+        <a class="volver" href="${url(lang, secDe(p) + '/')}">${esc(t(site.ui.back, lang))}</a>
+        ${langs(lang, dir(p))}
       </div>
     </div>
   </div>
@@ -546,47 +558,6 @@ ${roles.map(([role, people]) =>
   `        <div class="row"><dt>${esc(role)}</dt> <dd>${linkHandles(people)}</dd></div>`).join('\n')}
       </dl>
     </section>` : '';
-  }
-
-  /** El lab: las piezas una debajo de otra, cada una con su ficha al lado.
-      Sin pagina propia por pieza: son pocas, y se juegan aqui mismo. */
-  function labPage(lang) {
-    const piezas = labs.map(p => {
-      const sub = t(p.subheader, lang), desc = t(p.description, lang);
-      const media = (p.media || []).map(m => enCarpeta(p, m))
-        .map((m, i) => `      <figure>${mediaTag(m, p, sub, i)}</figure>`).join('\n');
-      return `  <article class="pieza-lab" id="${esc(p.slug)}">
-    <div class="media">
-${media}
-    </div>
-    <div class="ficha">
-      <h2>${titleHtml(p.title)}</h2>
-      <p class="meta-lab"><span class="d">${esc(fmtDate(p.date))}</span>${sub ? ` · ${esc(sub)}` : ''}</p>
-${paras(desc).map(x => `      <p>${esc(x)}</p>`).join('\n')}
-      ${p.link ? `<a class="watch" href="${esc(p.link)}" target="_blank" rel="noopener">${esc(t(site.ui.watch, lang))} →</a>` : ''}
-${creditos(p, lang)}
-    </div>
-  </article>`;
-    }).join('\n');
-    return head({
-      lang, path: 'lab/',
-      title: `lab — ${site.shortName}`,
-      desc: t(site.tagline, lang),
-      image: ogImage(labs[0]),
-      jsonld: {
-        '@context':'https://schema.org', '@type':'CollectionPage',
-        name:'lab', url: abs(lang, 'lab/'),
-        hasPart: labs.map(p => ({ '@type':'CreativeWork', name: p.title, url: abs(lang, 'lab/') + '#' + p.slug })),
-      },
-    })
-    + `${nav(lang, 'lab')}
-<main class="lab">
-  <h1 class="sr">lab</h1>
-${piezas}
-</main>
-${pageFoot(lang, 'lab/')}
-<script type="module" src="${raiz('/js/media.js')}"></script>`
-    + foot();
   }
 
   function aboutPage(lang) {
@@ -623,13 +594,16 @@ ${pageFoot(lang, 'about/', { firma: true })}
     const r = [];
     for (const lang of LANGS) {
       r.push({ ruta: ruta(lang),          pintar: () => landing(lang) });
-      r.push({ ruta: ruta(lang, 'work/'), pintar: () => workIndex(lang) });
       r.push({ ruta: ruta(lang, 'about/'), pintar: () => aboutPage(lang) });
-      if (labs.length) r.push({ ruta: ruta(lang, 'lab/'), pintar: () => labPage(lang) });
-      live.forEach((p, i) => r.push({
-        ruta: ruta(lang, `work/${p.slug}/`), fecha: p.date,
-        pintar: () => projectPage(p, lang, live[i - 1], live[i + 1]),
-      }));
+      for (const sec of ['work', 'lab']) {
+        const items = de(sec);
+        if (!items.length) continue;
+        r.push({ ruta: ruta(lang, `${sec}/`), pintar: () => indice(lang, sec) });
+        items.forEach((p, i) => r.push({
+          ruta: ruta(lang, dir(p)), fecha: p.date,
+          pintar: () => projectPage(p, lang, items[i - 1], items[i + 1]),
+        }));
+      }
     }
     return r;
   }

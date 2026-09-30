@@ -100,7 +100,7 @@ async function arrancar() {
   /* Un borrador (published:false) no tiene pagina en la web, pero aqui si
      se puede ver entrando a su direccion: sirve para repasarlo antes de
      publicarlo. Se pinta como si estuviera publicado y se avisa. */
-  const slug = (/\/work\/([^/]+)\/$/.exec(pedida) || [])[1];
+  const slug = (/\/(?:work|lab)\/([^/]+)\/$/.exec(pedida) || [])[1];
   const borrador = slug && proyectos.find(p => p && p.slug === slug && p.published === false);
   const datos = borrador
     ? proyectos.map(p => (p === borrador ? { ...p, published: true } : p))

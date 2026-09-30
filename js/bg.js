@@ -147,6 +147,9 @@ if (cv && cv.getContext) {
   /* ---- ciclo ------------------------------------------------ */
   medir();
   addEventListener('resize', () => { medir(); if (quieto) pintar(T0); });
+  // al cambiar de tema cambia el color de los puntos (--dot-rgb): se relee
+  new MutationObserver(() => { medir(); if (quieto) pintar(T0); })
+    .observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
   if (quieto) {
     // Un solo fotograma y a otra cosa: ni bucle ni escuchas de puntero. El
