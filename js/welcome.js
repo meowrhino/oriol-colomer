@@ -79,8 +79,7 @@ if (ojo && destino) {
   let yendo = false;
   function entrar(e) {
     if (yendo) return;
-    if (e && e.target && e.target.closest && e.target.closest('a, button, .langs')) return;   // ajustes: no entran
-    if (!e && document.querySelector('.langs details[open]')) return;   // ni sola con los ajustes abiertos
+    if (e && e.target && e.target.closest && e.target.closest('a, button')) return;   // idiomas: no entran
     yendo = true;
     try { sessionStorage.setItem('entrando', '1'); } catch {}            // lo lee el tunel
     if (seco) { location.href = destino; return; }
@@ -90,7 +89,7 @@ if (ojo && destino) {
 
   addEventListener('pointerdown', entrar);
   addEventListener('keydown', e => {
-    if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('.langs')) { e.preventDefault(); entrar(); }
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); entrar(); }
   });
 
   /* Sin "click anywhere": pasado un rato se entra sola. El reloj se para

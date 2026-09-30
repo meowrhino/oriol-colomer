@@ -1,7 +1,6 @@
 /* ============================================================
-   La cajita de ajustes: idioma, letra y tema
+   Los dos interruptores junto a los idiomas
    ------------------------------------------------------------
-   El idioma son enlaces y no necesita nada. Los dos interruptores:
    - letra: toda la web en Wingdings y en mayusculas
    - tema:  claro u oscuro
 
@@ -52,7 +51,8 @@ for (const b of document.querySelectorAll('.langs .tema'))
   b.addEventListener('click', () =>
     b.animate([{ transform: 'rotate(0)' }, { transform: 'rotate(360deg)' }], { duration: 500, easing: 'ease-in-out' }));
 
-// la cajita de ajustes se cierra al pulsar fuera o con Esc
-const cerrar = fuera => { for (const d of document.querySelectorAll('.langs details[open]')) if (fuera(d)) d.open = false; };
-addEventListener('pointerdown', e => cerrar(d => !d.contains(e.target)));
-addEventListener('keydown', e => { if (e.key === 'Escape') cerrar(() => true); });
+// el desplegable del idioma se cierra al pulsar fuera
+addEventListener('pointerdown', e => {
+  for (const d of document.querySelectorAll('.langs details[open]'))
+    if (!d.contains(e.target)) d.open = false;
+});

@@ -321,22 +321,16 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
         </a>
       </figure>`;
 
-  /* Idioma, letra y tema: un solo boton (unos deslizadores: personalizar) que abre una
-     cajita con los tres. La barra queda para navegar. <details> se abre y
-     se cierra solo; js/ajustes.js lo cierra al pulsar fuera o con Esc. */
   function langs(lang, path) {
-    const nombre = esc(t(site.ui.aria.ajustes, lang));
-    return `<nav class="langs" aria-label="${nombre}"><details>`
-      + `<summary title="${nombre}"><svg viewBox="0 0 24 24" aria-hidden="true">`
-      + `<circle cx="14" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>`
-      + `<path d="M4 6h8M16 6h4M4 12h2M10 12h10M4 18h11M19 18h1"/></svg>`
-      + `<span class="sr">${nombre}</span></summary>`
-      + `<div class="opciones"><div class="fila">`
+    return `<nav class="langs" aria-label="${esc(t(site.ui.aria.lang, lang))}">`
+      // el idioma es un desplegable: se ve el activo y al abrirlo, los tres.
+      // <details> se abre y se cierra solo; js/ajustes.js lo cierra al pulsar fuera
+      + `<details class="idioma"><summary>${lang}</summary><div class="opciones">`
       + LANGS.map(l => l === lang
           ? `<span aria-current="true">${l}</span>`
           : `<a href="${url(l, path)}" hreflang="${iso(l)}">${l}</a>`
         ).join('')
-      + `</div><div class="fila">`
+      + `</div></details>`
       // letra normal o wingdings. Sale escondido: js/ajustes.js lo ensena solo si
       // el aparato tiene la fuente (Windows y Mac si, moviles no)
       + `<button type="button" class="tipo" aria-pressed="false" title="${esc(t(site.ui.tipo, lang))}" hidden>`
@@ -350,7 +344,7 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
       + `<svg class="luna" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`
       + `<svg class="sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`
       + `<span class="sr">${esc(t(site.ui.tema, lang))}</span></button>`
-      + `</div></div></details></nav>`;
+      + `</nav>`;
   }
 
   const sig = () =>
@@ -453,8 +447,8 @@ ${menu('tag', '', filtro)}
     <div class="vistas" role="group" aria-label="${esc(t(site.ui.aria.view, lang))}">
       <button type="button" data-vista="tunel" data-texto="${esc(t(site.ui.tunnel, lang))}" aria-pressed="true">${esc(t(site.ui.tunnel, lang))}</button><span class="sep" aria-hidden="true">/</span><button type="button" data-vista="lista" data-texto="${esc(t(site.ui.list, lang))}" aria-pressed="false">${esc(t(site.ui.list, lang))}</button>
     </div>
-    <!-- los ajustes a la derecha de tunel/lista: en el tunel la pagina
-         no scrollea y un pie no se veria nunca -->
+    <!-- idiomas, letra y tema a la derecha de tunel/lista: en el tunel la
+         pagina no scrollea y el pie no se veria nunca -->
     ${langs(lang, `${sec}/`)}
   </div>
 </div>
@@ -545,7 +539,7 @@ ${paras(desc).map(x => `        <p>${esc(x)}</p>`).join('\n')}
     </div>
 ${credits}
     <!-- Al pie del bloque del texto, en dos lineas: anterior y siguiente,
-         y debajo, volver a work (bajo el anterior) y los ajustes (bajo el
+         y debajo, volver a work (bajo el anterior) y los idiomas (bajo el
          siguiente). -->
     <div class="navega">
       <nav class="pager" aria-label="${esc(t(site.ui.aria.projects, lang))}">

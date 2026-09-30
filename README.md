@@ -214,8 +214,8 @@ momento distinto, así que el paisaje nunca sale igual. Está en `js/bg.js`.
 
 ### Claro y oscuro
 
-En el botón de ajustes (los deslizadores, arriba a la derecha en work y al pie en
-el resto) está el sol / la luna, que cambia entre claro y oscuro, y se recuerda. Quien no la ha tocado nunca ve el que tenga puesto en su
+Junto a los idiomas (arriba a la derecha en work, al pie en el resto), el sol /
+la luna cambia entre claro y oscuro, y se recuerda. Quien no la ha tocado nunca ve el que tenga puesto en su
 ordenador o su móvil. Los colores de los dos están al principio de
 `css/style.css` (`:root` el claro, `html.oscuro` el oscuro).
 
@@ -306,7 +306,7 @@ js/work.js             vista, orden y filtro de la lista
 js/tunnel.js           el tunel y la linea del tiempo
 js/media.js            videos del proyecto al verlos, YouTube, bloque de texto
 js/correo.js           el boton del correo
-js/ajustes.js          la cajita de ajustes: wingdings, claro / oscuro, cerrar
+js/ajustes.js          los botones de wingdings y de claro / oscuro, y el desplegable del idioma
 assets/cursor/         los cursores (32 px y @2x de 64 px)
 media/<slug>/          fotos y videos
 ```
