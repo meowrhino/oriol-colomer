@@ -4,7 +4,6 @@
   "type": "module",
   "scripts": {
     "build": "node build/build.mjs",
-    "dev": "node build/serve.mjs",
     "media": "node build/media.mjs"
   }
 }

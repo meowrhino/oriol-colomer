@@ -263,30 +263,28 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
 </head>
 <body${entrar ? ` data-entrar="${entrar}"` : ''}${auto ? ` data-auto="${auto}"` : ''}${vista ? ` data-vista="${vista}"` : ''}>
 <!-- El fondo se mueve en todas las paginas; la velocidad es lo unico que
-     cambia entre la portada y el resto. El campo sale de data/site.json. -->
-<canvas class="dots" id="bg" data-vel="${vel ?? DENTRO}" data-campo="${esc(site.fondo || 'terreno')}" aria-hidden="true"></canvas>
+     cambia entre la portada y el resto. -->
+<canvas class="dots" id="bg" data-vel="${vel ?? DENTRO}" aria-hidden="true"></canvas>
 <script type="module" src="${raiz('/js/bg.js')}"></script>
 <script type="module" src="${raiz('/js/tipo.js')}"></script>`;
   }
 
   /** La barra de arriba. Dentro de un proyecto, su nombre ocupa el sitio
       de "work" —se ve donde estas— y al clicarlo vuelves a work. */
+  /* Las secciones. Se llaman igual en los tres idiomas; lab solo sale
+     cuando hay algo publicado en data/lab.json. */
+  const SECCIONES = [['home', ''], ['work', 'work/'], ['about', 'about/'], ['lab', 'lab/']];
   function nav(lang, current, proyecto = null) {
-    const item = n => {
-      const label = esc(t(n.label, lang));
-      // lab todavia no tiene destino: se ensena apagado y sin enlace
-      // sin destino —o el lab sin nada publicado— se ensena apagado y sin enlace
-      if (!n.href || (n.id === 'lab' && !labs.length))
-        return `<span class="off" title="${esc(t(site.ui.aria.soon, lang))}">${label}</span>`;
-      const href = url(lang, n.href.replace(/^\//, ''));
-      if (proyecto && n.id === current)
-        return `<a class="aqui" href="${href}" aria-current="page" title="${label}">${esc(proyecto.title)}</a>`;
-      return n.id === current
-        ? `<a href="${href}" aria-current="page">${label}</a>`
-        : `<a href="${href}">${label}</a>`;
+    const item = ([id, path]) => {
+      const href = url(lang, path);
+      if (proyecto && id === current)
+        return `<a class="aqui" href="${href}" aria-current="page" title="${id}">${esc(proyecto.title)}</a>`;
+      return id === current
+        ? `<a href="${href}" aria-current="page">${id}</a>`
+        : `<a href="${href}">${id}</a>`;
     };
     return `<nav class="nav nav--inline">`
-         + site.nav.map(item).join('<span class="sep">/</span>')
+         + SECCIONES.filter(([id]) => id !== 'lab' || labs.length).map(item).join('<span class="sep">/</span>')
          + `</nav>`;
   }
 
@@ -430,7 +428,7 @@ ${menu('tag', '', filtro)}
 </div>
 
 <main class="wrap">
-  <h1 class="sr">${esc(t(site.nav[1].label, lang))}</h1>
+  <h1 class="sr">work</h1>
 
   <!-- vista tunel -->
   <div class="escena" id="escena">

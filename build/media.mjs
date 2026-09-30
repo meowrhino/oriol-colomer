@@ -5,7 +5,7 @@
    si un fichero se convierte alli o aqui:
 
      fotos   jpg / png  ->  webp calidad 85, 2000 px como mucho
-     gif                ->  video (webm + mp4): pesa una fraccion
+     gif                ->  video webm: pesa una fraccion
      video   mp4 / mov  ->  webm, preset 720p (1280x720 max, techo
                             1200 kbps), sin audio: en la web van mudos
 
@@ -13,8 +13,12 @@
    aqui, con ffmpeg de verdad, se usa VP9, que a igual techo se ve
    mejor. De cada video queda ademas:
 
-     <nombre>.mp4          respaldo para iPhones antiguos sin webm
      <nombre>.poster.webp  un fotograma, lo que se ve antes de que cargue
+
+   El original (mp4, mov) se borra: la web usa solo el webm, que es lo
+   mismo que sale de videoToWeb. Con --mp4 se deja ademas un mp4 de
+   respaldo para iPhones anteriores a iOS 17.4, que no leen webm (sin el
+   ven el poster quieto). La web lo usa solo si esta.
 
    Y de la portada de cada proyecto, una miniatura:
 
@@ -37,6 +41,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const MEDIA = join(ROOT, 'media');
 const REHACER = process.argv.includes('--rehacer');
+const MP4 = process.argv.includes('--mp4');
 
 /* ---- los ajustes (los de imgToWeb y videoToWeb) ---- */
 const FOTO_CALIDAD  = 85;
@@ -122,13 +127,13 @@ for (const b of bases) {
     log('mudo', webm, kb(webm));
   }
 
-  // mp4 de respaldo: desde el original si es otro formato, o desde el webm
-  if (origen && origen !== mp4 && !existsSync(mp4) || !origen && !existsSync(mp4)) {
+  // mp4 de respaldo, solo con --mp4: desde el original si es otro formato, o desde el webm
+  if (MP4 && (origen && origen !== mp4 && !existsSync(mp4) || !origen && !existsSync(mp4))) {
     run('ffmpeg', ['-nostdin', '-loglevel', 'error', '-y', '-i', origen || webm, '-an',
       '-movflags', '+faststart', '-pix_fmt', 'yuv420p', '-vf', escala,
       '-c:v', 'libx264', '-crf', '26', '-maxrate', '1600k', '-bufsize', '3200k', '-preset', 'slow', mp4]);
     log('mp4', mp4, kb(mp4));
-  } else if (REHACER && origen === mp4) {
+  } else if (MP4 && REHACER && origen === mp4) {
     // el respaldo tambien al preset, pero solo si de verdad baja
     const tmp = b + '.tmp.mp4';
     run('ffmpeg', ['-nostdin', '-loglevel', 'error', '-y', '-i', mp4, '-an',
@@ -139,8 +144,8 @@ for (const b of bases) {
       rmSync(mp4); run('mv', [tmp, mp4]);
     } else rmSync(tmp);
   }
-  if (origen && origen !== mp4) { rmSync(origen); renombres.set(rel(origen), rel(webm)); }
-  if (origen === mp4) renombres.set(rel(mp4), rel(webm));      // el JSON apunta al webm
+  if (origen && (origen !== mp4 || !MP4)) rmSync(origen);   // el mp4 se queda solo con --mp4
+  if (origen) renombres.set(rel(origen), rel(webm));        // el JSON apunta al webm
 
   // poster: un fotograma, en webp. El de medio segundo y no el primero,
   // que en los clips cortados suele salir negro o a medio fundido.

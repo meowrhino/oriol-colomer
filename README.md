@@ -41,8 +41,8 @@ Solo se hace una vez.
 1. **Elige el slug**: la dirección del proyecto, `/work/<slug>/`. Minúsculas,
    números y guiones, sin acentos ni espacios: `la-roda-ouineta`.
    **No lo cambies nunca** una vez publicado: rompe los enlaces que ya circulan.
-2. **Prepara las fotos y los vídeos** (ver abajo) y ponles nombres sencillos, sin
-   espacios ni acentos: `1.webp`, `2.webp`, `directo.webm`…
+2. **Prepara las fotos y los vídeos** (ver abajo) y ponles nombre por orden:
+   `01.webm`, `01.poster.webp`, `02.webp`… (ver "Qué va en la carpeta").
 3. **Crea la carpeta** `media/<slug>/` —el mismo slug— y mete ahí los ficheros.
 4. **Copia un bloque** `{ ... }` entero de `data/work.json` (o de `data/lab.json`
    si es del lab) y cambia los campos. Pégalo en su sitio por fecha, **el más
@@ -86,8 +86,8 @@ Arriba lo que dice qué es, si está publicado y de cuándo; abajo lo largo.
     "photography": "@conamorirene"
   },
   "link": "https://youtu.be/…",
-  "thumb": "portada.webm",
-  "media": ["1.webp", "2.webp", "directo.webm"]
+  "thumb": "thumb.webm",
+  "media": ["01.webm", "02.webp", "03.webp"]
 }
 ```
 
@@ -117,11 +117,37 @@ suben nada a ningún sitio y dejan los ficheros con el peso justo para la web:
 - **Vídeos** → [videoToWeb](https://meowrhino.github.io/videoToWeb/), preset **720p**.
   Salen en WebM.
 
-Para un `thumb` en vídeo, mejor un clip corto (3–6 s) en **480p**: en el túnel se
-ven todas las portadas a la vez y cada una pesa.
-
 **No subas GIF ni fotos de móvil sin convertir**: una foto de 5 MB tarda más en
 cargar que todo el resto de la página y hunde el posicionamiento.
+
+### Qué va en la carpeta de un proyecto, y con qué nombre
+
+```
+media/la-roda-ouineta/
+  01.webm              un vídeo (de videoToWeb)
+  01.poster.webp       su fotograma: el mismo nombre + .poster.webp
+  02.webp              una foto (de imgToWeb)
+  03.webp              otra foto
+  thumb.webm           la portada, si quieres una distinta (opcional)
+  thumb.poster.webp    su fotograma
+```
+
+- **Nombres**: `01`, `02`, `03`… en el orden en que salen. Con dos cifras, para
+  que en la carpeta se vean en orden.
+- **El fotograma de un vídeo** (`.poster.webp`) es lo que se ve mientras el vídeo
+  carga, y lo que sale en el túnel si ese vídeo es la portada. Si no está, el
+  vídeo funciona igual, pero hasta que carga hay un hueco. Para hacerlo: para
+  el vídeo en un buen momento, haz una captura (`cmd + shift + 4`), pásala por
+  imgToWeb y llámala como el vídeo con `.poster.webp` al final.
+- **La portada** (`thumb`) es opcional. Puede ser una foto (`thumb.webp`), un GIF
+  pasado por imgToWeb (`thumb.webp`, animado) o un vídeo corto: 3–6 s en **480p**
+  (`thumb.webm` y su `thumb.poster.webp`). En el túnel se ven todas las portadas a
+  la vez y cada una pesa.
+- **Los originales** (los `.mp4` y `.mov` de la cámara o de Premiere) **no van
+  aquí**: se quedan en tu ordenador o en tu nube. La web solo usa el `.webm`.
+- Los ficheros que acaban en `.thumb.webp` los hace meowrhino: son copias
+  pequeñas para el túnel. No hace falta que los hagas tú; sin ellos se usa la
+  imagen grande.
 
 ### Piezas interactivas (Unity, webs)
 
@@ -168,26 +194,15 @@ Los mismos avisos salen en GitHub, en la pestaña **Actions**, al publicar.
 | `email` | El correo. En la web no va escrito: sale un botón "email" que lo enseña al clicarlo, para que no lo recojan los robots de spam. |
 | `redes` | Las redes del about: `{ "texto": "github", "url": "https://…" }`. Añade o quita las que quieras. |
 | `entradaAuto` | Segundos que espera la portada antes de entrar sola al túnel. `0` para que no entre sola. |
-| `fondo` | El campo de puntos del fondo (ver abajo). |
 | `tagline` | La frase que sale en Google y al compartir el enlace. |
 | `ui` | Los textos de los botones, en los tres idiomas. |
 
 ### El fondo
 
-Los puntos del fondo no son una imagen: se calculan. Cada punto lee un campo
-invisible y crece o desaparece según el valor, y el campo se mueve. Hay cinco:
-
-| valor | qué se ve |
-|---|---|
-| `terreno` | relieve que nace y se deshace, como un mapa de montañas. **El que está puesto.** |
-| `olas` | crestas que barren en diagonal |
-| `remolino` | mármol, humo |
-| `celular` | burbujas que se empujan |
-| `gotas` | aros de varias fuentes que se cruzan |
-| `aleatorio` | uno de los cinco al azar, distinto en cada visita |
-
-Para verlos sin tocar nada: `?bg=remolino` al final de la dirección, o las teclas
-`1`…`5` con la página abierta.
+Los puntos del fondo no son una imagen: se calculan. Cada punto lee la altura de
+un terreno invisible —como un mapa de montañas— y crece o desaparece según ella.
+El terreno se mueve: las cumbres nacen y se deshacen. Cada visita empieza en un
+momento distinto, así que el paisaje nunca sale igual. Está en `js/bg.js`.
 
 ### Dominio propio
 
@@ -204,15 +219,55 @@ y en el proveedor del dominio, los DNS apuntando a GitHub Pages (registros `A` a
 `meowrhino.github.io`). Después, en GitHub → Settings → Pages, el dominio y
 "Enforce HTTPS". El build escribe el fichero `CNAME` solo.
 
+### De quién es el repositorio
+
+Todo lo que hace falta para que la web exista está dentro del repositorio: el
+código, los JSON, las fotos y la receta para publicar
+(`.github/workflows/deploy.yml`). No hay nada fuera. Quien tiene el repositorio
+tiene la web.
+
+**Dejarlo en meowrhino** (lo más sencillo): en GitHub → Settings →
+Collaborators, se añade a Oriol. Puede editar y subir desde VS Code igual que
+ahora. Con dominio propio, la dirección no dice meowrhino en ningún sitio.
+
+**Pasárselo a Oriol**: GitHub → Settings → *Transfer ownership*, a su usuario. La
+receta de publicar viaja con el repositorio. Después, en su copia:
+
+1. Settings → Pages → *Source*: **GitHub Actions**.
+2. En `site.json`, `baseUrl` a `https://<su-usuario>.github.io` (o el dominio,
+   ver arriba).
+3. Un push cualquiera, y se publica.
+
+`meowrhino.github.io/oriol-colomer` deja de funcionar al transferir: GitHub
+redirige el repositorio, pero no la web. Para quedarnos una copia, antes de
+transferir: `git clone --mirror`, o un *fork* desde meowrhino después.
+
 ---
 
 ## Para desarrollo
 
 ```bash
-npm run dev      # genera dist/ y lo sirve en localhost:4321, recargando solo
-npm run build    # solo genera dist/
-npm run media    # convierte lo que haya en media/ (necesita: brew install ffmpeg webp)
+npm run build          # genera dist/ (lo mismo que hace GitHub al publicar)
+npm run media          # convierte lo que haya en media/ (necesita: brew install ffmpeg webp)
+npm run media -- --mp4 # lo mismo, y deja un mp4 de respaldo de cada video
 ```
+
+Para ver la web en local, lo mismo que Oriol: Live Server.
+
+### Qué es `dist/`
+
+La web ya hecha: 36 HTML, uno por página y por idioma, más las fotos, el CSS y el
+JS copiados. La escribe `build/build.mjs` a partir de los JSON.
+
+**No está en GitHub** (`.gitignore`) y no hace falta guardarla: cada push la
+vuelve a hacer GitHub Actions desde cero y la publica, y se puede rehacer igual
+desde cualquier commit. Si aparece en tu carpeta es porque alguien ha lanzado
+`npm run build` para probar; se puede borrar.
+
+En otras webs nuestras no hay `dist/` porque el navegador lee el JSON y pinta la
+página al vuelo. Aquí las páginas se hacen antes para que cada proyecto tenga su
+dirección, con su título, su descripción y su imagen: es lo que lee Google y lo
+que sale al compartir el enlace por WhatsApp.
 
 ### Qué genera
 
@@ -242,7 +297,6 @@ build/paginas.mjs      las plantillas: todo el HTML sale de aqui
 build/build.mjs        las escribe en dist/ (Node, en GitHub Actions)
 build/preview.mjs      las pinta en el navegador (vista previa)
 build/media.mjs        fotos a WebP, videos a WebM, posters y miniaturas
-build/serve.mjs        servidor local de dist/
 css/style.css          toda la hoja de estilo
 js/util.js             lo poco que comparten los guiones
 js/bg.js               el fondo de puntos
@@ -272,12 +326,14 @@ que podrían estar (el mp4 de respaldo, un poster) y no están. No son errores.
 
 ### Los ficheros de un vídeo
 
-De `directo.webm` el generador busca solo, al lado:
+De `01.webm` el generador busca solo, al lado:
 
-- `directo.mp4` — respaldo para navegadores sin WebM (iPhones antiguos)
-- `directo.poster.webp` (o `.jpg`) — el fotograma que se ve antes de que cargue
+- `01.poster.webp` (o `.jpg`) — el fotograma que se ve antes de que cargue
+- `01.mp4` — respaldo para iPhones anteriores a iOS 17.4, que no leen WebM. No se
+  sube ninguno (sin él, esos iPhones ven el fotograma quieto), pero si se pone,
+  se usa. `npm run media -- --mp4` los hace.
 
-y de una foto de portada, `foto.thumb.webp`: 720 px, lo que pintan el túnel y la
+y de una foto de portada, `01.thumb.webp`: 720 px, lo que pintan el túnel y la
 lista. Todo lo hace `npm run media`; si falta algo, se usa lo que hay y nunca se
 rompe nada, solo pesa más.
 

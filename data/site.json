@@ -31,46 +31,7 @@
       "url": "https://www.linkedin.com/in/oriolcolomerdelgado/"
     }
   ],
-  "fondo": "terreno",
   "entradaAuto": 8,
-  "nav": [
-    {
-      "id": "home",
-      "href": "/",
-      "label": {
-        "en": "home",
-        "es": "home",
-        "cat": "home"
-      }
-    },
-    {
-      "id": "work",
-      "href": "/work/",
-      "label": {
-        "en": "work",
-        "es": "work",
-        "cat": "work"
-      }
-    },
-    {
-      "id": "about",
-      "href": "/about/",
-      "label": {
-        "en": "about",
-        "es": "about",
-        "cat": "about"
-      }
-    },
-    {
-      "id": "lab",
-      "href": "/lab/",
-      "label": {
-        "en": "lab",
-        "es": "lab",
-        "cat": "lab"
-      }
-    }
-  ],
   "tagline": {
     "en": "Lighting design, concert visuals and music videos. Barcelona.",
     "es": "Diseño de iluminación, visuales de directo y videoclips. Barcelona.",
@@ -156,11 +117,6 @@
         "en": "projects",
         "es": "proyectos",
         "cat": "projectes"
-      },
-      "soon": {
-        "en": "soon",
-        "es": "pronto",
-        "cat": "aviat"
       }
     },
     "mail": {

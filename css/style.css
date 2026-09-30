@@ -107,7 +107,6 @@ img{ max-width:100%; display:block; }
 .nav a{ color: var(--ink-soft); }
 .nav a:hover{ color: var(--ink-hard); }
 .nav [aria-current="page"]{ color: var(--ink-hard); font-weight:700; }
-.nav .off{ color: var(--ink-faint); cursor:default; }   /* lab, todavia sin destino */
 /* dentro de un proyecto, su nombre en el sitio de "work": si es muy largo
    se corta, que la barra es un renglon */
 .nav .aqui{ max-width:42ch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
