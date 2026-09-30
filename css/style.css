@@ -128,7 +128,7 @@ img{ max-width:100%; display:block; }
 }
 .langs a:hover{ color: var(--btn-subtle-hover); }
 .langs [aria-current]{ color: var(--ink-hard); font-weight:600; }
-/* letra normal o webdings (js/tipo.js): un idioma mas, a la derecha */
+/* letra normal o wingdings (js/tipo.js): un idioma mas, a la derecha */
 .langs .tipo{
   font:inherit; font-size:.8rem; line-height:1; padding:.2rem .3rem; margin-left:.35rem;
   background:none; border:0; cursor:pointer; color: var(--btn-subtle); transition: color .2s ease;
@@ -140,12 +140,13 @@ img{ max-width:100%; display:block; }
 .langs .tipo[aria-pressed="true"] .wd,
 .langs .tipo[aria-pressed="false"] .aa{ display:none; }
 /* la regla de abajo pone Helvetica a todo lo de .langs; el ojo, no */
-html.webdings .langs .tipo .wd{ font-family: Webdings; }
+html.wingdings .langs .tipo .wd{ font-family: Webdings; }
 
-/* Webdings en toda la web, menos en lo que hace falta para volver: los
-   idiomas y el propio boton. */
-html.webdings body{ font-family: Webdings, Helvetica, 'Helvetica Neue', Arial, sans-serif; }
-html.webdings .langs, html.webdings .langs *{ font-family: Helvetica, 'Helvetica Neue', Arial, sans-serif; }
+/* Wingdings en toda la web, menos en lo que hace falta para volver: los
+   idiomas y el propio boton. Todo en mayusculas: en Wingdings son los
+   simbolos que gustan (manos, signos del zodiaco...). */
+html.wingdings body{ font-family: Wingdings, Helvetica, 'Helvetica Neue', Arial, sans-serif; text-transform:uppercase; }
+html.wingdings .langs, html.wingdings .langs *{ font-family: Helvetica, 'Helvetica Neue', Arial, sans-serif; text-transform:none; }
 
 /* ============================================================
    LANDING
@@ -545,11 +546,12 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   /* tambien por alto: en una pantalla baja (movil en horizontal) una
      carta a lo ancho no dejaba sitio para repartir las demas */
   width: min(clamp(200px, 30vw, 420px), 64dvh);
+  aspect-ratio:16/9;                       /* hasta saber la de su portada (util.js) */
   will-change:transform,opacity,filter;
   -webkit-user-drag:none;
 }
 .carta img, .carta canvas, .carta .sin{
-  display:block; width:100%; aspect-ratio:16/9;
+  display:block; width:100%; height:100%;
   object-fit:cover; background:#f0f0f0 center/cover;
   -webkit-user-drag:none; user-select:none; pointer-events:none;
   transition: transform .28s cubic-bezier(.2,.7,.2,1);
@@ -692,17 +694,28 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
 
 /* ============================================================
    CURSOR
-   La bola otra vez: pequena por defecto y mas grande y oscura sobre
-   lo que se puede clicar o arrastrar. Solo con raton: en un
-   telefono no hay cursor que cambiar.
+   Los de Oriol (assets/cursor/): la bola por defecto, el cono sobre
+   lo que se puede clicar o arrastrar, y el marco sobre el texto. A
+   32 px, con la version de 64 para pantallas retina. Solo con raton:
+   en un telefono no hay cursor que cambiar.
    ============================================================ */
+/* Cada cursor va dos veces: la segunda linea es la version retina, y
+   el navegador que no la entienda se queda con la primera. */
 @media (hover:hover) and (pointer:fine){
-  :root{
-    --cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cdefs%3E%3CradialGradient id='b' cx='.34' cy='.3' r='.8'%3E%3Cstop offset='0' stop-color='%23fff'/%3E%3Cstop offset='.85' stop-color='%23646464'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='8' cy='8' r='6' fill='url(%23b)'/%3E%3C/svg%3E") 8 8, auto;
-    --cursor-mano: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cdefs%3E%3CradialGradient id='b' cx='.34' cy='.3' r='.8'%3E%3Cstop offset='0' stop-color='%23fff'/%3E%3Cstop offset='.85' stop-color='%234f4f4f'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='14' cy='14' r='11' fill='url(%23b)' fill-opacity='.9'/%3E%3C/svg%3E") 14 14, pointer;
+  html, body{
+    cursor: url("../assets/cursor/idle.png") 16 16, auto;
+    cursor: image-set(url("../assets/cursor/idle.png") 1x, url("../assets/cursor/idle@2x.png") 2x) 16 16, auto;
   }
-  html, body{ cursor: var(--cursor); }
-  a, button, summary, .hero, .barra, .escena, .carta, .rotulo{ cursor: var(--cursor-mano) !important; }
+  :is(p, h1, h2, h3, li, dt, dd, figcaption, small){
+    cursor: url("../assets/cursor/text.png") 16 16, text;
+    cursor: image-set(url("../assets/cursor/text.png") 1x, url("../assets/cursor/text@2x.png") 2x) 16 16, text;
+  }
+  /* tambien lo que va dentro: el titulo de una fila de la lista es texto */
+  :is(a, button, summary, .hero, .barra, .escena, .carta, .rotulo),
+  :is(a, button, summary, .hero, .rotulo) *{
+    cursor: url("../assets/cursor/hover.png") 1 1, pointer !important;
+    cursor: image-set(url("../assets/cursor/hover.png") 1x, url("../assets/cursor/hover@2x.png") 2x) 1 1, pointer !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce){

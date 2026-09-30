@@ -50,12 +50,13 @@ export function leerJSON(texto, nombre) {
      base              subcarpeta en la que se sirve ('' o '/oriol-colomer')
      existe(ruta)      true si ese fichero esta en el repo
      medidas(ruta)     { w, h } de una imagen, o null
+     peso(ruta)        bytes de un fichero, o null (para avisar de lo pesado)
      preview           true en la vista previa: los enlaces internos van
                        a ?p=/ruta/ en vez de a /ruta/, porque Live Server
                        solo tiene un index.html y el resto lo pinta el js
    ============================================================ */
 export function crearSitio({ site, proyectos, base = '', existe = () => false,
-                             medidas = () => null, preview = false }) {
+                             medidas = () => null, peso = () => null, preview = false }) {
   const LANGS = site.langs;
   const DEF   = site.defaultLang;
   const B     = String(base).replace(/\/$/, '');
@@ -244,9 +245,9 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
   <meta name="theme-color" content="#fafafa">
   <link rel="icon" href="${FAVICON}">
   <link rel="stylesheet" href="${raiz('/css/style.css')}">
-  <!-- La letra elegida (normal o webdings) se aplica antes de pintar nada,
+  <!-- La letra elegida (normal o wingdings) se aplica antes de pintar nada,
        para que no parpadee al cargar. El boton lo lleva js/tipo.js. -->
-  <script>try{if(localStorage.getItem('tipo')==='webdings')document.documentElement.classList.add('webdings')}catch(e){}</script>
+  <script>try{if(localStorage.getItem('tipo')==='wingdings')document.documentElement.classList.add('wingdings')}catch(e){}</script>
   ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld)}</script>` : ''}
 </head>
 <body${entrar ? ` data-entrar="${entrar}"` : ''}${auto ? ` data-auto="${auto}"` : ''}${vista ? ` data-vista="${vista}"` : ''}>
@@ -302,10 +303,10 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
           ? `<span aria-current="true">${l}</span>`
           : `<a href="${url(l, path)}" hreflang="${l === 'cat' ? 'ca' : l}">${l}</a>`
         ).join('')
-      // letra normal o webdings. Sale escondido: js/tipo.js lo ensena solo si
+      // letra normal o wingdings. Sale escondido: js/tipo.js lo ensena solo si
       // el aparato tiene la fuente (Windows y Mac si, moviles no)
       + `<button type="button" class="tipo" aria-pressed="false" title="${esc(t(site.ui.tipo, lang))}" hidden>`
-      // apagado se ensena algo escrito en Webdings (la N es un ojo); encendido,
+      // apagado se ensena un ojo (la N en Webdings: Wingdings no tiene); encendido,
       // "Aa" en letra normal, que es a lo que vuelve
       + `<span class="wd" aria-hidden="true">N</span><span class="aa" aria-hidden="true">Aa</span>`
       + `<span class="sr">${esc(t(site.ui.tipo, lang))}</span></button>`
@@ -360,9 +361,12 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
     // no corre JavaScript. El tunel se construye leyendo esta misma lista.
     const rows = live.map(p => {
       const portada = cover(p);
+      // la proporcion de la portada: el tunel y la miniatura la respetan
+      const d = portada?.img ? medidas(portada.img) : null;
       return `      <li data-tags="${esc((p.tags || []).join(' '))}"
           data-date="${esc(p.date)}" data-client="${esc(String(p.client || '').toLowerCase())}" data-title="${esc(String(p.title).toLowerCase())}">
         <a href="${url(lang, 'work/' + p.slug + '/')}"${portada?.img ? ` data-peek="${raiz('/' + esc(portada.img))}"` : ''}${
+          d ? ` data-ratio="${(d.w / d.h).toFixed(4)}"` : ''}${
           portada?.video ? ` data-peek-video="${portada.video.map(f => raiz('/' + esc(f))).join('|')}"` : ''}>
           <span class="t">${titleHtml(p.title)}<small>${esc(t(p.subheader, lang))}</small></span>
           <span class="c">${esc(fmtDate(p.date))}</span>
@@ -660,6 +664,13 @@ ${pageFoot(lang, 'about/', { firma: true })}
         const f = enCarpeta(p, m);
         if (!EXT.test(f)) aviso(quien, `"${m}": formato que la web no sabe ensenar (usa webp, jpg, png, gif, webm, mp4 o una pieza .html)`);
         else if (!existe(f)) aviso(quien, `no encuentro ${f}`);
+        else if (/\.gif$/i.test(f)) aviso(quien, `${f} es un GIF: pasalo por imgToWeb, sale un webp animado que pesa mucho menos`);
+        else {
+          // Oriol no tiene npm run media: esto es lo que le avisa de una foto del movil sin convertir
+          const mb = (peso(f) || 0) / 1048576, video = /\.(mp4|webm)$/i.test(f);
+          if (mb > (video ? 12 : 1) && !/\.html?$/i.test(f))
+            aviso(quien, `${f} pesa ${mb.toFixed(1)} MB: pasalo por ${video ? 'videoToWeb (720p)' : 'imgToWeb (85 %)'}`);
+        }
       }
     });
     return avisos;

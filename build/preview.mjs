@@ -27,12 +27,13 @@ const pedir = async ruta => {
 };
 
 /* ¿Existe este fichero? Se pregunta al servidor con HEAD, que no baja el
-   fichero, y se recuerda la respuesta. */
-const hay = new Map();
+   fichero, y se recuerda la respuesta. De paso, cuanto pesa. */
+const hay = new Map(), pesos = new Map();
 const preguntar = rutas => Promise.all([...rutas].filter(r => !hay.has(r)).map(async r => {
   try {
     const res = await fetch(`${BASE}/${encodeURI(r)}`, { method: 'HEAD', cache: 'no-store' });
     hay.set(r, res.ok);
+    pesos.set(r, +res.headers.get('content-length') || null);
   } catch { hay.set(r, false); }
 }));
 
@@ -100,7 +101,7 @@ async function arrancar() {
      se puede ver entrando a su direccion: sirve para repasarlo antes de
      publicarlo. Se pinta como si estuviera publicado y se avisa. */
   const slug = (/\/work\/([^/]+)\/$/.exec(pedida) || [])[1];
-  const borrador = slug && proyectos.find(p => p && p.slug === slug && !p.published);
+  const borrador = slug && proyectos.find(p => p && p.slug === slug && p.published === false);
   const datos = borrador
     ? proyectos.map(p => (p === borrador ? { ...p, published: true } : p))
     : proyectos;
@@ -122,8 +123,10 @@ async function arrancar() {
 
   const sitio = montar(r => hay.get(r) === true);
   const pagina = sitio.rutas().find(r => r.ruta === pedida);
-  // Los avisos son los de los datos reales, no los del borrador forzado
-  const avisos = crearSitio({ site, proyectos, base: BASE, existe: r => hay.get(r) === true }).revisar();
+  // Con el borrador que se esta viendo dentro: asi tambien se revisan sus
+  // ficheros, que es justo lo que se quiere mirar antes de publicarlo
+  const avisos = crearSitio({ site, proyectos: datos, base: BASE,
+    existe: r => hay.get(r) === true, peso: r => pesos.get(r) }).revisar();
 
   if (!pagina) {
     pantallaDeError('Esta pagina no existe',

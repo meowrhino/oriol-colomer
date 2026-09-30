@@ -21,7 +21,19 @@ media/<slug>/         las fotos y vídeos de cada proyecto
 
 Se puede editar desde la web de GitHub (el lápiz) o con VS Code en tu ordenador.
 En los dos casos, **al hacer commit en `main` la web se actualiza sola** en un par
-de minutos.
+de minutos. Con VS Code, además, lo ves antes de subirlo.
+
+### La primera vez: preparar VS Code
+
+Solo se hace una vez.
+
+1. En VS Code: **Archivo → Nueva ventana**, y en la bienvenida, **Clonar repositorio
+   Git…** → **Clonar desde GitHub**. Te pide entrar con tu cuenta de GitHub:
+   acepta. Elige `oriol-colomer` y una carpeta de tu ordenador.
+2. Al abrirla, VS Code te propone instalar **Live Server** (abajo a la derecha):
+   **Instalar**. Si no sale, búscalo en la pestaña de extensiones (los cuatro
+   cuadraditos de la izquierda).
+3. Listo: abajo a la derecha aparece **Go Live**.
 
 ### Añadir un proyecto, paso a paso
 
@@ -34,7 +46,22 @@ de minutos.
 4. **Copia un bloque** `{ ... }` entero de `data/projects.json`, pégalo donde
    quieras (el orden lo pone la fecha) y cambia los campos.
 5. **Revísalo con la vista previa** (ver abajo) antes de subir.
-6. Commit.
+6. **Súbelo** (ver abajo).
+
+### Subir los cambios desde VS Code
+
+Live Server solo enseña: no sube nada. Para publicar:
+
+1. Pestaña **Control de código fuente**, a la izquierda (el icono de las tres
+   bolitas unidas). Salen los ficheros que has tocado o añadido.
+2. Escribe arriba qué has hecho (`proyecto nuevo: la roda`) y dale a **Confirmar**
+   (*Commit*). Si pregunta si quieres añadir todos los cambios: **Sí**.
+3. Dale a **Sincronizar cambios** (*Sync*). Eso lo sube a GitHub.
+4. En un par de minutos está en la web. Si quieres verlo, en GitHub, pestaña
+   **Actions**: la bolita amarilla es que está publicando y la verde que ya está.
+
+**Antes de empezar a tocar**, dale también a **Sincronizar**: si has cambiado algo
+desde la web de GitHub, así lo bajas y no se pisan.
 
 ### Los campos de un proyecto
 
@@ -67,7 +94,7 @@ de minutos.
 | `tags` | Las letras de siempre: `lx`, `vs`, `dc`, `xy`, `rs`. |
 | `credits` | `"rol": "quién"`. El rol sale en **negrita**. Los `@handle` se enlazan solos a Instagram. |
 | `link` | Si es de **YouTube**, el vídeo sale embebido el primero, antes de las fotos. Si es otra cosa, sale como "Watch →". Se puede quitar. |
-| `thumb` | La portada del túnel y de la lista. Puede ser una foto, un **webp animado** o un **vídeo** (`.webm`), y entonces se mueve. Si no lo pones, se usa el primero de `media`. |
+| `thumb` | La portada del túnel y de la lista. Puede ser una foto, un **webp animado** o un **vídeo** (`.webm`), y entonces se mueve. Sale con su proporción, sin recortar: apaisada, cuadrada o casi vertical. Si no lo pones, se usa el primero de `media`. |
 | `media` | Fotos y vídeos del proyecto, en orden. Basta el nombre del fichero: se busca en `media/<slug>/`. También puede ir una **pieza interactiva** (ver abajo). |
 | `lab` | `true` = no es de work sino del **lab**: sale en `/lab/` y no en el túnel ni en la lista. `lab` se enciende en el menú en cuanto hay uno publicado. |
 | `published` | `false` = escrito pero sin publicar. No sale en la web (pero se puede ver en la vista previa). |
@@ -118,11 +145,13 @@ como están, y **se recarga sola cada vez que guardas**.
 
 Abajo a la izquierda sale un recuadro que dice si todo cuadra. Si algo falla, lo
 lista: una foto que no está en su carpeta, una fecha mal escrita, un slug
-repetido, un `published` entre comillas… Si el JSON está roto (una coma, unas
+repetido, un `published` entre comillas, **una foto de más de 1 MB o un vídeo
+de más de 12 MB** (señal de que no ha pasado por los conversores), un GIF… Si el JSON está roto (una coma, unas
 comillas), en vez de la web sale el error con la línea donde mirar.
 
 Para ver un borrador, entra en su dirección:
-`http://127.0.0.1:5500/?p=/work/<slug>/`.
+`http://127.0.0.1:5500/?p=/work/<slug>/`. Estando ahí, el recuadro revisa
+también sus ficheros.
 
 Los mismos avisos salen en GitHub, en la pestaña **Actions**, al publicar.
 
@@ -216,7 +245,8 @@ js/work.js             vista, orden y filtro de la lista
 js/tunnel.js           el tunel y la linea del tiempo
 js/media.js            videos del proyecto al verlos, YouTube, bloque de texto
 js/correo.js           el boton del correo
-js/tipo.js             el boton de webdings
+js/tipo.js             el boton de wingdings
+assets/cursor/         los cursores (32 px y @2x de 64 px)
 media/<slug>/          fotos y videos
 ```
 

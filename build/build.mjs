@@ -6,7 +6,7 @@
    mirar el disco y se escribe lo que devuelve.
        node build/build.mjs
    ============================================================ */
-import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, existsSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { crearSitio, leerJSON } from './paginas.mjs';
@@ -75,6 +75,7 @@ function medidas(rel) {
 const sitio = crearSitio({
   site, proyectos, base, medidas,
   existe: rel => existsSync(join(ROOT, rel)),
+  peso: rel => statSync(join(ROOT, rel)).size,
 });
 
 /* ---------- escribir ------------------------------------ */

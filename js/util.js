@@ -32,9 +32,23 @@ export const ms = nombre => {
 /** La portada de un proyecto, tal como la deja el generador en la lista:
     data-peek es la imagen fija y data-peek-video, si la portada se mueve,
     las fuentes del video separadas por |. Devuelve el elemento a pintar:
-    un <video> mudo en bucle con la imagen de poster, o un <img>. */
-export function portada(a) {
+    un <video> mudo en bucle con la imagen de poster, o un <img>.
+
+    Cada portada va con su proporcion, no a 16:9. La trae data-ratio (la
+    mide el build); si no esta —en la vista previa— se lee al cargar y se
+    avisa con alCambiar(r), para que el tunel recoloque las cartas. */
+export function portada(a, alCambiar = () => {}) {
   const img = a.dataset.peek || '', video = a.dataset.peekVideo;
+  const el = pintura(img, video);
+  // ponytail: acotada para que una vertical o una panoramica no se coma la pantalla
+  const fijar = r => { if (r > 0) { el.style.aspectRatio = lim(r, .8, 3); alCambiar(el.style.aspectRatio); } };
+  if (a.dataset.ratio) fijar(+a.dataset.ratio);
+  else if (el.tagName === 'VIDEO') el.addEventListener('loadedmetadata', () => fijar(el.videoWidth / el.videoHeight), { once: true });
+  else if (el.tagName === 'IMG') el.addEventListener('load', () => fijar(el.naturalWidth / el.naturalHeight), { once: true });
+  return el;
+}
+
+function pintura(img, video) {
   if (video && !seco) {
     const v = document.createElement('video');
     v.muted = v.loop = v.playsInline = v.autoplay = true;

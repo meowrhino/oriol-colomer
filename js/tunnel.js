@@ -149,7 +149,11 @@ if (zona && lista && escena) {
       el.href = d.href;
       el.draggable = false;
       el.setAttribute('aria-label', `${d.rotulo}, ${d.pie}`);
-      const pintura = portada(d.a);
+      // su proporcion va en la carta; si llega tarde (vista previa), se recoloca
+      const pintura = portada(d.a, r => {
+        el.style.aspectRatio = r;
+        if (cartas.includes(el)) { medir(); pintar(); }
+      });
       el._video = pintura.tagName === 'VIDEO' ? pintura : null;
       el.append(el._video ? lienzo(el._video) : pintura);
       const ang = a0 + i * AUREO + (Math.random() - .5) * .5;
