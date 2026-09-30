@@ -94,15 +94,14 @@ for (const r of rutas) {
 
 /* sitemap + robots, del mismo JSON */
 const NS = 'http://www.sitemaps.org/schemas/sitemap/0.9';
-const publica = r => site.baseUrl.replace(/\/$/, '') + base.replace(/\/$/, '') + r.ruta;
 writeFileSync(join(OUT, 'sitemap.xml'),
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="${NS}">\n`
   + rutas.map(r =>
-      `  <url><loc>${publica(r)}</loc>${r.fecha ? `<lastmod>${r.fecha}</lastmod>` : ''}</url>`).join('\n')
+      `  <url><loc>${sitio.publica(r.ruta)}</loc>${r.fecha ? `<lastmod>${r.fecha}</lastmod>` : ''}</url>`).join('\n')
   + `\n</urlset>\n`);
 
 writeFileSync(join(OUT, 'robots.txt'),
-  `User-agent: *\nAllow: /\nSitemap: ${site.baseUrl.replace(/\/$/, '')}${sitio.raiz('/sitemap.xml')}\n`);
+  `User-agent: *\nAllow: /\nSitemap: ${sitio.publica('/sitemap.xml')}\n`);
 writeFileSync(join(OUT, '.nojekyll'), '');
 if (site.domain) writeFileSync(join(OUT, 'CNAME'), site.domain + '\n');
 

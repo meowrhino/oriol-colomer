@@ -1,6 +1,7 @@
 /* ============================================================
-   Los dos interruptores junto a los idiomas
+   La cajita de ajustes: idioma, letra y tema
    ------------------------------------------------------------
+   El idioma son enlaces y no necesita nada. Los dos interruptores:
    - letra: toda la web en Wingdings y en mayusculas
    - tema:  claro u oscuro
 

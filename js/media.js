@@ -65,49 +65,38 @@ if (videos.length) {
 }
 
 /* ============================================================
-   El video de YouTube del proyecto
+   El video de YouTube y las piezas interactivas
    ------------------------------------------------------------
-   Llega del generador como su fotograma con un boton de play, que
-   es un enlace a YouTube. Al darle se cambia por el reproductor, y
-   solo entonces: el de YouTube son medio mega de guiones, y en una
-   pagina que se abre para ver fotos no tiene por que bajarse nadie.
-   youtube-nocookie no deja cookies hasta que se reproduce.
+   Llegan del generador como un fotograma con un boton de play, que
+   es un enlace. Al darle se cambia por el iframe, y solo entonces:
+   el de YouTube son medio mega de guiones, y una build de Unity,
+   decenas de megas. youtube-nocookie no deja cookies hasta que se
+   reproduce. Con cmd/ctrl/shift el enlace abre aparte, como siempre.
    ============================================================ */
-/* Una pieza interactiva (una build de Unity) va igual: marco con play y
-   el iframe al darle. Lleva permiso de pantalla completa y de mando. */
-for (const a of document.querySelectorAll('.media a.pieza[data-pieza]')) {
-  a.addEventListener('click', e => {
-    if (e.metaKey || e.ctrlKey || e.shiftKey) return;
-    e.preventDefault();
-    const f = document.createElement('iframe');
-    f.className = 'pieza';
-    f.src = a.dataset.pieza;
-    f.title = a.getAttribute('aria-label') || '';
-    f.allow = 'fullscreen; autoplay; gamepad';
-    f.allowFullscreen = true;
-    a.replaceWith(f);
-    f.focus();
-  });
+function alDarle(sel, iframe) {
+  for (const a of document.querySelectorAll(sel)) {
+    a.addEventListener('click', e => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+      e.preventDefault();
+      const f = Object.assign(document.createElement('iframe'),
+        { title: a.getAttribute('aria-label') || '', allowFullscreen: true }, iframe(a));
+      a.replaceWith(f);
+      f.focus();
+    });
+  }
 }
-
-for (const a of document.querySelectorAll('.media a.yt[data-yt]')) {
-  a.addEventListener('click', e => {
-    if (e.metaKey || e.ctrlKey || e.shiftKey) return;   // abrir en YouTube, como un enlace
-    e.preventDefault();
-    const f = document.createElement('iframe');
-    f.src = `https://www.youtube-nocookie.com/embed/${a.dataset.yt}?autoplay=1&rel=0&playsinline=1`;
-    f.title = a.getAttribute('aria-label') || 'YouTube';
-    f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
-    f.allowFullscreen = true;
-    a.replaceWith(f);
-  });
-}
+// la pieza lleva permiso de pantalla completa y de mando
+alDarle('.media a.pieza[data-pieza]', a => ({ className: 'pieza', src: a.dataset.pieza,
+  allow: 'fullscreen; autoplay; gamepad' }));
+alDarle('.media a.yt[data-yt]', a => ({
+  src: `https://www.youtube-nocookie.com/embed/${a.dataset.yt}?autoplay=1&rel=0&playsinline=1`,
+  allow: 'autoplay; encrypted-media; picture-in-picture; fullscreen' }));
 
 /* ============================================================
    El bloque del texto, siempre alcanzable
    ------------------------------------------------------------
    El texto se queda quieto mientras bajan las fotos (sticky), y
-   lleva dentro anterior/siguiente y los idiomas. Si es mas alto
+   lleva dentro anterior/siguiente y los ajustes. Si es mas alto
    que la pantalla —creditos largos, pantalla baja—, pegado arriba
    su final no se veria hasta acabar la pagina. Asi que se pega
    por abajo: el `top` pasa a ser negativo lo justo para que lo

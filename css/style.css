@@ -141,26 +141,27 @@ img{ max-width:100%; display:block; }
 .nav--inline{ display:flex; align-items:baseline; gap:.5ch; }
 .nav--inline .sep{ color: var(--ink-faint); }
 
-/* ---------- selector de idioma ---------------------------- */
-/* Mismo criterio que en becasDigMeow: sin separadores, color por alfa
-   (asi funciona sobre cualquier fondo) y el activo solo por peso. */
+/* ---------- ajustes: idioma, letra y tema ------------------ */
+/* Color por alfa (asi funciona sobre cualquier fondo) y el activo solo
+   por peso. */
+/* align-self: un icono no tiene linea de base, y alineado por la base con
+   el texto de al lado quedaba subido. Centrado en el renglon, cuadra. */
 .langs{
   position:fixed; right: var(--edge-x); bottom: var(--edge-y); z-index:3;
-  display:flex; align-items:center; gap:.3rem;
+  display:flex; align-self:center;
 }
-/* el boton: una bola mitad llena, en el gris de los controles */
+/* el boton: unos deslizadores (personalizar), en el gris de los controles */
 .langs details{ position:relative; }
 .langs summary{
   position:relative; display:flex; align-items:center; justify-content:center;
-  width:1.5rem; height:1.5rem; list-style:none; cursor:pointer;
+  width:1.5rem; height:1lh; list-style:none; cursor:pointer;   /* alto: el del renglon de al lado */
   color: var(--btn-subtle); transition: color .2s ease;
 }
 .langs summary::-webkit-details-marker{ display:none; }
 /* se ve pequeno, pero se pulsa en 44px */
 .langs summary::before{ content:''; position:absolute; inset:50% auto auto 50%; translate:-50% -50%; width:44px; height:44px; }
 .langs summary:hover, .langs details[open] summary{ color: var(--ink-hard); }
-.langs summary svg{ width:1rem; height:1rem; fill:none; stroke:currentColor; stroke-width:1.5; }
-.langs summary .lleno{ fill:currentColor; stroke:none; }
+.langs summary svg{ width:1rem; height:1rem; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; }
 
 /* la cajita: la de los desplegables de la lista, con dos filas —idiomas
    y letra + tema— separadas por una raya. Sale con un fundido. Se abre
@@ -182,7 +183,6 @@ img{ max-width:100%; display:block; }
 
 /* sol y luna uno encima del otro, se funden al conmutar (y el boton da
    una vuelta, ver js/ajustes.js). Igual que en meowrhino.studio */
-.langs .tema{ position:relative; }
 .langs .tema svg{
   position:absolute; inset:0; margin:auto; width:1rem; height:1rem;
   fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round;
@@ -536,7 +536,6 @@ main.about, main.project{ flex:1 0 auto; }
 
 /* ---------- que se ve en cada vista ---------- */
 body[data-vista="tunel"] .index,
-body[data-vista="tunel"] .foot,
 body[data-vista="lista"] .escena,
 body[data-vista="lista"] .tiempo{ display:none; }
 /* Orden y filtro son cosa de la lista: el tunel es siempre la linea del
@@ -684,8 +683,8 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
      dentro. Preferimos eso a partir la cabecera en dos pisos. */
   .topbar{ gap:.5rem; padding: calc(14px + var(--safe-top)) 14px 0; }
   .controles{ gap:.7rem; }
-  /* En el tunel cabe todo en un renglon. En la lista, con orden y filtro,
-     no: idioma, letra y tema bajan a uno propio, pegados a la derecha */
+  /* Cabe todo en un renglon. Por si en un telefono muy estrecho no, lo
+     ultimo baja a otro, pegado a la derecha, en vez de salirse */
   .controles{ flex:0 1 auto; min-width:0; flex-wrap:wrap; justify-content:flex-end; row-gap:.3rem; }
   .topbar{ font-size: calc(var(--fs-nav) * .92); }
   .vistas{ gap:.35ch; }

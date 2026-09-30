@@ -42,6 +42,15 @@ export function leerJSON(texto, nombre) {
   }
 }
 
+/** En el JSON un fichero se escribe con su nombre ("foto.webp", o
+    "web/index.html" si esta en una subcarpeta) y se busca en media/<slug>/,
+    que es la carpeta que toca. Si empieza por "media/" es la ruta entera.
+    Lo usan las plantillas y build/media.mjs. */
+export const enCarpeta = (p, m) => {
+  const s = String(m).trim().replace(/^\/+/, '');
+  return s.startsWith('media/') ? s : `media/${p.slug}/${s}`;
+};
+
 /** Junta data/work.json y data/lab.json en una sola lista. El fichero
     decide la seccion: lo que esta en lab.json sale en /lab/, lo demas en
     work. La carpeta media/<slug>/ es de los dos, asi que se revisan juntos:
@@ -94,9 +103,14 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
   const ruta = (l, path = '') => `${pre(l)}/${path}`.replace(/\/{2,}/g, '/');
   /** A donde apuntan los enlaces. En la vista previa, al index con ?p= */
   const url  = (l, path = '') => preview ? `${B}/?p=${ruta(l, path)}` : B + ruta(l, path);
-  /** La direccion publica, para canonical, hreflang, og y sitemap. */
-  const abs  = (l, path = '') => site.baseUrl.replace(/\/$/, '') + B + ruta(l, path);
-  const absFichero = rel => site.baseUrl.replace(/\/$/, '') + raiz('/' + rel);
+  /** La direccion publica, para canonical, hreflang, og, sitemap y robots. */
+  const publica = p => site.baseUrl.replace(/\/$/, '') + raiz(p);
+  const abs  = (l, path = '') => publica(ruta(l, path));
+  const absFichero = rel => publica('/' + rel);
+  /** Un fichero del repo en un atributo: src, href, poster... */
+  const src = f => raiz('/' + esc(f));
+  /** El codigo de idioma de verdad: catalan es "ca", no "cat". */
+  const iso = l => (l === 'cat' ? 'ca' : l);
 
   const t = (obj, l) => (obj && (obj[l] || obj[DEF])) || '';
 
@@ -117,23 +131,17 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
   const linkHandles = txt => esc(txt).replace(/@[\w.\-_]+/g,
     h => `<a href="${igUrl(h)}" target="_blank" rel="noopener">${h}</a>`);
 
-  /* ---------- media ----------
-     En el JSON un fichero se escribe con su nombre ("foto.webp", o
-     "web/index.html" si esta en una subcarpeta) y se busca en media/<slug>/,
-     que es la carpeta que toca. Si empieza por "media/" es la ruta entera. */
-  const enCarpeta = (p, m) => {
-    const s = String(m).trim().replace(/^\/+/, '');
-    return s.startsWith('media/') ? s : `media/${p.slug}/${s}`;
-  };
+  /* ---------- media ---------- */
   /** Fotograma de un video, para el poster: webp si lo hay, si no jpg. */
+  const sinExt = m => m.replace(/\.(mp4|webm)$/i, '');
   const poster = m => {
-    const base = m.replace(/\.(mp4|webm)$/i, '');
+    const base = sinExt(m);
     return [`${base}.poster.webp`, `${base}.poster.jpg`].find(existe) || null;
   };
   /** El gemelo de un video en el otro formato, si esta. El webm va primero
       —pesa menos—, y el mp4 de respaldo para los navegadores sin webm. */
   const fuentes = m => {
-    const base = m.replace(/\.(mp4|webm)$/i, '');
+    const base = sinExt(m);
     return [`${base}.webm`, `${base}.mp4`].filter(f => f === m || existe(f));
   };
   /** La version chica de una imagen, si la hay (la hace npm run media).
@@ -188,14 +196,14 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
        (js/media.js). Sin JavaScript, el play abre la pieza a pantalla entera. */
     if (esPieza(m)) {
       const fondo = cover(p)?.img;
-      return `<a class="pieza" href="${raiz('/' + esc(m))}" target="_blank" rel="noopener"
-        data-pieza="${raiz('/' + esc(m))}" aria-label="play: ${esc(p.title)}"${
-        fondo ? ` style="background-image:url('${raiz('/' + esc(fondo))}')"` : ''}>
+      return `<a class="pieza" href="${src(m)}" target="_blank" rel="noopener"
+        data-pieza="${src(m)}" aria-label="play: ${esc(p.title)}"${
+        fondo ? ` style="background-image:url('${src(fondo)}')"` : ''}>
         <span class="play" aria-hidden="true"></span></a>`;
     }
     if (!esVideo(m)) {
       const d = medidas(m);
-      return `<img src="${raiz('/' + esc(m))}" alt="${label}"
+      return `<img src="${src(m)}" alt="${label}"
       ${d ? `width="${d.w}" height="${d.h}"` : ''}
       loading="${i < 2 ? 'eager' : 'lazy'}" decoding="async">`;
     }
@@ -203,11 +211,11 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
     // El video tambien deja hueco: sus medidas son las del poster.
     const d = pj ? medidas(pj) : null;
     return `<video muted loop playsinline preload="none"
-      ${pj ? `poster="${raiz('/' + esc(pj))}"` : ''}
+      ${pj ? `poster="${src(pj)}"` : ''}
       ${d ? `width="${d.w}" height="${d.h}"` : ''}
       aria-label="${label}">`
       + fuentes(m).map(f =>
-          `<source src="${raiz('/' + esc(f))}" type="video/${f.endsWith('.webm') ? 'webm' : 'mp4'}">`).join('')
+          `<source src="${src(f)}" type="video/${f.endsWith('.webm') ? 'webm' : 'mp4'}">`).join('')
       + `</video>`;
   };
 
@@ -238,10 +246,10 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
 
   function head({ lang, title, desc, path, image, jsonld, vel, entrar, vista, auto }) {
     const alts = LANGS.map(l =>
-      `<link rel="alternate" hreflang="${l === 'cat' ? 'ca' : l}" href="${abs(l, path)}">`
+      `<link rel="alternate" hreflang="${iso(l)}" href="${abs(l, path)}">`
     ).join('\n  ');
     return `<!doctype html>
-<html lang="${lang === 'cat' ? 'ca' : lang}">
+<html lang="${iso(lang)}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -313,19 +321,20 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
         </a>
       </figure>`;
 
-  /* Idioma, letra y tema: un solo boton (una bola mitad llena) que abre una
+  /* Idioma, letra y tema: un solo boton (unos deslizadores: personalizar) que abre una
      cajita con los tres. La barra queda para navegar. <details> se abre y
      se cierra solo; js/ajustes.js lo cierra al pulsar fuera o con Esc. */
   function langs(lang, path) {
     const nombre = esc(t(site.ui.aria.ajustes, lang));
     return `<nav class="langs" aria-label="${nombre}"><details>`
       + `<summary title="${nombre}"><svg viewBox="0 0 24 24" aria-hidden="true">`
-      + `<circle cx="12" cy="12" r="8.5"/><path class="lleno" d="M12 3.5a8.5 8.5 0 0 1 0 17z"/></svg>`
+      + `<circle cx="14" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>`
+      + `<path d="M4 6h8M16 6h4M4 12h2M10 12h10M4 18h11M19 18h1"/></svg>`
       + `<span class="sr">${nombre}</span></summary>`
       + `<div class="opciones"><div class="fila">`
       + LANGS.map(l => l === lang
           ? `<span aria-current="true">${l}</span>`
-          : `<a href="${url(l, path)}" hreflang="${l === 'cat' ? 'ca' : l}">${l}</a>`
+          : `<a href="${url(l, path)}" hreflang="${iso(l)}">${l}</a>`
         ).join('')
       + `</div><div class="fila">`
       // letra normal o wingdings. Sale escondido: js/ajustes.js lo ensena solo si
@@ -347,10 +356,6 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
   const sig = () =>
     `<p class="sig">${esc(site.credit.label)}: `
     + `<a href="${site.credit.url}" target="_blank" rel="noopener">${esc(site.credit.name)}</a></p>`;
-
-  /** Pie de las paginas que scrollean. La firma sale solo en about. */
-  const pageFoot = (lang, path, { firma = false } = {}) =>
-    `<footer class="foot">${firma ? sig() : ''}${langs(lang, path)}</footer>`;
 
   const foot = () => `</body>\n</html>\n`;
 
@@ -398,9 +403,9 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
       const d = portada?.img ? medidas(portada.img) : null;
       return `      <li data-tags="${esc((p.tags || []).join(' '))}"
           data-date="${esc(p.date)}" data-client="${esc(String(p.client || '').toLowerCase())}" data-title="${esc(String(p.title).toLowerCase())}">
-        <a href="${url(lang, dir(p))}"${portada?.img ? ` data-peek="${raiz('/' + esc(portada.img))}"` : ''}${
+        <a href="${url(lang, dir(p))}"${portada?.img ? ` data-peek="${src(portada.img)}"` : ''}${
           d ? ` data-ratio="${(d.w / d.h).toFixed(4)}"` : ''}${
-          portada?.video ? ` data-peek-video="${portada.video.map(f => raiz('/' + esc(f))).join('|')}"` : ''}>
+          portada?.video ? ` data-peek-video="${portada.video.map(src).join('|')}"` : ''}>
           <span class="t">${titleHtml(p.title)}<small>${esc(t(p.subheader, lang))}</small></span>
           <span class="c">${esc(fmtDate(p.date))}</span>
           <span class="g">${esc((p.tags || []).join(' '))}</span>
@@ -448,8 +453,8 @@ ${menu('tag', '', filtro)}
     <div class="vistas" role="group" aria-label="${esc(t(site.ui.aria.view, lang))}">
       <button type="button" data-vista="tunel" data-texto="${esc(t(site.ui.tunnel, lang))}" aria-pressed="true">${esc(t(site.ui.tunnel, lang))}</button><span class="sep" aria-hidden="true">/</span><button type="button" data-vista="lista" data-texto="${esc(t(site.ui.list, lang))}" aria-pressed="false">${esc(t(site.ui.list, lang))}</button>
     </div>
-    <!-- idiomas, letra y tema a la derecha de tunel/lista: en el tunel la
-         pagina no scrollea y el pie no se veria nunca -->
+    <!-- los ajustes a la derecha de tunel/lista: en el tunel la pagina
+         no scrollea y un pie no se veria nunca -->
     ${langs(lang, `${sec}/`)}
   </div>
 </div>
@@ -512,7 +517,7 @@ ${rows}
         description: metaDesc(desc),
         datePublished: p.date,
         url: abs(lang, dir(p)),
-        inLanguage: lang === 'cat' ? 'ca' : lang,
+        inLanguage: iso(lang),
         creator: { '@type':'Person', name: site.name, url: site.baseUrl },
         about: p.client,
         keywords: (p.tags || []).join(', '),
@@ -540,7 +545,7 @@ ${paras(desc).map(x => `        <p>${esc(x)}</p>`).join('\n')}
     </div>
 ${credits}
     <!-- Al pie del bloque del texto, en dos lineas: anterior y siguiente,
-         y debajo, volver a work (bajo el anterior) y los idiomas (bajo el
+         y debajo, volver a work (bajo el anterior) y los ajustes (bajo el
          siguiente). -->
     <div class="navega">
       <nav class="pager" aria-label="${esc(t(site.ui.aria.projects, lang))}">
@@ -596,7 +601,7 @@ ${ps.map(x => `  <p>${esc(x)}</p>`).join('\n')}
      ${redes()}
   </p>
 </main>
-${pageFoot(lang, 'about/', { firma: true })}
+<footer class="foot">${sig()}${langs(lang, 'about/')}</footer>
 <script type="module" src="${raiz('/js/correo.js')}"></script>`
     + foot();
   }
@@ -664,8 +669,8 @@ ${pageFoot(lang, 'about/', { firma: true })}
         else if (/\.gif$/i.test(f)) aviso(quien, `${f} es un GIF: pasalo por imgToWeb, sale un webp animado que pesa mucho menos`);
         else {
           // Oriol no tiene npm run media: esto es lo que le avisa de una foto del movil sin convertir
-          const mb = (peso(f) || 0) / 1048576, video = /\.(mp4|webm)$/i.test(f);
-          if (mb > (video ? 12 : 1) && !/\.html?$/i.test(f))
+          const mb = (peso(f) || 0) / 1048576, video = esVideo(f);
+          if (mb > (video ? 12 : 1) && !esPieza(f))
             aviso(quien, `${f} pesa ${mb.toFixed(1)} MB: pasalo por ${video ? 'videoToWeb (720p)' : 'imgToWeb (85 %)'}`);
         }
       }
@@ -673,5 +678,5 @@ ${pageFoot(lang, 'about/', { firma: true })}
     return avisos;
   }
 
-  return { live, labs, rutas, revisar, raiz, abs, LANGS, DEF, enCarpeta, poster, fuentes };
+  return { live, labs, rutas, revisar, publica, LANGS };
 }

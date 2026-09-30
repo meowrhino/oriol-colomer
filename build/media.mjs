@@ -33,10 +33,11 @@
    Necesita:  brew install ffmpeg webp
        npm run media
    ============================================================ */
-import { readFileSync, writeFileSync, existsSync, statSync, rmSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, statSync, rmSync, readdirSync, renameSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { enCarpeta } from './paginas.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const MEDIA = join(ROOT, 'media');
@@ -77,6 +78,10 @@ const renombres = new Map();
 const derivado = f => /\.(thumb|poster)\.[a-z0-9]+$/i.test(f);
 
 const escala = `scale='min(${VIDEO_MAX_W},iw)':'min(${VIDEO_MAX_H},ih)':force_original_aspect_ratio=decrease:force_divisible_by=2`;
+/** El mp4 de respaldo: h264 mudo, al preset de 720p. */
+const aMp4 = (de, a) => run('ffmpeg', ['-nostdin', '-loglevel', 'error', '-y', '-i', de, '-an',
+  '-movflags', '+faststart', '-pix_fmt', 'yuv420p', '-vf', escala,
+  '-c:v', 'libx264', '-crf', '26', '-maxrate', '1600k', '-bufsize', '3200k', '-preset', 'slow', a]);
 
 /* ---------- 1. fotos -> webp ---------- */
 for (const f of ficheros(MEDIA).filter(f => /\.(jpe?g|png)$/i.test(f) && !derivado(f))) {
@@ -123,25 +128,21 @@ for (const b of bases) {
   } else if (existsSync(webm) && tieneAudio(webm)) {
     const tmp = b + '.sin-audio.webm';
     run('ffmpeg', ['-nostdin', '-loglevel', 'error', '-y', '-i', webm, '-an', '-c', 'copy', tmp]);
-    rmSync(webm); run('mv', [tmp, webm]);
+    renameSync(tmp, webm);
     log('mudo', webm, kb(webm));
   }
 
   // mp4 de respaldo, solo con --mp4: desde el original si es otro formato, o desde el webm
   if (MP4 && (origen && origen !== mp4 && !existsSync(mp4) || !origen && !existsSync(mp4))) {
-    run('ffmpeg', ['-nostdin', '-loglevel', 'error', '-y', '-i', origen || webm, '-an',
-      '-movflags', '+faststart', '-pix_fmt', 'yuv420p', '-vf', escala,
-      '-c:v', 'libx264', '-crf', '26', '-maxrate', '1600k', '-bufsize', '3200k', '-preset', 'slow', mp4]);
+    aMp4(origen || webm, mp4);
     log('mp4', mp4, kb(mp4));
   } else if (MP4 && REHACER && origen === mp4) {
     // el respaldo tambien al preset, pero solo si de verdad baja
     const tmp = b + '.tmp.mp4';
-    run('ffmpeg', ['-nostdin', '-loglevel', 'error', '-y', '-i', mp4, '-an',
-      '-movflags', '+faststart', '-pix_fmt', 'yuv420p', '-vf', escala,
-      '-c:v', 'libx264', '-crf', '26', '-maxrate', '1600k', '-bufsize', '3200k', '-preset', 'slow', tmp]);
+    aMp4(mp4, tmp);
     if (statSync(tmp).size < statSync(mp4).size * .9) {
       log('mp4', mp4, `${kb(mp4)} -> ${kb(tmp)}`);
-      rmSync(mp4); run('mv', [tmp, mp4]);
+      renameSync(tmp, mp4);
     } else rmSync(tmp);
   }
   if (origen && (origen !== mp4 || !MP4)) rmSync(origen);   // el mp4 se queda solo con --mp4
@@ -164,10 +165,6 @@ for (const b of bases) {
 }
 
 /* ---------- 4. el JSON ---------- */
-const enCarpeta = (p, m) => {
-  const s = m.trim().replace(/^\/+/, '');
-  return s.startsWith('media/') ? s : `media/${p.slug}/${s}`;
-};
 const proyectos = [];
 for (const f of ['data/work.json', 'data/lab.json']) {
   const JSON_F = join(ROOT, f);

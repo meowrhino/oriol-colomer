@@ -111,7 +111,8 @@ async function arrancar() {
      pinta en seco, apuntando lo que se pregunta; se pregunta todo de una
      vez al servidor, y se repite hasta que no quedan preguntas nuevas
      (una respuesta puede abrir otra: si hay poster, ¿hay miniatura?). */
-  const montar = existe => crearSitio({ site, proyectos: datos, base: BASE, existe, preview: true });
+  const montar = existe => crearSitio({ site, proyectos: datos, base: BASE, existe,
+    peso: r => pesos.get(r), preview: true });
   for (let vuelta = 0; vuelta < 6; vuelta++) {
     const nuevas = new Set();
     const sitio = montar(r => (hay.has(r) ? hay.get(r) : (nuevas.add(r), false)));
@@ -125,8 +126,7 @@ async function arrancar() {
   const pagina = sitio.rutas().find(r => r.ruta === pedida);
   // Con el borrador que se esta viendo dentro: asi tambien se revisan sus
   // ficheros, que es justo lo que se quiere mirar antes de publicarlo
-  const avisos = crearSitio({ site, proyectos: datos, base: BASE,
-    existe: r => hay.get(r) === true, peso: r => pesos.get(r) }).revisar();
+  const avisos = sitio.revisar();
 
   if (!pagina) {
     pantallaDeError('Esta pagina no existe',

@@ -329,7 +329,7 @@ if (zona && lista && escena) {
      Toda la pantalla mueve el tunel, no solo la franja del centro: en el
      telefono, tocar por encima o por debajo de las cartas hacia rebotar
      la pagina. Se escucha en window y se deja pasar lo que va a los
-     controles (menu de arriba, barra del tiempo, idiomas). */
+     controles (menu de arriba, barra del tiempo, ajustes). */
   const enTunelActivo = () => document.body.dataset.vista === 'tunel';
   const esControl = t => t.closest('.topbar, .tiempo, .langs, #vista-previa');
 
