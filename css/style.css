@@ -538,6 +538,10 @@ body[data-vista="lista"] .tiempo{ display:none; }
 /* Orden y filtro son cosa de la lista: el tunel es siempre la linea del
    tiempo entera, en orden de fecha. */
 body[data-vista="tunel"] .menu{ display:none; }
+/* En el tunel no hay idioma (los titulos son iguales en todos) y letra y
+   tema se van arriba al centro: abajo a la derecha esta la linea del tiempo */
+body[data-vista="tunel"] .langs .idioma{ display:none; }
+body[data-vista="tunel"] .controles .langs{ position:absolute; left:50%; right:auto; bottom:auto; translate:-50% 0; margin:0; }
 /* Sin scroll ni rebote: en el tunel el gesto es de la camara. */
 body[data-vista="tunel"]{ overflow:hidden; overscroll-behavior:none; }
 html:has(body[data-vista="tunel"]){ overscroll-behavior:none; }
