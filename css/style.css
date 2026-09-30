@@ -148,27 +148,31 @@ img{ max-width:100%; display:block; }
   position:fixed; right: var(--edge-x); bottom: var(--edge-y); z-index:3;
   display:flex; align-items:center; gap:.3rem;
 }
-.langs a, .langs span{
-  font-size:.8rem; line-height:1; padding:.2rem .3rem;
-  color: var(--btn-subtle); transition: color .2s ease;
+.langs > a, .langs > span, .langs .tipo, .langs .tema{
+  /* los cinco (idiomas, letra y tema) en la misma caja */
+  display:inline-flex; align-items:center; justify-content:center;
+  width:1.9rem; height:1.5rem; padding:0; flex:none;
+  font:inherit; font-size:.8rem; line-height:1;
+  background:none; border:0; color: var(--btn-subtle); transition: color .2s ease;
 }
 .langs a:hover{ color: var(--btn-subtle-hover); }
 .langs [aria-current]{ color: var(--ink-hard); font-weight:600; }
 /* letra normal o wingdings, y tema claro u oscuro (js/ajustes.js): dos
    botones mas a la derecha de los idiomas */
-.langs .tipo, .langs .tema{
-  font:inherit; font-size:.8rem; line-height:1; padding:.2rem .3rem; margin-left:.35rem;
-  background:none; border:0; cursor:pointer; color: var(--btn-subtle); transition: color .2s ease;
-}
+.langs .tipo, .langs .tema{ cursor:pointer; }
+.langs .tipo{ margin-left:.35rem; }
 .langs .tipo:hover, .langs .tema:hover{ color: var(--btn-subtle-hover); }
 .langs .tipo[aria-pressed="true"]{ color: var(--ink-hard); font-weight:600; }
-/* media bola llena y media vacia: la mitad oscura cambia de lado al conmutar */
-.langs .tema .luna{
-  display:block; width:.72rem; height:.72rem; border-radius:50%;
-  border:1px solid currentColor;
-  background: linear-gradient(90deg, currentColor 50%, transparent 50%);
+/* sol y luna uno encima del otro, se funden al conmutar (y el boton da
+   una vuelta, ver js/ajustes.js). Igual que en meowrhino.studio */
+.langs .tema{ position:relative; }
+.langs .tema svg{
+  position:absolute; inset:0; margin:auto; width:1rem; height:1rem;
+  fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round;
+  transition: opacity .4s ease;
 }
-.langs .tema[aria-pressed="true"] .luna{ background: linear-gradient(90deg, transparent 50%, currentColor 50%); }
+.langs .tema .luna, .langs .tema[aria-pressed="true"] .sol{ opacity:0; }
+.langs .tema[aria-pressed="true"] .luna{ opacity:1; }
 .langs [hidden]{ display:none; }
 .langs .tipo .wd{ font-family: Webdings; font-size:1.25em; line-height:.8; font-weight:400; }
 .langs .tipo[aria-pressed="true"] .wd,

@@ -46,3 +46,7 @@ if (hayWingdings()) interruptor('.langs .tipo', 'wingdings', 'tipo', 'wingdings'
 else html.classList.remove('wingdings');
 
 interruptor('.langs .tema', 'oscuro', 'tema', 'oscuro', 'claro');
+// el del tema da una vuelta al pulsarlo, como en meowrhino.studio
+for (const b of document.querySelectorAll('.langs .tema'))
+  b.addEventListener('click', () =>
+    b.animate([{ transform: 'rotate(0)' }, { transform: 'rotate(360deg)' }], { duration: 500, easing: 'ease-in-out' }));

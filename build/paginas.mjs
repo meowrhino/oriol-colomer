@@ -326,9 +326,12 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
       // "Aa" en letra normal, que es a lo que vuelve
       + `<span class="wd" aria-hidden="true">N</span><span class="aa" aria-hidden="true">Aa</span>`
       + `<span class="sr">${esc(t(site.ui.tipo, lang))}</span></button>`
-      // claro u oscuro: una bola partida. Escondido hasta que hay JS que lo mueva
+      // claro u oscuro: sol y luna encima, como en meowrhino.studio. Escondido
+      // hasta que hay JS que lo mueva
       + `<button type="button" class="tema" aria-pressed="false" title="${esc(t(site.ui.tema, lang))}" hidden>`
-      + `<span class="luna" aria-hidden="true"></span><span class="sr">${esc(t(site.ui.tema, lang))}</span></button>`
+      + `<svg class="luna" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`
+      + `<svg class="sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`
+      + `<span class="sr">${esc(t(site.ui.tema, lang))}</span></button>`
       + `</nav>`;
   }
 
