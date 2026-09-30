@@ -14,7 +14,7 @@
    los JSON: una foto que no esta, una fecha mal escrita... Es lo
    que hay que mirar antes de subir nada.
    ============================================================ */
-import { crearSitio, leerJSON, esc } from './paginas.mjs';
+import { crearSitio, leerJSON, unir, esc } from './paginas.mjs';
 
 /* La carpeta en la que esta el index.html: normalmente la raiz, pero si
    Live Server se abre desde una carpeta de mas arriba, sera una subcarpeta. */
@@ -86,8 +86,8 @@ async function arrancar() {
   let site, proyectos;
   try {
     site      = leerJSON(await pedir('data/site.json'), 'data/site.json');
-    proyectos = leerJSON(await pedir('data/projects.json'), 'data/projects.json');
-    if (!Array.isArray(proyectos)) throw new Error('data/projects.json tiene que ser una lista: empieza por [ y acaba por ]');
+    proyectos = unir(leerJSON(await pedir('data/work.json'), 'data/work.json'),
+                     leerJSON(await pedir('data/lab.json'), 'data/lab.json'));
   } catch (e) {
     pantallaDeError(e.json ? 'Hay un error en un JSON' : 'No puedo leer los datos', e.message);
     return;

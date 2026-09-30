@@ -11,10 +11,11 @@ al hacer push. Oriol no instala nada.
 
 ## Para Oriol: cómo actualizar la web
 
-Todo lo que cambia está en dos ficheros y una carpeta:
+Todo lo que cambia está en tres ficheros y una carpeta:
 
 ```
-data/projects.json    los proyectos
+data/work.json        los proyectos de work: el túnel y la lista
+data/lab.json         los del lab: experimentos, piezas interactivas
 data/site.json        el about, las redes, el correo, los textos
 media/<slug>/         las fotos y vídeos de cada proyecto
 ```
@@ -43,8 +44,11 @@ Solo se hace una vez.
 2. **Prepara las fotos y los vídeos** (ver abajo) y ponles nombres sencillos, sin
    espacios ni acentos: `1.webp`, `2.webp`, `directo.webm`…
 3. **Crea la carpeta** `media/<slug>/` —el mismo slug— y mete ahí los ficheros.
-4. **Copia un bloque** `{ ... }` entero de `data/projects.json`, pégalo donde
-   quieras (el orden lo pone la fecha) y cambia los campos.
+4. **Copia un bloque** `{ ... }` entero de `data/work.json` (o de `data/lab.json`
+   si es del lab) y cambia los campos. Pégalo en su sitio por fecha, **el más
+   nuevo arriba**: la web ordena sola, pero así en el fichero lo encuentras todo.
+   Pasar un proyecto de lab a work es cortar su bloque de un fichero y pegarlo
+   en el otro.
 5. **Revísalo con la vista previa** (ver abajo) antes de subir.
 6. **Súbelo** (ver abajo).
 
@@ -65,14 +69,17 @@ desde la web de GitHub, así lo bajas y no se pisan.
 
 ### Los campos de un proyecto
 
+Arriba lo que dice qué es, si está publicado y de cuándo; abajo lo largo.
+
 ```json
 {
   "slug": "lechatelier-sala-apolo-2025",
-  "title": "LeChatelier @ Sala Apolo [2]",
-  "subheader": { "en": "Lighting design & operation", "es": "…", "cat": "…" },
-  "client": "LeChatelier",
+  "published": true,
   "date": "2025-10-23",
+  "title": "LeChatelier @ Sala Apolo [2]",
+  "client": "LeChatelier",
   "tags": ["lx"],
+  "subheader": { "en": "Lighting design & operation", "es": "…", "cat": "…" },
   "description": { "en": "…", "es": "…", "cat": "…" },
   "credits": {
     "lighting design": "oriol colomer & clàudia aguiló",
@@ -80,14 +87,14 @@ desde la web de GitHub, así lo bajas y no se pisan.
   },
   "link": "https://youtu.be/…",
   "thumb": "portada.webm",
-  "media": ["1.webp", "2.webp", "directo.webm"],
-  "published": true
+  "media": ["1.webp", "2.webp", "directo.webm"]
 }
 ```
 
 | campo | qué es |
 |---|---|
-| `slug` | La dirección: `/work/<slug>/`, y el nombre de su carpeta en `media/`. |
+| `slug` | La dirección: `/work/<slug>/`, y el nombre de su carpeta en `media/`. No se puede repetir, tampoco entre work y lab. |
+| `published` | `false` = escrito pero sin publicar. No sale en la web (pero se puede ver en la vista previa). |
 | `title` | No se traduce. Sale tal cual. |
 | `subheader`, `description` | Los tres idiomas. Si dejas `es` o `cat` vacíos, sale el inglés. Una línea en blanco (`\n\n`) separa párrafos. |
 | `date` | `AAAA-MM-DD`. Ordena la web sola: el túnel, la lista y la línea del tiempo. |
@@ -96,8 +103,6 @@ desde la web de GitHub, así lo bajas y no se pisan.
 | `link` | Si es de **YouTube**, el vídeo sale embebido el primero, antes de las fotos. Si es otra cosa, sale como "Watch →". Se puede quitar. |
 | `thumb` | La portada del túnel y de la lista. Puede ser una foto, un **webp animado** o un **vídeo** (`.webm`), y entonces se mueve. Sale con su proporción, sin recortar: apaisada, cuadrada o casi vertical. Si no lo pones, se usa el primero de `media`. |
 | `media` | Fotos y vídeos del proyecto, en orden. Basta el nombre del fichero: se busca en `media/<slug>/`. También puede ir una **pieza interactiva** (ver abajo). |
-| `lab` | `true` = no es de work sino del **lab**: sale en `/lab/` y no en el túnel ni en la lista. `lab` se enciende en el menú en cuanto hay uno publicado. |
-| `published` | `false` = escrito pero sin publicar. No sale en la web (pero se puede ver en la vista previa). |
 
 Cuidado con las comas: entre campo y campo va una, y **después del último no**.
 Si se te escapa una, la vista previa te dice en qué línea está.
@@ -121,15 +126,15 @@ cargar que todo el resto de la página y hunde el posicionamiento.
 ### Piezas interactivas (Unity, webs)
 
 Una build de Unity WebGL o cualquier web hecha a mano se sube entera a una
-subcarpeta del proyecto y se pone su `index.html` en `media`:
+subcarpeta del proyecto y se pone su `index.html` en `media`. Suelen ir en
+`data/lab.json` (`lab` se enciende en el menú en cuanto hay uno publicado):
 
 ```
 media/spacetime/web/index.html
 media/spacetime/web/Build/...
 ```
 ```json
-"media": ["web/index.html"],
-"lab": true
+"media": ["web/index.html"]
 ```
 
 En la página sale un marco con un play, y la pieza solo se carga al darle: una
@@ -229,7 +234,8 @@ indexar y que un cliente pueda compartir.
 ### Los archivos
 
 ```
-data/projects.json     los proyectos          <- lo que edita Oriol
+data/work.json         los proyectos de work  <- lo que edita Oriol
+data/lab.json          los del lab            <- lo que edita Oriol
 data/site.json         about, redes, textos   <- lo que edita Oriol
 index.html             la vista previa para Live Server (no se publica)
 build/paginas.mjs      las plantillas: todo el HTML sale de aqui

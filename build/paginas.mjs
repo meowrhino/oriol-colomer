@@ -42,6 +42,17 @@ export function leerJSON(texto, nombre) {
   }
 }
 
+/** Junta data/work.json y data/lab.json en una sola lista. El fichero
+    decide la seccion: lo que esta en lab.json sale en /lab/, lo demas en
+    work. Las direcciones (/work/<slug>/) son de los dos, asi que se revisan
+    juntos: un slug no se puede repetir aunque este en ficheros distintos. */
+export function unir(work, lab) {
+  for (const [lista, f] of [[work, 'data/work.json'], [lab, 'data/lab.json']])
+    if (!Array.isArray(lista)) throw new Error(`${f} tiene que ser una lista: empieza por [ y acaba por ]`);
+  const marcar = esLab => p => (p && typeof p === 'object' ? { ...p, lab: esLab } : p);
+  return [...work.map(marcar(false)), ...lab.map(marcar(true))];
+}
+
 /* ============================================================
    crearSitio — todo lo que depende de los datos
    ------------------------------------------------------------

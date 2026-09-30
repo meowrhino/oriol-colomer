@@ -702,7 +702,8 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
 /* Cada cursor va dos veces: la segunda linea es la version retina, y
    el navegador que no la entienda se queda con la primera. */
 @media (hover:hover) and (pointer:fine){
-  html, body{
+  /* el tunel entero se arrastra, pero lleva la bola: el cono solo sobre las cartas */
+  html, body, .escena, .escena.arrastrando{
     cursor: url("../assets/cursor/idle.png") 16 16, auto;
     cursor: image-set(url("../assets/cursor/idle.png") 1x, url("../assets/cursor/idle@2x.png") 2x) 16 16, auto;
   }
@@ -711,7 +712,7 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
     cursor: image-set(url("../assets/cursor/text.png") 1x, url("../assets/cursor/text@2x.png") 2x) 16 16, text;
   }
   /* tambien lo que va dentro: el titulo de una fila de la lista es texto */
-  :is(a, button, summary, .hero, .barra, .escena, .carta, .rotulo),
+  :is(a, button, summary, .hero, .barra, .carta, .rotulo),
   :is(a, button, summary, .hero, .rotulo) *{
     cursor: url("../assets/cursor/hover.png") 1 1, pointer !important;
     cursor: image-set(url("../assets/cursor/hover.png") 1x, url("../assets/cursor/hover@2x.png") 2x) 1 1, pointer !important;

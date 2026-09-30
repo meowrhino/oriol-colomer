@@ -21,7 +21,7 @@
      <nombre>.thumb.webp   720 px, lo que pintan el tunel y la lista
 
    Si un fichero cambia de nombre (foto.jpg -> foto.webp), se
-   corrige tambien en data/projects.json.
+   corrige tambien en data/work.json o data/lab.json.
 
    Reejecutable: salta lo que ya esta hecho. Con --rehacer vuelve a
    codificar los webm desde el mp4.
@@ -159,27 +159,31 @@ for (const b of bases) {
 }
 
 /* ---------- 4. el JSON ---------- */
-const JSON_F = join(ROOT, 'data/projects.json');
-const proyectos = JSON.parse(readFileSync(JSON_F, 'utf8'));
 const enCarpeta = (p, m) => {
   const s = m.trim().replace(/^\/+/, '');
   return s.startsWith('media/') ? s : `media/${p.slug}/${s}`;
 };
-let tocados = 0;
-for (const p of proyectos) {
-  const arreglar = m => {
-    const nuevo = renombres.get(enCarpeta(p, m));
-    if (!nuevo) return m;
-    tocados++;
-    // se respeta como estaba escrito: con la ruta entera, o relativo a la carpeta
-    return m.trim().replace(/^\/+/, '').startsWith('media/') ? nuevo : nuevo.slice(`media/${p.slug}/`.length);
-  };
-  if (p.media) p.media = p.media.map(arreglar);
-  if (p.thumb) p.thumb = arreglar(p.thumb);
-}
-if (tocados) {
-  writeFileSync(JSON_F, JSON.stringify(proyectos, null, 2) + '\n');
-  console.log(`projects.json: ${tocados} rutas corregidas`);
+const proyectos = [];
+for (const f of ['data/work.json', 'data/lab.json']) {
+  const JSON_F = join(ROOT, f);
+  const lista = JSON.parse(readFileSync(JSON_F, 'utf8'));
+  let tocados = 0;
+  for (const p of lista) {
+    const arreglar = m => {
+      const nuevo = renombres.get(enCarpeta(p, m));
+      if (!nuevo) return m;
+      tocados++;
+      // se respeta como estaba escrito: con la ruta entera, o relativo a la carpeta
+      return m.trim().replace(/^\/+/, '').startsWith('media/') ? nuevo : nuevo.slice(`media/${p.slug}/`.length);
+    };
+    if (p.media) p.media = p.media.map(arreglar);
+    if (p.thumb) p.thumb = arreglar(p.thumb);
+  }
+  if (tocados) {
+    writeFileSync(JSON_F, JSON.stringify(lista, null, 2) + '\n');
+    console.log(`${f}: ${tocados} rutas corregidas`);
+  }
+  proyectos.push(...lista);
 }
 
 /* ---------- 5. miniaturas de las portadas ----------

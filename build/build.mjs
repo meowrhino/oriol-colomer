@@ -9,7 +9,7 @@
 import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, existsSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { crearSitio, leerJSON } from './paginas.mjs';
+import { crearSitio, leerJSON, unir } from './paginas.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT  = join(ROOT, 'dist');
@@ -18,7 +18,7 @@ const leer = f => leerJSON(readFileSync(join(ROOT, f), 'utf8'), f);
 let site, proyectos;
 try {
   site = leer('data/site.json');
-  proyectos = leer('data/projects.json');
+  proyectos = unir(leer('data/work.json'), leer('data/lab.json'));
 } catch (e) {
   // En GitHub esto es lo que sale en rojo en la pestana Actions: que se
   // entienda sin saber programar.
