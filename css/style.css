@@ -583,7 +583,14 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   position:absolute; left:50%; top:46%;   /* el top es OPTICO en tunnel.js */
   /* tambien por alto: en una pantalla baja (movil en horizontal) una
      carta a lo ancho no dejaba sitio para repartir las demas */
-  width: min(clamp(200px, 30vw, 420px), 64dvh);
+  /* Todas ocupan lo mismo de pantalla, no lo mismo de ancho: con el ancho
+     fijo una panoramica (La Roda, 2.6:1) salia baja y parecia pequena al
+     lado de una casi cuadrada. --ancho es el de una 16:9; las demas lo
+     escalan por la raiz de su proporcion (--r, la pone tunnel.js). Sin
+     sqrt() en el navegador, todas a --ancho como antes. */
+  --ancho: min(clamp(200px, 30vw, 420px), 64dvh);
+  width: var(--ancho);
+  width: min(calc(var(--ancho) * sqrt(var(--r, 1.7778) / 1.7778)), 88vw);
   aspect-ratio:16/9;                       /* hasta saber la de su portada (util.js) */
   will-change:transform,opacity,filter;
   -webkit-user-drag:none;
@@ -711,7 +718,7 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   .vistas button, .menu .cabeza, .opciones button{
     padding:1.02rem 0; margin:-.8rem 0;
   }
-  .carta{ width: min(300px, 66vw, 60dvh); }
+  .carta{ --ancho: min(300px, 66vw, 60dvh); }
 }
 
 /* Pantallas bajas (movil en horizontal): la barra del tiempo se arrima al

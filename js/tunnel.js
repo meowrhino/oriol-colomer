@@ -35,7 +35,7 @@ const lista  = document.getElementById('index');
 if (zona && lista && escena) {
   // La perspectiva se lee del CSS en vez de repetirla aqui.
   const P        = px(escena, 'perspective') || 900;
-  const SALTO    = 620;        // distancia en z entre proyectos
+  const SALTO    = 820;        // distancia en z entre proyectos: la de detras sale al 52 %
   const CERCA    = .70 * P;    // mas cerca que esto ya ha salido de cuadro
   // Hasta cuantos proyectos hacia atras se ven: todos, para que ninguno
   // desaparezca, con un tope para cuando haya muchos (a partir de diez
@@ -152,6 +152,7 @@ if (zona && lista && escena) {
       // su proporcion va en la carta; si llega tarde (vista previa), se recoloca
       const pintura = portada(d.a, r => {
         el.style.aspectRatio = r;
+        el.style.setProperty('--r', parseFloat(r));    // para el ancho (style.css)
         if (cartas.includes(el)) { medir(); pintar(); }
       });
       el._video = pintura.tagName === 'VIDEO' ? pintura : null;
