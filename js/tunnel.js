@@ -195,7 +195,11 @@ if (zona && lista && escena) {
     const copiar = () => {
       if (video.paused) { enCurso = false; return; }
       if (video.videoWidth) {
-        if (cv.width !== video.videoWidth) { cv.width = video.videoWidth; cv.height = video.videoHeight; }
+        // ancho y alto: una portada de 480 de ancho y otra proporcion (la de
+        // La Roda, 480x182) se quedaba en 480x270 y salia estirada y recortada
+        if (cv.width !== video.videoWidth || cv.height !== video.videoHeight) {
+          cv.width = video.videoWidth; cv.height = video.videoHeight;
+        }
         g.drawImage(video, 0, 0, cv.width, cv.height);
       }
       rvfc ? video.requestVideoFrameCallback(copiar) : requestAnimationFrame(copiar);

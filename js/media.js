@@ -86,7 +86,7 @@ function alDarle(sel, iframe) {
   }
 }
 // la pieza lleva permiso de pantalla completa y de mando
-alDarle('.media a.pieza[data-pieza]', a => ({ className: 'pieza', src: a.dataset.pieza,
+alDarle('a.pieza[data-pieza]', a => ({ className: 'pieza', src: a.dataset.pieza,
   allow: 'fullscreen; autoplay; gamepad' }));
 alDarle('.media a.yt[data-yt]', a => ({
   src: `https://www.youtube-nocookie.com/embed/${a.dataset.yt}?autoplay=1&rel=0&playsinline=1`,

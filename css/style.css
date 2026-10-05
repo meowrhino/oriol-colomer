@@ -166,7 +166,7 @@ img{ max-width:100%; display:block; }
 
 /* los iconos: dibujos negros sobre transparente (assets/iconos/) usados
    de mascara, asi toman el color del boton en claro y en oscuro */
-.langs .ico{
+.langs .ico, .vistas .ico{
   display:block; width:1rem; height:1rem; background:currentColor;
   -webkit-mask: var(--i) center / contain no-repeat; mask: var(--i) center / contain no-repeat;
 }
@@ -327,7 +327,7 @@ main.about, main.project{ flex:1 0 auto; }
 .embed .yt img{ width:100%; height:100%; object-fit:cover; }
 /* La pieza interactiva: el mismo marco, con la portada del proyecto de
    fondo si la hay, y el iframe en su lugar al darle al play. */
-.media .pieza{ display:block; position:relative; width:100%; aspect-ratio:16/9; border:0;
+.pieza{ display:block; position:relative; width:100%; aspect-ratio:16/9; border:0;
   background:#1a1a1a center/cover no-repeat; }
 .embed .play, .pieza .play{
   position:absolute; left:50%; top:50%; translate:-50% -50%;
@@ -409,6 +409,26 @@ main.about, main.project{ flex:1 0 auto; }
 .navega .langs{ position:static; margin-left:auto; margin-right:-.3rem; }
 
 /* ============================================================
+   LAB
+   Un parque: todo a la vista. En la lista, la portada al lado de
+   cada pieza. En la pagina, la pieza arriba a pantalla entera y
+   texto, creditos y fotos debajo, en una columna.
+   ============================================================ */
+.index--lab a{ grid-template-columns: clamp(96px, 14vw, 220px) 1fr 14ch 6ch; align-items:center; }
+.index--lab .mini{ display:block; aspect-ratio:16/9; overflow:hidden; background: var(--hueco); }
+.index--lab .mini img{ width:100%; height:100%; object-fit:cover; }
+
+.project--lab{ display:flex; flex-direction:column; align-items:stretch; gap: var(--aire); }
+.project--lab .side{ display:contents; }
+.project--lab .info, .project--lab .credits{ max-width:62ch; }
+.project--lab .credits{ order:2; margin-top:0; }
+.project--lab .media{ order:3; grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); }
+.project--lab .media:not(:has(*)){ display:none; }
+.project--lab .navega{ order:4; margin-top:0; padding-top:0; }
+/* lo que queda de pantalla bajo la barra de arriba */
+.escenario .pieza{ aspect-ratio:auto; height: calc(100dvh - var(--nav-alto) - var(--edge-y)); }
+
+/* ============================================================
    ABOUT
    ============================================================ */
 .about{ max-width: 62ch; padding: 0 var(--pad) var(--pad); }
@@ -485,6 +505,10 @@ main.about, main.project{ flex:1 0 auto; }
    vista actual y la otra guarda el ancho, asi no baila al cambiar */
 .vistas button{ display:inline-grid; color: var(--ink-hard); font-weight:700; }
 .vistas button span{ grid-area:1/1; text-align:right; }
+/* los iconos, al alto de la letra y bajados a la linea de las palabras */
+.vistas .ico{ width:1.15em; height:1.15em; translate:0 .2em; }
+.vistas .ico[data-vista="tunel"]{ --i:url(../assets/iconos/icon_tunnel.png); }
+.vistas .ico[data-vista="lista"]{ --i:url(../assets/iconos/icon_list.png); }
 body[data-vista="tunel"] .vistas [data-vista="lista"],
 body[data-vista="lista"] .vistas [data-vista="tunel"]{ visibility:hidden; }
 .vistas button:focus-visible, .menu button:focus-visible{
@@ -652,6 +676,7 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   .nav .aqui{ max-width:38vw; }
 
   .index a{ grid-template-columns: 1fr auto; gap: 1.5ch; }
+  .index--lab a{ grid-template-columns: 30vw 1fr auto; }
   .index .c{ display:none; }
   .peek{ display:none; }
   .langs, .sig{ position:static; }

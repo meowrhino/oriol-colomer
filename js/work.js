@@ -90,9 +90,13 @@ if (lista) {
       document.startViewTransition(() => aplicar(otra)).ready.catch(() => {}); // pestana oculta: se salta el fundido
     else aplicar(otra);
   });
-  let guardada = 'tunel';
-  try { guardada = localStorage.getItem('vista') || 'tunel'; } catch {}
-  aplicar(guardada);
+  // lab no tiene tunel: se queda en la lista que trae el HTML, y sin tocar
+  // la vista guardada, que es la de work
+  if (document.querySelector('.vistas')) {
+    let guardada = 'tunel';
+    try { guardada = localStorage.getItem('vista') || 'tunel'; } catch {}
+    aplicar(guardada);
+  }
 
   /* ---- miniatura al pasar por la lista -------------------- */
   // En pantalla tactil no hay hover, asi que la miniatura no se monta.

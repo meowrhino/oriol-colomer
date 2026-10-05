@@ -85,8 +85,8 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
      es este, de mas reciente a mas antiguo. Un proyecto pegado en cualquier
      sitio del fichero sale donde le toca por fecha. */
   const porFecha = (a, b) => String(b.date).localeCompare(String(a.date));
-  /* Dos secciones que funcionan igual —tunel, lista y una pagina por
-     proyecto—: work y lab (experimentos, piezas interactivas). Cada
+  /* Dos secciones: work (tunel, lista y una pagina por proyecto) y lab
+     (experimentos, piezas interactivas: lista y pagina, sin tunel). Cada
      proyecto va en la suya segun el fichero del que viene (ver unir()). */
   const live = proyectos.filter(p => p && p.published && !p.lab).sort(porFecha);
   const labs = proyectos.filter(p => p && p.published && p.lab).sort(porFecha);
@@ -377,9 +377,12 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
     + foot();
   }
 
-  /** El indice de una seccion: el tunel y la lista. Work y lab son iguales. */
+  /** El indice de una seccion: el tunel y la lista (lab, solo la lista). */
   function indice(lang, sec) {
     const items = de(sec);
+    /* Lab es un parque: todo a la vista y a mano, sin tunel. De momento,
+       la lista con la portada de cada pieza al lado. */
+    const tunel = sec !== 'lab';
     const tags = [...new Set(items.flatMap(p => p.tags || []))];
 
     // La lista va en el HTML siempre: es lo que lee Google y lo que queda si
@@ -393,7 +396,8 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
         <a href="${url(lang, dir(p))}"${portada?.img ? ` data-peek="${src(portada.img)}"` : ''}${
           d ? ` data-ratio="${(d.w / d.h).toFixed(4)}"` : ''}${
           portada?.video ? ` data-peek-video="${portada.video.map(src).join('|')}"` : ''}>
-          <span class="t">${titleHtml(p.title)}<small>${esc(t(p.subheader, lang))}</small></span>
+${tunel ? '' : `          <span class="mini">${portada?.img ? `<img src="${src(portada.img)}" alt=""${
+            d ? ` width="${d.w}" height="${d.h}"` : ''} loading="lazy" decoding="async">` : ''}</span>\n`}          <span class="t">${titleHtml(p.title)}<small>${esc(t(p.subheader, lang))}</small></span>
           <span class="c">${esc(fmtDate(p.date))}</span>
           <span class="g">${esc((p.tags || []).join(' '))}</span>
         </a>
@@ -420,7 +424,7 @@ ${opciones.map(([v, l], i) => `          <button type="button" role="menuitemrad
       lang, path: `${sec}/`,
       // La vista por defecto ya viene puesta en el HTML: si la pusiera el
       // guion, la lista entera se pintaria y desapareceria al cargar.
-      vista: 'tunel',
+      vista: tunel ? 'tunel' : 'lista',
       title: `${sec} — ${site.shortName}`,
       desc: t(site.tagline, lang),
       image: ogImage(items[0]),
@@ -437,11 +441,11 @@ ${opciones.map(([v, l], i) => `          <button type="button" role="menuitemrad
   <div class="controles">
 ${menu('sort', t(site.ui.sort, lang), orden)}
 ${menu('tag', '', filtro)}
-    <div class="vistas" role="group" aria-label="${esc(t(site.ui.aria.view, lang))}">
-      <!-- un solo boton: dice la vista en la que estas y pulsado pasa a la otra.
-           Las dos palabras ocupan la misma casilla, asi no baila de ancho -->
-      <button type="button" class="vista"><span data-vista="tunel">${esc(t(site.ui.tunnel, lang))}</span><span data-vista="lista">${esc(t(site.ui.list, lang))}</span></button>
-    </div>
+${tunel ? `    <div class="vistas" role="group" aria-label="${esc(t(site.ui.aria.view, lang))}">
+      <!-- un solo boton: ensena el icono de la vista en la que estas y pulsado
+           pasa a la otra. Los dos iconos en la misma casilla -->
+      <button type="button" class="vista"><span class="ico" data-vista="tunel" aria-hidden="true"></span><span class="ico" data-vista="lista" aria-hidden="true"></span><span class="sr" data-vista="tunel">${esc(t(site.ui.tunnel, lang))}</span><span class="sr" data-vista="lista">${esc(t(site.ui.list, lang))}</span></button>
+    </div>` : ''}
     <!-- idiomas, letra y tema a la derecha de tunel/lista: en el tunel la
          pagina no scrollea y el pie no se veria nunca -->
     ${langs(lang, `${sec}/`)}
@@ -451,13 +455,13 @@ ${menu('tag', '', filtro)}
 <main class="wrap">
   <h1 class="sr">${sec}</h1>
 
-  <!-- vista tunel -->
+${tunel ? `  <!-- vista tunel -->
   <div class="escena" id="escena">
     <div class="tunel" id="tunel"></div>
   </div>
-
+` : ''}
   <!-- vista lista -->
-  <ul class="index" id="index">
+  <ul class="index${tunel ? '' : ' index--lab'}" id="index">
 ${rows}
   </ul>
   <!-- en el movil, en la lista, idioma, letra y tema van aqui, al final
@@ -465,7 +469,7 @@ ${rows}
   <div class="pie-lista">${langs(lang, `${sec}/`)}</div>
 </main>
 
-<!-- Linea del tiempo: una raya de lado a lado y cada proyecto en su fecha.
+${tunel ? `<!-- Linea del tiempo: una raya de lado a lado y cada proyecto en su fecha.
      El pomo avanza con el tunel y se puede arrastrar. -->
 <footer class="tiempo" id="tiempo">
   <div class="barra" id="barra">
@@ -478,8 +482,8 @@ ${rows}
 </footer>
 
 <div class="peek" id="peek" aria-hidden="true"></div>
-<script type="module" src="${raiz('/js/work.js')}"></script>
-<script type="module" src="${raiz('/js/tunnel.js')}"></script>`
+<script type="module" src="${raiz('/js/tunnel.js')}"></script>
+` : ''}<script type="module" src="${raiz('/js/work.js')}"></script>`
     + foot();
   }
 
@@ -489,10 +493,18 @@ ${rows}
     const archivos = (p.media || []).map(m => enCarpeta(p, m));
 
     const yt = youtube(p.link);
+    /* En lab la pieza manda: va arriba a pantalla entera y el resto, texto
+       y fotos, debajo. En work, la pieza (si la hay) es una foto mas. */
+    const piezas = p.lab ? archivos.filter(esPieza) : [];
     const media = [
       ...(yt ? [embed(yt, p, lang)] : []),
-      ...archivos.map((m, i) => `      <figure>${mediaTag(m, p, sub, i)}</figure>`),
+      ...archivos.filter(m => !piezas.includes(m)).map((m, i) => `      <figure>${mediaTag(m, p, sub, i)}</figure>`),
     ].join('\n');
+    /* Y arranca sola, sin play: es a lo que se viene a esta pagina. */
+    const escenario = piezas.length
+      ? `  <div class="escenario">\n${piezas.map(m => `    <iframe class="pieza" src="${src(m)}" title="${esc(p.title)}"
+      allow="fullscreen; autoplay; gamepad" allowfullscreen></iframe>`).join('\n')}\n  </div>\n`
+      : '';
 
     const roles = Object.entries(p.credits || {});
     const credits = creditos(p, lang);
@@ -521,8 +533,8 @@ ${rows}
       },
     })
     + `${nav(lang, secDe(p), p)}
-<main class="project">
-  <div class="side">
+<main class="project${p.lab ? ' project--lab' : ''}">
+${escenario}  <div class="side">
     <div class="info">
       <h1 class="title">${titleHtml(p.title)}</h1>
       <div class="meta">
