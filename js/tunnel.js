@@ -35,7 +35,7 @@ const lista  = document.getElementById('index');
 if (zona && lista && escena) {
   // La perspectiva se lee del CSS en vez de repetirla aqui.
   const P        = px(escena, 'perspective') || 900;
-  const SALTO    = 820;        // distancia en z entre proyectos: la de detras sale al 52 %
+  const SALTO    = 1000;       // distancia en z entre proyectos: la de detras sale al 47 %
   const CERCA    = .70 * P;    // mas cerca que esto ya ha salido de cuadro
   // Hasta cuantos proyectos hacia atras se ven: todos, para que ninguno
   // desaparezca, con un tope para cuando haya muchos (a partir de diez
