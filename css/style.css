@@ -45,8 +45,12 @@
   --pad-top: clamp(16px, 1.6vw, 28px);
   /* El alto de la barra de arriba (.nav): su relleno mas un renglon. Lo usa
      el bloque del texto del proyecto para llegar justo al pie de pantalla. */
-  --nav-alto: calc(var(--pad-top) + var(--safe-top) + var(--fs-nav) * 1.45 + var(--pad));
+  --nav-alto: calc(var(--pad-top) + var(--safe-top) + var(--fila) + var(--pad));
   --gap:   clamp(24px, 4vw, 72px);     /* separacion entre columnas */
+  /* El alto del renglon de arriba, igual en todas las paginas y para todo
+     lo que va en el: enlaces, desplegables e iconos. Si cada cosa trae su
+     alto, el menu baja o sube un pixel segun lo que le acompana. */
+  --fila: 1.5rem;
 
   --fs-nav:   clamp(14px, 1.05vw, 17px);
   --fs-body:  clamp(14px, 1.02vw, 16px);
@@ -126,7 +130,7 @@ img{ max-width:100%; display:block; }
    work / about / lab a la izquierda. La landing no la lleva.
    ============================================================ */
 .nav{
-  position:relative; z-index:2;
+  position:relative; z-index:2; line-height: var(--fila);
   padding: calc(var(--pad-top) + var(--safe-top)) var(--pad) var(--pad);
   font-size: var(--fs-nav);
   color: var(--ink-soft);
@@ -480,21 +484,23 @@ main.about, main.project{ flex:1 0 auto; }
    space-between, asi que la cabecera ocupaba el doble de alto y los tres
    grupos quedaban desperdigados. */
 .topbar{
-  display:flex; align-items:baseline; gap:1rem;
-  font-size: var(--fs-nav);
+  /* al centro y no a la linea de la letra: los iconos y el idioma no tienen
+     linea de letra, y en el movil cada uno quedaba a una altura */
+  display:flex; align-items:center; gap:1rem;
+  font-size: var(--fs-nav); line-height: var(--fila);
   padding: calc(var(--pad-top) + var(--safe-top)) var(--pad) 0;
   /* Por encima de la escena del tunel, que ocupa la pantalla entera */
   position:relative; z-index:4;
 }
 .topbar .nav{ padding:0; flex:0 0 auto; font-size:inherit; }
-.controles{ display:flex; align-items:baseline; gap:.9rem; margin-left:auto; flex:0 0 auto; }
+.controles{ display:flex; align-items:center; gap:.9rem; margin-left:auto; flex:0 0 auto; }
 .controles .langs{ position:static; padding:0; margin-right:-.2rem; }
 
 /* Tunel / lista se escribe igual que home / work / about, pero a la
    derecha: mismo tamano, mismos grises, la barra de separacion y el activo
    en negrita. Antes era mas pequeno y de otro gris, y la cabecera parecia
    hecha de dos piezas. Los desplegables de la lista, al mismo tamano. */
-.vistas{ display:flex; align-items:baseline; }
+.vistas{ display:flex; align-items:center; }
 .vistas button, .menu .cabeza, .opciones button{
   font:inherit; line-height:inherit;
   background:none; border:0; padding:0; cursor:pointer;
@@ -505,8 +511,8 @@ main.about, main.project{ flex:1 0 auto; }
    vista actual y la otra guarda el ancho, asi no baila al cambiar */
 .vistas button{ display:inline-grid; color: var(--ink-hard); font-weight:700; }
 .vistas button span{ grid-area:1/1; text-align:right; }
-/* los iconos, al alto de la letra y bajados a la linea de las palabras */
-.vistas .ico{ width:1.15em; height:1.15em; translate:0 .2em; }
+/* el icono, del tamano de los de idioma, letra y tema */
+.vistas .ico{ width:1rem; height:1rem; }
 .vistas .ico[data-vista="tunel"]{ --i:url(../assets/iconos/icon_tunnel.png); }
 .vistas .ico[data-vista="lista"]{ --i:url(../assets/iconos/icon_list.png); }
 body[data-vista="tunel"] .vistas [data-vista="lista"],
@@ -697,7 +703,11 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
      375). Se aprieta todo un punto y se cae la etiqueta "sort": el valor y
      la flecha ya dicen que es un desplegable, y al abrirlo la palabra esta
      dentro. Preferimos eso a partir la cabecera en dos pisos. */
-  .topbar{ gap:.5rem; padding: calc(14px + var(--safe-top)) 14px 0; }
+  /* La barra va con los margenes de --pad y --pad-top, como la de about y
+     la de los proyectos: con unos propios el menu saltaba de sitio al
+     cambiar de pagina */
+  :root{ --pad-top:14px; }
+  .topbar{ gap:.5rem; }
   .controles{ gap:.7rem; }
   /* Por si en un telefono muy estrecho no cabe, lo ultimo baja a otro
      renglon, pegado a la derecha, en vez de salirse */
@@ -716,7 +726,7 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   /* 19px de alto era la mitad del objetivo tactil. El margen negativo se come
      el relleno extra, asi que la barra se ve exactamente igual. */
   .vistas button, .menu .cabeza, .opciones button{
-    padding:1.02rem 0; margin:-.8rem 0;
+    padding:1rem 0; margin:-1rem 0;    /* lo mismo arriba y abajo: no cambia el alto */
   }
   .carta{ --ancho: min(300px, 66vw, 60dvh); }
 }
@@ -736,7 +746,7 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
 /* en la portada, abajo al centro */
 .landing .langs{ right:auto; left:50%; translate:-50% 0; }
 @media (max-width: 820px){
-  body[data-vista="tunel"] .controles .langs{ position:static; translate:none; order:-1; align-self:center; }
+  body[data-vista="tunel"] .controles .langs{ position:static; translate:none; order:-1; }
   body[data-vista="lista"] .controles .langs{ display:none; }
   body[data-vista="lista"]{ display:flex; flex-direction:column; min-height:100dvh; }
   body[data-vista="lista"] .wrap{ flex:1; display:flex; flex-direction:column; padding-bottom:0; }
@@ -747,7 +757,8 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
 /* Telefonos pequenos (iPhone SE y compania): un punto mas de apriete para
    que el renglon de arriba siga siendo uno solo. */
 @media (max-width: 360px){
-  .topbar{ gap:.4rem; padding: calc(12px + var(--safe-top)) 12px 0; }
+  :root{ --pad:12px; --pad-top:12px; }
+  .topbar{ gap:.4rem; }
   .controles{ gap:.45rem; }
   .topbar{ font-size: calc(var(--fs-nav) * .86); }
   .nav{ font-size:.86em; }
