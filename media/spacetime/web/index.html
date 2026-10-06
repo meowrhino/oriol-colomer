@@ -4,6 +4,7 @@
   Va dentro de un <iframe> en la pagina del proyecto, y solo se carga al
   darle al play. Cambios respecto al index.html que exporta Unity:
   - el canvas llena el marco en vez de medir 1920x1080 fijos;
+  - mientras carga toma el fondo de la web (claro u oscuro), no negro;
   - los ficheros van descomprimidos (.data, .wasm, .framework.js) y no en
     .br: GitHub Pages no manda la cabecera Content-Encoding que Unity pide
     para los .br, y sin "Decompression Fallback" la build no arrancaba.
@@ -18,7 +19,7 @@
     <title>spacetime</title>
     <style>
       html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
-      #unity-canvas { display: block; width: 100%; height: 100%; background: #000; }
+      #unity-canvas { display: block; width: 100%; height: 100%; background: transparent; }
       #aviso { position: absolute; inset: 0; display: grid; place-items: center;
                color: #7d7d7d; font: 13px/1.4 Helvetica, Arial, sans-serif; pointer-events: none; }
     </style>
@@ -29,6 +30,18 @@
     <script src="Build/Web-0_1.loader.js"></script>
     <script>
       var aviso = document.getElementById('aviso');
+      /* mientras carga, el fondo y el gris de la web (claro u oscuro): se
+         leen de la pagina que la contiene. Abierta suelta, se queda en negro. */
+      function paleta() {
+        try {
+          var css = parent.getComputedStyle(parent.document.documentElement);
+          var bg = css.getPropertyValue('--bg').trim();
+          if (!bg || parent === window) return;
+          document.body.style.background = bg;
+          aviso.style.color = css.getPropertyValue('--ink-soft').trim();
+        } catch (e) {}
+      }
+      paleta();
       createUnityInstance(document.querySelector('#unity-canvas'), {
         arguments: [],
         dataUrl: 'Build/Web-0_1.data',
@@ -39,9 +52,11 @@
         productName: 'spacetime',
         productVersion: '0.1.0',
       }, function (p) {
+        paleta();   // por si se cambia de tema mientras carga
         aviso.textContent = 'loading… ' + Math.round(p * 100) + '%';
       }).then(function () {
         aviso.remove();
+        document.body.style.background = '';   // ya en marcha, negro como antes
       }).catch(function (message) {
         aviso.textContent = message;
       });

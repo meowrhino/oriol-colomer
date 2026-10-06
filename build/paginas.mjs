@@ -295,8 +295,8 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
       if (proyecto && id === current)
         return `<a class="aqui" href="${href}" aria-current="page" title="${id}">${esc(proyecto.title)}</a>`;
       return id === current
-        ? `<a href="${href}" aria-current="page">${id}</a>`
-        : `<a href="${href}">${id}</a>`;
+        ? `<a href="${href}" data-t="${id}" aria-current="page">${id}</a>`
+        : `<a href="${href}" data-t="${id}">${id}</a>`;
     };
     return `<nav class="nav nav--inline">`
          + SECCIONES.filter(([id]) => id !== 'lab' || labs.length).map(item).join('<span class="sep">/</span>')
@@ -336,7 +336,7 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
       + `<span class="ico ojo" aria-hidden="true"></span><span class="ico mano" aria-hidden="true"></span>`
       + `<span class="sr">${esc(t(site.ui.tipo, lang))}</span></button>`
       // el idioma: dice el actual y al pulsar pasa al siguiente de los tres
-      + `<a class="idioma" href="${url(sig, path)}" hreflang="${iso(sig)}" title="${esc(t(site.ui.aria.lang, lang))}: ${sig}">${lang.toUpperCase()}</a>`
+      + `<a class="idioma" href="${url(sig, path)}" hreflang="${iso(sig)}" title="${esc(t(site.ui.aria.lang, lang))}: ${sig}">${lang}</a>`
       + `</nav>`;
   }
 

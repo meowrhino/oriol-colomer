@@ -138,6 +138,11 @@ img{ max-width:100%; display:block; }
 .nav a{ color: var(--ink-soft); }
 .nav a:hover{ color: var(--ink-hard); }
 .nav [aria-current="page"]{ color: var(--ink-hard); font-weight:700; }
+/* cada seccion guarda el ancho de su version en negrita (un fantasma
+   invisible debajo): si no, al cambiar de pagina la activa engorda y
+   empuja a las de su derecha unos pixeles */
+.nav a[data-t]{ display:flex; flex-direction:column; }
+.nav a[data-t]::after{ content:attr(data-t); font-weight:700; height:0; overflow:hidden; visibility:hidden; }
 /* dentro de un proyecto, su nombre en el sitio de "work": si es muy largo
    se corta, que la barra es un renglon */
 .nav .aqui{ max-width:42ch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -181,7 +186,7 @@ img{ max-width:100%; display:block; }
 .langs .tipo[aria-pressed="true"] .ojo,
 .langs .tipo[aria-pressed="false"] .mano{ display:none; }
 
-/* idioma: el codigo del actual, en mayusculas */
+/* idioma: el codigo del actual, en minusculas como el resto de titulos */
 .langs .idioma{ padding:0 .15rem; text-decoration:none; }
 
 /* sol y luna uno encima del otro, se funden al conmutar (y el boton da
@@ -333,6 +338,8 @@ main.about, main.project{ flex:1 0 auto; }
    fondo si la hay, y el iframe en su lugar al darle al play. */
 .pieza{ display:block; position:relative; width:100%; aspect-ratio:16/9; border:0;
   background:#1a1a1a center/cover no-repeat; }
+/* ya cargando, del color del fondo: la pieza aparece sin un cuadro negro */
+iframe.pieza{ background: var(--bg); }
 .embed .play, .pieza .play{
   position:absolute; left:50%; top:50%; translate:-50% -50%;
   width:clamp(52px, 5vw, 72px); aspect-ratio:1; border-radius:50%;
