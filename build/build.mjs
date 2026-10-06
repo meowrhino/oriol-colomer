@@ -102,6 +102,8 @@ writeFileSync(join(OUT, 'sitemap.xml'),
 
 writeFileSync(join(OUT, 'robots.txt'),
   `User-agent: *\nAllow: /\nSitemap: ${sitio.publica('/sitemap.xml')}\n`);
+// GitHub Pages ensena esta en cualquier direccion que no existe
+writeFileSync(join(OUT, '404.html'), sitio.noEncontrada());
 writeFileSync(join(OUT, '.nojekyll'), '');
 if (site.domain) writeFileSync(join(OUT, 'CNAME'), site.domain + '\n');
 

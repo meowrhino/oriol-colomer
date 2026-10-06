@@ -81,7 +81,7 @@ function alDarle(sel, iframe) {
       const f = Object.assign(document.createElement('iframe'),
         { title: a.getAttribute('aria-label') || '', allowFullscreen: true }, iframe(a));
       a.replaceWith(f);
-      f.focus();
+      if (e.isTrusted) f.focus();   // la que arranca sola no se lleva el foco
     });
   }
 }
@@ -91,6 +91,12 @@ alDarle('a.pieza[data-pieza]', a => ({ className: 'pieza', src: a.dataset.pieza,
 alDarle('.media a.yt[data-yt]', a => ({
   src: `https://www.youtube-nocookie.com/embed/${a.dataset.yt}?autoplay=1&rel=0&playsinline=1`,
   allow: 'autoplay; encrypted-media; picture-in-picture; fullscreen' }));
+
+/* La pieza de lab, la de arriba a pantalla entera, arranca sola en un
+   ordenador con raton. En el movil espera al play: son decenas de megas
+   de datos, y Unity en un telefono a menudo ni arranca. */
+if (matchMedia('(pointer: fine)').matches)
+  document.querySelector('.escenario a.pieza[data-pieza]')?.click();
 
 /* ============================================================
    El bloque del texto, siempre alcanzable

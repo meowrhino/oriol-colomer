@@ -31,7 +31,7 @@ if (lista) {
     const opts   = [...caja.querySelectorAll('button')];
 
     const poner = b => {
-      opts.forEach(o => o.setAttribute('aria-checked', String(o === b)));
+      opts.forEach(o => o.setAttribute('aria-pressed', String(o === b)));
       val.textContent = b.textContent.trim();
       caja.hidden = true;
       cabeza.setAttribute('aria-expanded', 'false');
@@ -43,7 +43,7 @@ if (lista) {
       cerrarTodos(m);
       caja.hidden = abierto;
       cabeza.setAttribute('aria-expanded', String(!abierto));
-      if (!abierto) opts.find(o => o.getAttribute('aria-checked') === 'true')?.focus();
+      if (!abierto) opts.find(o => o.getAttribute('aria-pressed') === 'true')?.focus();
     });
     opts.forEach(b => b.addEventListener('click', () => poner(b)));
     m.addEventListener('keydown', e => {
@@ -52,7 +52,7 @@ if (lista) {
     });
 
     // valor de arranque: el que viene marcado del generador
-    val.textContent = opts.find(o => o.getAttribute('aria-checked') === 'true').textContent.trim();
+    val.textContent = opts.find(o => o.getAttribute('aria-pressed') === 'true').textContent.trim();
   }
 
   addEventListener('pointerdown', e => { if (!e.target.closest('.menu')) cerrarTodos(null); });

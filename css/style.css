@@ -11,8 +11,8 @@
 
 :root{
   --bg:        #fafafa;
-  --ink:       #7d7d7d;   /* cuerpo de texto */
-  --ink-soft:  #a6a6a6;   /* titulos, secundario */
+  --ink:       #737373;   /* cuerpo de texto: 4,5 sobre --bg, el minimo AA */
+  --ink-soft:  #919191;   /* titulos, secundario: 3 sobre --bg */
   --ink-faint: #c4c4c4;   /* inactivo, lab */
   --ink-hard:  #646464;   /* activo, roles en bold */
 
@@ -554,7 +554,7 @@ body[data-vista="lista"] .vistas [data-vista="tunel"]{ visibility:hidden; }
 .opciones[hidden]{ display:none; }
 .opciones button{ text-align:right; padding:.3rem .5rem; font-size:.9em; }
 /* la activa sale marcada, no escondida: la lista de opciones es completa */
-.opciones button[aria-checked="true"]{ color: var(--ink-hard); font-weight:700; }
+.opciones button[aria-pressed="true"]{ color: var(--ink-hard); font-weight:700; }
 
 /* ---------- que se ve en cada vista ---------- */
 body[data-vista="tunel"] .index,

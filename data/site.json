@@ -138,6 +138,11 @@
       "en": "back",
       "es": "volver",
       "cat": "tornar"
+    },
+    "notFound": {
+      "en": "this page doesn't exist.",
+      "es": "esta página no existe.",
+      "cat": "aquesta pàgina no existeix."
     }
   },
   "base": "/oriol-colomer"

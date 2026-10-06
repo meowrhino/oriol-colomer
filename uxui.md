@@ -6,7 +6,7 @@ recomendada (★). Cuando se decida uno, se tacha o se borra.
 
 ## Prioridad alta
 
-### 1. El gris se lee poco
+### ~~1. El gris se lee poco~~ — hecho 1A (`--ink` #737373, 4,5; `--ink-soft` #919191, 3,0)
 Contraste sobre el fondo `#fafafa`. Para texto normal el mínimo es 4,5:1
 (WCAG AA) y para iconos, 3:1.
 

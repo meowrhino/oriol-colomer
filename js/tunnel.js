@@ -424,7 +424,7 @@ if (zona && lista && escena) {
 
   addEventListener('keydown', e => {
     if (!enTunelActivo()) return;
-    if (e.target.closest('input, textarea, button, [role="menu"]')) return;
+    if (e.target.closest('input, textarea, button')) return;
     const k = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
     if (k) { e.preventDefault(); irA(Math.round(meta) + k); return; }
     if (e.key === 'Home') { e.preventDefault(); irA(0); }        // mas reciente

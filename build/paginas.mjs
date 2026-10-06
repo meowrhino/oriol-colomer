@@ -409,12 +409,12 @@ ${tunel ? '' : `          <span class="mini">${portada?.img ? `<img src="${src(p
     /** Menu desplegable. El boton ensena el valor puesto; al abrirlo salen
         todas las opciones, incluida la activa, que va marcada. */
     const menu = (id, etiqueta, opciones) => `      <div class="menu" data-menu="${id}">
-        <button type="button" class="cabeza" aria-expanded="false" aria-haspopup="true">
+        <button type="button" class="cabeza" aria-expanded="false">
           <span class="et">${esc(etiqueta)}</span><span class="val"></span>
         </button>
-        <div class="opciones" role="menu" hidden>
-${opciones.map(([v, l], i) => `          <button type="button" role="menuitemradio" data-v="${esc(v)}"
-            aria-checked="${i === 0}">${esc(l)}</button>`).join('\n')}
+        <div class="opciones" hidden>
+${opciones.map(([v, l], i) => `          <button type="button" data-v="${esc(v)}"
+            aria-pressed="${i === 0}">${esc(l)}</button>`).join('\n')}
         </div>
       </div>`;
 
@@ -502,10 +502,11 @@ ${tunel ? `<!-- Linea del tiempo: una raya de lado a lado y cada proyecto en su 
       ...(yt ? [embed(yt, p, lang)] : []),
       ...archivos.filter(m => !piezas.includes(m)).map((m, i) => `      <figure>${mediaTag(m, p, sub, i)}</figure>`),
     ].join('\n');
-    /* Y arranca sola, sin play: es a lo que se viene a esta pagina. */
+    /* Sale con su play, como en work. En un ordenador con raton js/media.js
+       la arranca sola —es a lo que se viene a esta pagina—; en el movil
+       espera al dedo: una build de Unity son decenas de megas de datos. */
     const escenario = piezas.length
-      ? `  <div class="escenario">\n${piezas.map(m => `    <iframe class="pieza" src="${src(m)}" title="${esc(p.title)}"
-      allow="fullscreen; autoplay; gamepad" allowfullscreen></iframe>`).join('\n')}\n  </div>\n`
+      ? `  <div class="escenario">\n${piezas.map(m => `    ${mediaTag(m, p, sub, 0)}`).join('\n')}\n  </div>\n`
       : '';
 
     const roles = Object.entries(p.credits || {});
@@ -612,6 +613,22 @@ ${ps.map(x => `  <p>${esc(x)}</p>`).join('\n')}
     + foot();
   }
 
+  /** La 404. GitHub Pages sirve la misma para cualquier direccion que no
+      existe, sea del idioma que sea: por eso el aviso va en los tres. */
+  function noEncontrada() {
+    return head({
+      lang: DEF, path: '',
+      title: `404 — ${site.shortName}`,
+      desc: t(site.ui.notFound, DEF),
+    })
+    + `${nav(DEF, null)}
+<main class="about">
+  <h1>404</h1>
+${LANGS.map(l => `  <p lang="${iso(l)}">${esc(t(site.ui.notFound, l))}</p>`).join('\n')}
+</main>`
+    + foot();
+  }
+
   /* ---------- el mapa del sitio ----------
      Cada pagina con su ruta y la funcion que la pinta. El build las escribe
      todas; la vista previa busca la que se ha pedido y pinta solo esa. */
@@ -684,5 +701,5 @@ ${ps.map(x => `  <p>${esc(x)}</p>`).join('\n')}
     return avisos;
   }
 
-  return { live, labs, rutas, revisar, publica, LANGS };
+  return { live, labs, rutas, noEncontrada, revisar, publica, LANGS };
 }
