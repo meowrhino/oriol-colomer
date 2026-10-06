@@ -62,6 +62,11 @@ export function unir(work, lab) {
   return [...work.map(marcar(false)), ...lab.map(marcar(true))];
 }
 
+/** El id de un video de YouTube a partir de cualquiera de sus enlaces:
+    youtu.be/ID, watch?v=ID, embed/ID, shorts/ID, live/ID. */
+export const youtube = link => (/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/
+  .exec(String(link || '')) || [])[1] || null;
+
 /* ============================================================
    crearSitio — todo lo que depende de los datos
    ------------------------------------------------------------
@@ -71,12 +76,15 @@ export function unir(work, lab) {
      existe(ruta)      true si ese fichero esta en el repo
      medidas(ruta)     { w, h } de una imagen, o null
      peso(ruta)        bytes de un fichero, o null (para avisar de lo pesado)
+     miniaturaYT(id)   la ruta de la miniatura de YouTube bajada al publicar,
+                       o null: entonces se pide a YouTube
      preview           true en la vista previa: los enlaces internos van
                        a ?p=/ruta/ en vez de a /ruta/, porque Live Server
                        solo tiene un index.html y el resto lo pinta el js
    ============================================================ */
 export function crearSitio({ site, proyectos, base = '', existe = () => false,
-                             medidas = () => null, peso = () => null, preview = false }) {
+                             medidas = () => null, peso = () => null, miniaturaYT = () => null,
+                             preview = false }) {
   const LANGS = site.langs;
   const DEF   = site.defaultLang;
   const B     = String(base).replace(/\/$/, '');
@@ -176,15 +184,19 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
     const foto = todo.find(x => !esVideo(x));
     return foto ? { img: chica(foto), video: null } : null;
   };
-  /** Para og:image hace falta una imagen de verdad, no un video. */
+  /** La tarjeta del sitio (el ojo, 1200x630): la que sale al compartir la
+      portada, el about y lo que no tiene imagen propia. */
+  const OG = 'assets/og.jpg';
+  /** La imagen con la que se comparte un proyecto: la primera foto, o el
+      poster de un video, o su portada. WhatsApp se salta la vista previa
+      si pesa mas de 300 KB: entonces va la version chica. */
   const ogImage = p => {
-    if (!p || !p.media) return null;
-    const m = p.media.map(x => enCarpeta(p, x)).filter(x => !esPieza(x));
-    return m.find(x => !esVideo(x)) || m.map(poster).find(Boolean) || null;
+    if (!p) return OG;
+    const m = (p.media || []).map(x => enCarpeta(p, x)).filter(x => !esPieza(x));
+    const f = m.find(x => !esVideo(x)) || m.map(poster).find(Boolean) || cover(p)?.img;
+    if (!f) return OG;
+    return existe(f) && peso(f) > 300 * 1024 ? chica(f) : f;
   };
-  /** La imagen con la que se comparte la portada y el indice: la del
-      proyecto mas reciente, si hay alguno publicado. */
-  const ogSitio = () => ogImage(live[0]);
 
   /** Un item de media: imagen, o video en bucle mudo sin controles.
       El video sale parado y sin pedir nada: lo arranca js/media.js cuando
@@ -248,6 +260,8 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
     const alts = LANGS.map(l =>
       `<link rel="alternate" hreflang="${iso(l)}" href="${abs(l, path)}">`
     ).join('\n  ');
+    // las medidas dejan pintar la vista previa sin esperar a bajar la imagen
+    const dim = image && medidas(image);
     return `<!doctype html>
 <html lang="${iso(lang)}">
 <head>
@@ -265,6 +279,7 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
   <meta property="og:site_name" content="${esc(site.shortName)}">
   <meta property="og:locale" content="${lang === 'cat' ? 'ca_ES' : lang === 'es' ? 'es_ES' : 'en_GB'}">
   ${image ? `<meta property="og:image" content="${absFichero(image)}">` : ''}
+  ${dim ? `<meta property="og:image:width" content="${dim.w}">\n  <meta property="og:image:height" content="${dim.h}">` : ''}
   <meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}">
   <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#151515" media="(prefers-color-scheme: dark)">
@@ -303,20 +318,18 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
          + `</nav>`;
   }
 
-  /** El id de un video de YouTube a partir de cualquiera de sus enlaces:
-      youtu.be/ID, watch?v=ID, embed/ID, shorts/ID, live/ID. */
-  const youtube = link => (/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/
-    .exec(String(link || '')) || [])[1] || null;
-
   /** El video del enlace, primero del carrusel. No es el reproductor de
       YouTube todavia: es su fotograma con un boton de play. El reproductor
       (medio mega de guiones de Google) solo se carga al darle, y desde
-      youtube-nocookie. Sin JavaScript el boton es un enlace a YouTube. */
+      youtube-nocookie. Sin JavaScript el boton es un enlace a YouTube.
+      El fotograma lo baja el build y se sirve desde aqui: abrir la pagina
+      no le pide nada a Google. En la vista previa, de YouTube. */
   const embed = (id, p, lang) => `      <figure class="embed">
         <a class="yt" href="${esc(p.link)}" target="_blank" rel="noopener" data-yt="${id}"
            aria-label="${esc(t(site.ui.watch, lang))}: ${esc(p.title)}">
-          <img src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" alt="" decoding="async"
-               onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${id}/hqdefault.jpg'">
+          ${miniaturaYT(id) ? `<img src="${src(miniaturaYT(id))}" alt="" decoding="async">`
+          : `<img src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" alt="" decoding="async"
+               onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${id}/hqdefault.jpg'">`}
           <span class="play" aria-hidden="true"></span>
         </a>
       </figure>`;
@@ -352,7 +365,7 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
       lang, path: '', vel: 1, entrar: url(lang, 'work/'), auto: site.entradaAuto,
       title: `${site.name} — ${t(site.tagline, lang)}`,
       desc: t(site.tagline, lang),
-      image: ogSitio(),
+      image: OG,
       jsonld: {
         '@context':'https://schema.org', '@type':'Person',
         name: site.name, url: abs(lang),
@@ -592,6 +605,7 @@ ${roles.map(([role, people]) =>
       lang, path: 'about/',
       title: `about — ${site.shortName}`,
       desc: metaDesc(ps[0]),
+      image: OG,
       jsonld: {
         '@context':'https://schema.org', '@type':'AboutPage',
         url: abs(lang, 'about/'),
@@ -620,6 +634,7 @@ ${ps.map(x => `  <p>${esc(x)}</p>`).join('\n')}
       lang: DEF, path: '',
       title: `404 — ${site.shortName}`,
       desc: t(site.ui.notFound, DEF),
+      image: OG,
     })
     + `${nav(DEF, null)}
 <main class="about">

@@ -9,7 +9,7 @@
 import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, existsSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { crearSitio, leerJSON, unir } from './paginas.mjs';
+import { crearSitio, leerJSON, unir, youtube } from './paginas.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT  = join(ROOT, 'dist');
@@ -72,8 +72,25 @@ function medidas(rel) {
   return r;
 }
 
+/* Los fotogramas de los videos de YouTube se bajan al publicar y se sirven
+   desde la web: quien abre un proyecto no le pide nada a Google hasta que le
+   da al play. maxresdefault no existe en todos los videos; hqdefault, si.
+   Si no se puede bajar (sin red, YouTube caido), se pide a YouTube como antes. */
+const miniaturas = new Map();   // id -> bytes del jpg
+const ids = new Set(proyectos.filter(p => p?.published).map(p => youtube(p.link)).filter(Boolean));
+await Promise.all([...ids].map(async id => {
+  for (const q of ['maxresdefault', 'hqdefault']) {
+    try {
+      const r = await fetch(`https://i.ytimg.com/vi/${id}/${q}.jpg`, { signal: AbortSignal.timeout(15000) });
+      if (r.ok) return miniaturas.set(id, Buffer.from(await r.arrayBuffer()));
+    } catch { /* se prueba la siguiente, o se queda en YouTube */ }
+  }
+}));
+const YT = id => `media/youtube/${id}.jpg`;
+
 const sitio = crearSitio({
   site, proyectos, base, medidas,
+  miniaturaYT: id => (miniaturas.has(id) ? YT(id) : null),
   existe: rel => existsSync(join(ROOT, rel)),
   peso: rel => statSync(join(ROOT, rel)).size,
 });
@@ -84,6 +101,8 @@ mkdirSync(OUT, { recursive: true });
 for (const dir of ['css', 'js', 'assets', 'media']) {
   if (existsSync(join(ROOT, dir))) cpSync(join(ROOT, dir), join(OUT, dir), { recursive: true });
 }
+mkdirSync(join(OUT, 'media/youtube'), { recursive: true });
+for (const [id, bytes] of miniaturas) writeFileSync(join(OUT, YT(id)), bytes);
 
 const rutas = sitio.rutas();
 for (const r of rutas) {

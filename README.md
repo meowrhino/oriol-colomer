@@ -95,7 +95,7 @@ Arriba lo que dice qué es, si está publicado y de cuándo; abajo lo largo.
 | campo | qué es |
 |---|---|
 | `slug` | La dirección: `/work/<slug>/` (o `/lab/<slug>/`), y el nombre de su carpeta en `media/`. No se puede repetir, tampoco entre work y lab. |
-| `published` | `false` = escrito pero sin publicar. No sale en la web (pero se puede ver en la vista previa). |
+| `published` | `false` = escrito pero sin publicar. No sale en la web (pero se puede ver en la vista previa). **No es privado**: el repositorio es público, así que el texto y las fotos se pueden ver en GitHub, y las fotos también en la web si alguien adivina la dirección. |
 | `title` | No se traduce. Sale tal cual. |
 | `subheader`, `description` | Los tres idiomas. Si dejas `es` o `cat` vacíos, sale el inglés. Una línea en blanco (`\n\n`) separa párrafos. |
 | `date` | `AAAA-MM-DD`. Ordena la web sola: el túnel, la lista y la línea del tiempo. |
@@ -171,10 +171,14 @@ media/spacetime/web/Build/...
 "media": ["web/index.html"]
 ```
 
-En la página sale un marco con un play, y la pieza solo se carga al darle: una
-build de Unity son decenas de megas. Desde Unity, exporta con
+En lab, la pieza arranca sola en un ordenador; en el móvil sale un play y solo
+se carga al darle: una build de Unity son decenas de megas. Desde Unity, exporta con
 *Publishing Settings → Compression Format: Brotli* y **"Decompression Fallback"
 activado**: sin eso, GitHub Pages no sabe servir los `.br` y la build no arranca.
+
+Cada vez que se sube una build nueva, la anterior se queda guardada para siempre
+en el historial de git: unos 60 MB por versión. No pasa nada por unas pocas,
+pero no la subas por cada cambio pequeño; junta varios.
 
 ### Ver los cambios antes de subirlos: Live Server
 
