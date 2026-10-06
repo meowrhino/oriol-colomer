@@ -77,19 +77,27 @@ if (ojo && destino) {
 
   /* ---- entrar ---------------------------------------------- */
   let yendo = false;
+  // idiomas, letra y tema: no entran. El ojo (.hero) si, aunque sea un enlace
+  const otroControl = e => e?.target?.closest?.('a:not(.hero), button');
   function entrar(e) {
-    if (yendo) return;
-    if (e && e.target && e.target.closest && e.target.closest('a, button')) return;   // idiomas: no entran
+    if (yendo || otroControl(e)) return;
     yendo = true;
     if (seco) { location.href = destino; return; }
     document.body.classList.add('entrando');          // parpadea, y luego funde
     setTimeout(() => { location.href = destino; }, ms('--parpadeo') + ms('--fundido'));
   }
 
-  addEventListener('pointerdown', entrar);
+  // solo el boton principal y sin teclas: el derecho abre el menu del
+  // enlace y cmd/ctrl/shift lo abren aparte, sin irse de aqui
+  const aparte = e => e.metaKey || e.ctrlKey || e.shiftKey;
+  addEventListener('pointerdown', e => { if (!e.button && !aparte(e)) entrar(e); });
+  // Enter o espacio sobre un idioma o un boton hacen lo suyo, no entrar
   addEventListener('keydown', e => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); entrar(); }
+    if ((e.key === 'Enter' || e.key === ' ') && !otroControl(e)) { e.preventDefault(); entrar(); }
   });
+  // El enlace del ojo navegaria ya, sin parpadeo: lo hace entrar(). Con
+  // cmd/ctrl/shift se abre aparte, como cualquier enlace.
+  ojo.closest('a')?.addEventListener('click', e => { if (!aparte(e)) e.preventDefault(); });
 
   /* Sin "click anywhere": pasado un rato se entra sola. El reloj se para
      con la pestana en segundo plano y vuelve a empezar al volver, para que

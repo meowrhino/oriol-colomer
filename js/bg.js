@@ -157,7 +157,9 @@ if (cv && cv.getContext) {
     pintar(T0);
   } else {
     addEventListener('pointermove', e => { px = e.clientX; py = e.clientY; }, { passive: true });
-    addEventListener('pointerleave', () => { px = py = -9e9; });
+    // pointerleave no llega a window; pointerout si, y sin relatedTarget es
+    // que el puntero ha salido de la ventana (o el dedo se ha levantado)
+    addEventListener('pointerout', e => { if (!e.relatedTarget) px = py = -9e9; });
 
     /* Un fotograma del terreno cuesta 0,6ms a 1440x900 —medido—, asi que lo
        que manda el ritmo no es el coste sino lo que se ve: a poca velocidad

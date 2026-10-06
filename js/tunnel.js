@@ -339,7 +339,9 @@ if (zona && lista && escena) {
   const esControl = t => t.closest('.topbar, .tiempo, .langs');
 
   addEventListener('wheel', e => {
-    if (!enTunelActivo() || esControl(e.target)) return;
+    // ctrl+rueda y el pellizco del trackpad (que llega como ctrl+rueda) son
+    // el zoom del navegador: no son de la camara
+    if (!enTunelActivo() || esControl(e.target) || e.ctrlKey) return;
     e.preventDefault();
     const d = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
     // deltaMode 1 son lineas (Firefox con rueda de raton), no pixeles

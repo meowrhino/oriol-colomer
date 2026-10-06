@@ -362,7 +362,9 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
       },
     })
     + `<main class="landing">
-  <div class="hero">
+  <!-- Un enlace de verdad: sin JavaScript tambien se entra, y Google y los
+       lectores de pantalla tienen algo que seguir. El parpadeo: welcome.js -->
+  <a class="hero" href="${url(lang, 'work/')}">
     <div class="eye" id="eye">
       <div class="lens">
         <span class="shape" aria-hidden="true"></span>
@@ -370,7 +372,7 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
       </div>
       <h1 class="name">${esc(site.name)}</h1>
     </div>
-  </div>
+  </a>
   ${langs(lang, '')}
 </main>
 <script type="module" src="${raiz('/js/welcome.js')}"></script>`
