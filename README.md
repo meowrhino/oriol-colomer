@@ -53,6 +53,14 @@ Solo se hace una vez.
 5. **Revísalo con la vista previa** (ver abajo) antes de subir.
 6. **Súbelo** (ver abajo).
 
+### Quitar un proyecto
+
+- **Esconderlo** (se puede volver a sacar): `"published": false`. Deja de salir
+  en la web, pero sigue en el fichero y sus fotos en su carpeta.
+- **Quitarlo del todo**: borra su bloque `{ ... }` del JSON **y** su carpeta
+  `media/<slug>/`. Si dejas la carpeta, las fotos se siguen publicando aunque
+  no salgan en ninguna página.
+
 ### Subir los cambios desde VS Code
 
 Live Server solo enseña: no sube nada. Para publicar:
@@ -234,7 +242,7 @@ Cuando esté comprado (`oriolcolomerdelgado.com`, por ejemplo), en `site.json`:
 
 y en el proveedor del dominio, los DNS apuntando a GitHub Pages (registros `A` a
 `185.199.108.153`, `.109`, `.110` y `.111`, y `CNAME` de `www` a
-`meowrhino.github.io`). Después, en GitHub → Settings → Pages, el dominio y
+`<tu-usuario>.github.io`). Después, en GitHub → Settings → Pages, el dominio y
 "Enforce HTTPS". El build escribe el fichero `CNAME` solo.
 
 ### De quién es el repositorio
@@ -258,7 +266,7 @@ Para ver la web en local, lo mismo que Oriol: Live Server.
 
 ### Qué es `dist/`
 
-La web ya hecha: 36 HTML, uno por página y por idioma, más las fotos, el CSS y el
+La web ya hecha: un HTML por página y por idioma, más las fotos, el CSS y el
 JS copiados. La escribe `build/build.mjs` a partir de los JSON.
 
 **No está en GitHub** (`.gitignore`) y no hace falta guardarla: cada push la
