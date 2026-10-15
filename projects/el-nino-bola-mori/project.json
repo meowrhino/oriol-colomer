@@ -1,0 +1,28 @@
+{
+  "title": "El Niño Bola – mori",
+  "date": "2026-05-21",
+  "client": "mori",
+  "tags": ["lx"],
+  "subheader": {
+    "en": "Lighting design & operation",
+    "es": "Diseño y operación de iluminación",
+    "ca": "Disseny i operació d'il·luminació"
+  },
+  "text": {
+    "en": [
+      "Lighting design for mori's tour performing his debut album \"El Niño Bola\". Featured here his concert at Sala LAUT (Barcelona) with his band."
+    ],
+    "es": [
+      "Diseño de iluminación para la gira de mori presentando su álbum debut «El Niño Bola». Aquí, su concierto con banda en la Sala LAUT (Barcelona)."
+    ],
+    "ca": [
+      "Disseny d'il·luminació per a la gira de mori presentant el seu àlbum debut «El Niño Bola». Aquí, el seu concert amb banda a la Sala LAUT (Barcelona)."
+    ]
+  },
+  "credits": [
+    {"role": "lighting design", "name": "oriol colomer & clàudia aguiló"},
+    {"role": "video", "name": "rafa castells"}
+  ],
+  "url": "https://www.youtube.com/watch?v=WEkgPxdjCYE",
+  "photos": ["1"]
+}

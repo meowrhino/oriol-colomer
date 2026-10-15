@@ -1,0 +1,27 @@
+{
+  "title": "LeChatelier @ Sala Apolo [2]",
+  "date": "2025-10-23",
+  "client": "LeChatelier",
+  "tags": ["lx"],
+  "subheader": {
+    "en": "Lighting design & operation",
+    "es": "Diseño y operación de iluminación",
+    "ca": "Disseny i operació d'il·luminació"
+  },
+  "text": {
+    "en": [
+      "Live concert lighting design and operation together with Clàudia Aguiló for LeChatelier's concert at Sala Apolo 2 (Barcelona) on October 23th."
+    ],
+    "es": [
+      "Diseño de iluminación y operación en directo junto a Clàudia Aguiló para el concierto de LeChatelier en la Sala Apolo 2 (Barcelona) el 23 de octubre."
+    ],
+    "ca": [
+      "Disseny d'il·luminació i operació en directe amb la Clàudia Aguiló per al concert de LeChatelier a la Sala Apolo 2 (Barcelona) el 23 d'octubre."
+    ]
+  },
+  "credits": [
+    {"role": "lighting design", "name": "oriol colomer & clàudia aguiló"},
+    {"role": "photography", "name": "@conamorirene"}
+  ],
+  "photos": ["1", "2", "3", "4", "5"]
+}

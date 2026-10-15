@@ -1,0 +1,27 @@
+{
+  "title": "LISTEN – xicu",
+  "date": "2026-03-19",
+  "client": "xicu",
+  "tags": ["lx"],
+  "subheader": {
+    "en": "Lighting design & operation",
+    "es": "Diseño y operación de iluminación",
+    "ca": "Disseny i operació d'il·luminació"
+  },
+  "text": {
+    "en": [
+      "Lighting design and live operation for xicu's show at Sala Upload (Barcelona, 19/03) to present his new album LISTEN. Done together with Clàudia Aguiló."
+    ],
+    "es": [
+      "Diseño de iluminación y operación en directo para el concierto de xicu en la Sala Upload (Barcelona, 19/03) de presentación de su nuevo álbum LISTEN. Junto a Clàudia Aguiló."
+    ],
+    "ca": [
+      "Disseny d'il·luminació i operació en directe per al concert de xicu a la Sala Upload (Barcelona, 19/03) de presentació del seu nou àlbum LISTEN. Amb la Clàudia Aguiló."
+    ]
+  },
+  "credits": [
+    {"role": "lighting design", "name": "oriol colomer & clàudia aguiló"}
+  ],
+  "url": "https://youtu.be/wzY41m8vtxs",
+  "photos": []
+}

@@ -1,0 +1,25 @@
+{
+  "title": "LIQUID LATEX RMX – LLUM ft. Mia Badgyal",
+  "date": "2026-06-26",
+  "client": "LLUM",
+  "tags": ["vs"],
+  "subheader": {"en": "Music Video", "es": "Videoclip", "ca": "Videoclip"},
+  "text": {
+    "en": [
+      "Music video for LLUM's LIQUID LATEX remix featuring Mia Badgyal. Directed together with Alicia Milà and edited by me using Adobe After Effects."
+    ],
+    "es": [
+      "Videoclip para el remix de LIQUID LATEX de LLUM, con Mia Badgyal. Dirigido junto a Alicia Milà y montado por mí en Adobe After Effects."
+    ],
+    "ca": [
+      "Videoclip per al remix de LIQUID LATEX de LLUM, amb Mia Badgyal. Dirigit amb l'Alicia Milà i muntat per mi amb Adobe After Effects."
+    ]
+  },
+  "credits": [
+    {"role": "directed", "name": "oriol colomer & alícia milà"},
+    {"role": "edit", "name": "oriol colomer"},
+    {"role": "graphics", "name": "alicia milà"}
+  ],
+  "url": "https://www.youtube.com/watch?v=oW6wDRj_OKc",
+  "photos": ["1"]
+}

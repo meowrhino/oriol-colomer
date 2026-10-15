@@ -3,8 +3,8 @@
    ------------------------------------------------------------
    Live Server (la extension de VS Code) sirve la carpeta tal cual,
    y la web de verdad no existe hasta que el build la escribe en
-   dist/. Esto la pinta al vuelo: lee data/*.json, pregunta al
-   servidor que ficheros hay en media/ y escribe la pagina pedida
+   dist/. Esto la pinta al vuelo: lee data/*.json y los project.json,
+   pregunta al servidor que ficheros hay en projects/ y escribe la pagina pedida
    con las mismas plantillas que el build (paginas.mjs).
 
    Las paginas son una sola, el index.html de la raiz, y la ruta
@@ -13,7 +13,7 @@
    Lo que no cuadra en los JSON (una foto que no esta, una fecha
    mal escrita...) lo dice el build: npm run build.
    ============================================================ */
-import { crearSitio, leerJSON, unir, esc } from './paginas.mjs';
+import { crearSitio, leerJSON, juntar, esc } from './paginas.mjs';
 
 /* La carpeta en la que esta el index.html: normalmente la raiz, pero si
    Live Server se abre desde una carpeta de mas arriba, sera una subcarpeta. */
@@ -52,35 +52,43 @@ h1{font-weight:400;font-size:28px;margin:0 0 .6em;color:#b3261e}p{max-width:62ch
 }
 
 async function arrancar() {
-  let site, proyectos;
-  try {
-    site      = leerJSON(await pedir('data/site.json'), 'data/site.json');
-    proyectos = unir(leerJSON(await pedir('data/work.json'), 'data/work.json'),
-                     leerJSON(await pedir('data/lab.json'), 'data/lab.json'));
-  } catch (e) {
-    pantallaDeError(e.json ? 'Hay un error en un JSON' : 'No puedo leer los datos', e.message);
-    return;
-  }
-
   let pedida = new URLSearchParams(location.search).get('p') || '/';
   if (!pedida.startsWith('/')) pedida = '/' + pedida;
   if (!pedida.endsWith('/')) pedida += '/';
 
-  /* Un borrador (published:false) no tiene pagina en la web, pero aqui si
-     se puede ver entrando a su direccion: sirve para repasarlo antes de
-     publicarlo. Se pinta como si estuviera publicado y se avisa. */
-  const slug = (/\/(?:work|lab)\/([^/]+)\/$/.exec(pedida) || [])[1];
-  const borrador = slug && proyectos.find(p => p && p.slug === slug && p.published === false);
-  const datos = borrador
-    ? proyectos.map(p => (p === borrador ? { ...p, published: true } : p))
-    : proyectos;
+  let site, about, datos;
+  try {
+    site  = leerJSON(await pedir('data/site.json'), 'data/site.json');
+    about = leerJSON(await pedir('data/about.json'), 'data/about.json');
+    /* El navegador no puede listar la carpeta projects/: se leen los de las
+       listas. Un borrador (en projects/ pero en ninguna lista) no tiene
+       pagina en la web, pero aqui si se puede ver entrando a su direccion:
+       sirve para repasarlo antes de publicarlo. Se pinta como si estuviera
+       en la lista de su seccion. */
+    const [, sec, slug] = /\/(work|lab)\/([^/]+)\/$/.exec(pedida) || [];
+    const listas = Object.values(site.lists || {}).flatMap(l => l.projects || []);
+    if (slug && !listas.includes(slug)) {
+      const l = site.lists?.[sec] || { name: sec, projects: [] };
+      site = { ...site, lists: { ...site.lists, [sec]: { ...l, projects: [...l.projects, slug] } } };
+    }
+    const slugs = [...new Set(Object.values(site.lists || {}).flatMap(l => l.projects || []))];
+    const proyectos = await Promise.all(slugs.map(async s => {
+      const f = `projects/${s}/project.json`;
+      try { return { ...leerJSON(await pedir(f), f), slug: s }; }
+      catch (e) { if (e.json) throw e; return null; }   // sin carpeta: lo dice el build
+    }));
+    datos = juntar(site, proyectos.filter(Boolean));
+  } catch (e) {
+    pantallaDeError(e.json ? 'Hay un error en un JSON' : 'No puedo leer los datos', e.message);
+    return;
+  }
 
   /* Las plantillas preguntan "¿existe este fichero?" de forma sincrona, y
      al servidor solo se le puede preguntar de forma asincrona. Asi que se
      pinta en seco, apuntando lo que se pregunta; se pregunta todo de una
      vez al servidor, y se repite hasta que no quedan preguntas nuevas
      (una respuesta puede abrir otra: si hay poster, ¿hay miniatura?). */
-  const montar = existe => crearSitio({ site, proyectos: datos, base: BASE, existe,
+  const montar = existe => crearSitio({ site, about, proyectos: datos, base: BASE, existe,
     peso: r => pesos.get(r), preview: true });
   for (let vuelta = 0; vuelta < 6; vuelta++) {
     const nuevas = new Set();

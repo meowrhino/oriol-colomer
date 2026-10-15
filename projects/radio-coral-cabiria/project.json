@@ -1,0 +1,39 @@
+{
+  "title": "Radio Coral",
+  "date": "2025-06-22",
+  "client": "Cabiria",
+  "tags": ["lx", "xy"],
+  "subheader": {
+    "en": "Lighting & Scenography",
+    "es": "Iluminación y escenografía",
+    "ca": "Il·luminació i escenografia"
+  },
+  "text": {
+    "en": [
+      "Live concert lighting design and scenography together with Clàudia Aguiló, Júlia Vives and Miguel Pintre for Cabiria's concert in La Nau (Barcelona) on June 22nd. Used again at Sala Apolo's \"CINC\" (Barcelona) on October 10th 2025 for the AFERS series.",
+      "The concept behind the project was to create a bubble using light that would​​​​​​​ envolve the artist, inviting the audience to listen but from a distance. We avoided using concert spotlights for her and just used them on the external musicians that would join from time to time. The palette was limited to pink, green and white, the most present colors in the artist's art style.",
+      "The lights were designed and assembled from scratch, soldering three COB LEDs for each lamp, cutting the colour filters and making the electrical connections to LED decoders to control each light individually. The programming was done on Max MSP using the DMX protocol."
+    ],
+    "es": [
+      "Diseño de iluminación y escenografía en directo junto a Clàudia Aguiló, Júlia Vives y Miguel Pintre para el concierto de Cabiria en La Nau (Barcelona) el 22 de junio. Reutilizado en «CINC» de la Sala Apolo (Barcelona) el 10 de octubre de 2025 para el ciclo AFERS.",
+      "El concepto detrás del proyecto era crear una burbuja con luz que envolviera a la artista, invitando al público a escuchar pero desde la distancia. Evitamos usar focos de concierto sobre ella y solo los usamos con los músicos externos que se sumaban de vez en cuando. La paleta se limitó a rosa, verde y blanco, los colores más presentes en el estilo gráfico de la artista.",
+      "Las luces se diseñaron y montaron desde cero: soldando tres LEDs COB por lámpara, cortando los filtros de color y haciendo las conexiones eléctricas a decodificadores LED para controlar cada luz individualmente. La programación se hizo en Max MSP usando el protocolo DMX."
+    ],
+    "ca": [
+      "Disseny d'il·luminació i escenografia en directe amb la Clàudia Aguiló, la Júlia Vives i en Miguel Pintre per al concert de Cabiria a La Nau (Barcelona) el 22 de juny. Reutilitzat al «CINC» de la Sala Apolo (Barcelona) el 10 d'octubre de 2025 per al cicle AFERS.",
+      "El concepte darrere del projecte era crear una bombolla amb llum que emboliqués l'artista, convidant el públic a escoltar però des de la distància. Vam evitar fer servir focus de concert sobre ella i només els vam usar amb els músics externs que s'hi sumaven de tant en tant. La paleta es va limitar a rosa, verd i blanc, els colors més presents en l'estil gràfic de l'artista.",
+      "Les llums es van dissenyar i muntar des de zero: soldant tres LEDs COB per làmpada, tallant els filtres de color i fent les connexions elèctriques a descodificadors LED per controlar cada llum individualment. La programació es va fer amb Max MSP fent servir el protocol DMX."
+    ]
+  },
+  "credits": [
+    {"role": "scenography & creative direction", "name": "@claguilo"},
+    {"role": "lighting design", "name": "@julialanglei @claguilo @miguelpintre"},
+    {"role": "programming", "name": "@oriolonbass"},
+    {"role": "live lighting", "name": "@miguelpintre @oriolonbass @claguilo"},
+    {"role": "photography", "name": "@julialanglei"},
+    {"role": "music", "name": "@cabiriamix @bonitx__ @saxedupons"},
+    {"role": "management", "name": "@booking_fee"},
+    {"role": "venue", "name": "@lanaubcn"}
+  ],
+  "photos": []
+}

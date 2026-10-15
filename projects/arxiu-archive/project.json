@@ -1,0 +1,27 @@
+{
+  "title": "arxiu (archive)",
+  "date": "2025-06-20",
+  "client": "Personal project",
+  "tags": ["rs"],
+  "subheader": {
+    "en": "Postgrau en Escena i Tecnologia Digital @ Institut del Teatre",
+    "es": "Posgrado en Escena y Tecnología Digital @ Institut del Teatre",
+    "ca": "Postgrau en Escena i Tecnologia Digital @ Institut del Teatre"
+  },
+  "text": {
+    "en": [
+      "This research project aims to explore new ways of understanding archive. Taking the conventional definition and studying its essential parameters —such as format, cataloguing, obsolescense, collective archive...—, an alternative theory was generated on how to use format as a vehicle to find new artistic derivates, generate new materials and content to be archived aswell, and treating them by their intrinsic value, separate from the original archive. The result is a series of experiments that explore these possibilities, with the definitive outcome consisting of a performative conference during which I exposed the entire investigative process while a digital tapestry is woven in real time in which a transcription of the conference is stored and archived as a colored mosaic. The entire project was archived aswell in a GitHub repository, where both the investigation and the experiments can be accessed and transformed.",
+      "This was my final project for the postgraduate degree I attended at Institut del Teatre (Barcelona) on Digital Technology and Scene. The performative conference took place at the Institut's headquarters on June 20th 2025."
+    ],
+    "es": [
+      "Este proyecto de investigación busca explorar nuevas maneras de entender el archivo. Partiendo de la definición convencional y estudiando sus parámetros esenciales —formato, catalogación, obsolescencia, archivo colectivo…—, se generó una teoría alternativa sobre cómo usar el formato como vehículo para encontrar nuevos derivados artísticos, generar materiales y contenidos nuevos que también sean archivables, y tratarlos por su valor intrínseco, separado del archivo original. El resultado es una serie de experimentos que exploran estas posibilidades, con un desenlace definitivo en forma de conferencia performativa durante la cual expuse todo el proceso de investigación mientras se tejía en tiempo real un tapiz digital donde se almacena y archiva una transcripción de la conferencia como mosaico de color. Todo el proyecto se archivó también en un repositorio de GitHub, donde tanto la investigación como los experimentos pueden consultarse y transformarse.",
+      "Fue mi proyecto final del posgrado que cursé en el Institut del Teatre (Barcelona) en Tecnología Digital y Escena. La conferencia performativa tuvo lugar en la sede del Institut el 20 de junio de 2025."
+    ],
+    "ca": [
+      "Aquest projecte de recerca busca explorar noves maneres d'entendre l'arxiu. Partint de la definició convencional i estudiant-ne els paràmetres essencials —format, catalogació, obsolescència, arxiu col·lectiu…—, es va generar una teoria alternativa sobre com fer servir el format com a vehicle per trobar nous derivats artístics, generar materials i continguts nous que també siguin arxivables, i tractar-los pel seu valor intrínsec, separat de l'arxiu original. El resultat és una sèrie d'experiments que exploren aquestes possibilitats, amb un desenllaç definitiu en forma de conferència performativa durant la qual vaig exposar tot el procés de recerca mentre es teixia en temps real un tapís digital on s'emmagatzema i s'arxiva una transcripció de la conferència com a mosaic de color. Tot el projecte es va arxivar també en un repositori de GitHub, on tant la recerca com els experiments es poden consultar i transformar.",
+      "Va ser el meu projecte final del postgrau que vaig cursar a l'Institut del Teatre (Barcelona) en Tecnologia Digital i Escena. La conferència performativa va tenir lloc a la seu de l'Institut el 20 de juny de 2025."
+    ]
+  },
+  "url": "https://github.com/ics-de/arxiu",
+  "photos": []
+}

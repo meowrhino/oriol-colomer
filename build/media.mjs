@@ -1,5 +1,5 @@
 /* ============================================================
-   media.mjs — deja media/ lista para la web
+   media.mjs — deja las carpetas img/ de projects/ listas para la web
    ------------------------------------------------------------
    Los mismos ajustes que imgToWeb y videoToWeb, para que de igual
    si un fichero se convierte alli o aqui:
@@ -24,8 +24,8 @@
 
      <nombre>.thumb.webp   720 px, lo que pintan el tunel y la lista
 
-   Si un fichero cambia de nombre (foto.jpg -> foto.webp), se
-   corrige tambien en data/work.json o data/lab.json.
+   En el JSON los ficheros van sin extension ("3"), asi que pasar
+   3.jpg a 3.webp no obliga a tocar ningun project.json.
 
    Reejecutable: salta lo que ya esta hecho. Con --rehacer vuelve a
    codificar los webm desde el mp4.
@@ -33,14 +33,14 @@
    Necesita:  brew install ffmpeg webp
        npm run media
    ============================================================ */
-import { readFileSync, writeFileSync, existsSync, statSync, rmSync, readdirSync, renameSync } from 'node:fs';
+import { readFileSync, existsSync, statSync, rmSync, readdirSync, renameSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { enCarpeta } from './paginas.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const MEDIA = join(ROOT, 'media');
+const PROJECTS = join(ROOT, 'projects');
 const REHACER = process.argv.includes('--rehacer');
 const MP4 = process.argv.includes('--mp4');
 
@@ -73,8 +73,6 @@ const tieneAudio = f => execFileSync('ffprobe', ['-v', 'error', '-select_streams
 const ficheros = dir => readdirSync(dir, { withFileTypes: true }).flatMap(d =>
   d.name.startsWith('.') ? [] : d.isDirectory() ? ficheros(join(dir, d.name)) : [join(dir, d.name)]);
 
-/** Lo que cambia de nombre, para corregir el JSON al final. */
-const renombres = new Map();
 const derivado = f => /\.(thumb|poster)\.[a-z0-9]+$/i.test(f);
 
 const escala = `scale='min(${VIDEO_MAX_W},iw)':'min(${VIDEO_MAX_H},ih)':force_original_aspect_ratio=decrease:force_divisible_by=2`;
@@ -84,7 +82,7 @@ const aMp4 = (de, a) => run('ffmpeg', ['-nostdin', '-loglevel', 'error', '-y', '
   '-c:v', 'libx264', '-crf', '26', '-maxrate', '1600k', '-bufsize', '3200k', '-preset', 'slow', a]);
 
 /* ---------- 1. fotos -> webp ---------- */
-for (const f of ficheros(MEDIA).filter(f => /\.(jpe?g|png)$/i.test(f) && !derivado(f))) {
+for (const f of ficheros(PROJECTS).filter(f => /\/img\//.test(f)).filter(f => /\.(jpe?g|png)$/i.test(f) && !derivado(f))) {
   const out = f.replace(/\.(jpe?g|png)$/i, '.webp');
   if (!existsSync(out)) {
     const [w, h] = probe(f, 'stream=width,height').split(',').map(Number);
@@ -94,11 +92,10 @@ for (const f of ficheros(MEDIA).filter(f => /\.(jpe?g|png)$/i.test(f) && !deriva
     log('foto', out, `${kb(f)} -> ${kb(out)}`);
   }
   rmSync(f);
-  renombres.set(rel(f), rel(out));
 }
 
 /* ---------- 2. gif -> video ---------- */
-for (const f of ficheros(MEDIA).filter(f => /\.gif$/i.test(f))) {
+for (const f of ficheros(PROJECTS).filter(f => /\/img\//.test(f)).filter(f => /\.gif$/i.test(f))) {
   const out = f.replace(/\.gif$/i, '.mp4');
   if (!existsSync(out)) {
     run('ffmpeg', ['-nostdin', '-loglevel', 'error', '-y', '-i', f, '-an', '-movflags', '+faststart',
@@ -106,11 +103,10 @@ for (const f of ficheros(MEDIA).filter(f => /\.gif$/i.test(f))) {
     log('gif', out, `${kb(f)} -> ${kb(out)}`);
   }
   rmSync(f);
-  renombres.set(rel(f), rel(f).replace(/\.gif$/i, '.webm'));   // el webm sale en el paso 3
 }
 
 /* ---------- 3. videos ---------- */
-const bases = new Set(ficheros(MEDIA)
+const bases = new Set(ficheros(PROJECTS).filter(f => /\/img\//.test(f))
   .filter(f => /\.(mp4|mov|m4v|webm)$/i.test(f) && !derivado(f))
   .map(f => f.replace(/\.(mp4|mov|m4v|webm)$/i, '')));
 
@@ -146,7 +142,6 @@ for (const b of bases) {
     } else rmSync(tmp);
   }
   if (origen && (origen !== mp4 || !MP4)) rmSync(origen);   // el mp4 se queda solo con --mp4
-  if (origen) renombres.set(rel(origen), rel(webm));        // el JSON apunta al webm
 
   // poster: un fotograma, en webp. El de medio segundo y no el primero,
   // que en los clips cortados suele salir negro o a medio fundido.
@@ -164,38 +159,19 @@ for (const b of bases) {
   if (existsSync(b + '.poster.jpg')) rmSync(b + '.poster.jpg');
 }
 
-/* ---------- 4. el JSON ---------- */
-const proyectos = [];
-for (const f of ['data/work.json', 'data/lab.json']) {
-  const JSON_F = join(ROOT, f);
-  const lista = JSON.parse(readFileSync(JSON_F, 'utf8'));
-  let tocados = 0;
-  for (const p of lista) {
-    const arreglar = m => {
-      const nuevo = renombres.get(enCarpeta(p, m));
-      if (!nuevo) return m;
-      tocados++;
-      // se respeta como estaba escrito: con la ruta entera, o relativo a la carpeta
-      return m.trim().replace(/^\/+/, '').startsWith('media/') ? nuevo : nuevo.slice(`media/${p.slug}/`.length);
-    };
-    if (p.media) p.media = p.media.map(arreglar);
-    if (p.thumb) p.thumb = arreglar(p.thumb);
-  }
-  if (tocados) {
-    writeFileSync(JSON_F, JSON.stringify(lista, null, 2) + '\n');
-    console.log(`${f}: ${tocados} rutas corregidas`);
-  }
-  proyectos.push(...lista);
-}
+/* ---------- 4. los proyectos ---------- */
+const proyectos = readdirSync(PROJECTS).filter(slug => existsSync(join(PROJECTS, slug, 'project.json')))
+  .map(slug => ({ ...JSON.parse(readFileSync(join(PROJECTS, slug, 'project.json'), 'utf8')), slug }));
+const existe = r => existsSync(join(ROOT, r));
 
 /* ---------- 5. miniaturas de las portadas ----------
-   La misma regla que cover() en paginas.mjs: "thumb" si lo hay, y si no
+   La misma regla que cover() en paginas.mjs: "cover" si lo hay, y si no
    el primer fichero; si es un video, su poster. Se hacen tambien las de
    los borradores: el dia que se publican ya estan. */
 const portada = p => {
-  const m = p.thumb || p.media?.[0];
+  const m = p.cover?.[0] || p.photos?.[0];
   if (!m) return null;
-  const f = enCarpeta(p, m);
+  const f = enCarpeta(p, m, existe);
   if (!/\.(mp4|webm)$/i.test(f)) return f;
   const pj = f.replace(/\.(mp4|webm)$/i, '.poster.webp');
   return existsSync(join(ROOT, pj)) ? pj : null;

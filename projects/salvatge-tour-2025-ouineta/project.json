@@ -1,0 +1,34 @@
+{
+  "title": "Salvatge Tour 2025",
+  "date": "2025-07-03",
+  "client": "Ouineta",
+  "tags": ["lx"],
+  "subheader": {
+    "en": "Lighting design & operation",
+    "es": "Diseño y operación de iluminación",
+    "ca": "Disseny i operació d'il·luminació"
+  },
+  "text": {
+    "en": [
+      "Lighting design and live operation for Ouineta's Salvatge Tour show. In this instance, for Vida Festival on July 3rd 2025. During the tour, I participated in FM Olesa de Montserrat, Festival Ítaca, Vida Festival, Cunit Music Fest, FM Banyoles, Mercat de Música Viva de Vic and Festival B."
+    ],
+    "es": [
+      "Diseño de iluminación y operación en directo para el show del Salvatge Tour de Ouineta. En este caso, para el Vida Festival el 3 de julio de 2025. Durante la gira participé en la FM de Olesa de Montserrat, el Festival Ítaca, el Vida Festival, el Cunit Music Fest, la FM de Banyoles, el Mercat de Música Viva de Vic y el Festival B."
+    ],
+    "ca": [
+      "Disseny d'il·luminació i operació en directe per al xou del Salvatge Tour d'Ouineta. En aquest cas, per al Vida Festival el 3 de juliol de 2025. Durant la gira vaig participar a la FM d'Olesa de Montserrat, el Festival Ítaca, el Vida Festival, el Cunit Music Fest, la FM de Banyoles, el Mercat de Música Viva de Vic i el Festival B."
+    ]
+  },
+  "credits": [
+    {"role": "music", "name": "@ouineta23"},
+    {"role": "music production", "name": "@juanfeduchi"},
+    {"role": "drums", "name": "@javit00_"},
+    {"role": "coreography", "name": "@ouinaohr"},
+    {"role": "coreography assistant", "name": "@mariona.ona"},
+    {"role": "dancers", "name": "@mariona.ona @annaclimenttt @mallorquinn @juradomaria_"},
+    {"role": "lighting design & operation", "name": "@oriolonbass"},
+    {"role": "sound technician", "name": "@joanmisas"},
+    {"role": "management", "name": "@doblecuerpo"}
+  ],
+  "photos": []
+}

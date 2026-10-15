@@ -1,24 +1,31 @@
 /* ============================================================
    build.mjs — Jamstack sin dependencias.
-   Lee data/*.json y escribe HTML plano, uno por proyecto e idioma.
+   Lee data/*.json y projects/<slug>/project.json y escribe HTML plano,
+   uno por proyecto e idioma.
    Las plantillas viven en paginas.mjs, que es el mismo fichero que
    usa la vista previa de Live Server: aqui solo se le dice como
    mirar el disco y se escribe lo que devuelve.
        node build/build.mjs
    ============================================================ */
-import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { crearSitio, leerJSON, unir, youtube } from './paginas.mjs';
+import { crearSitio, leerJSON, juntar, youtube } from './paginas.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT  = join(ROOT, 'dist');
 const leer = f => leerJSON(readFileSync(join(ROOT, f), 'utf8'), f);
 
-let site, proyectos;
+/* Un proyecto, una carpeta: cada carpeta de projects/ con su project.json */
+const slugs = readdirSync(join(ROOT, 'projects'), { withFileTypes: true })
+  .filter(d => d.isDirectory() && existsSync(join(ROOT, 'projects', d.name, 'project.json')))
+  .map(d => d.name);
+
+let site, about, proyectos;
 try {
   site = leer('data/site.json');
-  proyectos = unir(leer('data/work.json'), leer('data/lab.json'));
+  about = leer('data/about.json');
+  proyectos = juntar(site, slugs.map(slug => ({ ...leer(`projects/${slug}/project.json`), slug })));
 } catch (e) {
   // En GitHub esto es lo que sale en rojo en la pestana Actions: que se
   // entienda sin saber programar.
@@ -77,7 +84,7 @@ function medidas(rel) {
    da al play. maxresdefault no existe en todos los videos; hqdefault, si.
    Si no se puede bajar (sin red, YouTube caido), se pide a YouTube como antes. */
 const miniaturas = new Map();   // id -> bytes del jpg
-const ids = new Set(proyectos.filter(p => p?.published).map(p => youtube(p.link)).filter(Boolean));
+const ids = new Set(proyectos.filter(p => p?.published).map(p => youtube(p.url)).filter(Boolean));
 await Promise.all([...ids].map(async id => {
   for (const q of ['maxresdefault', 'hqdefault']) {
     try {
@@ -89,7 +96,7 @@ await Promise.all([...ids].map(async id => {
 const YT = id => `media/youtube/${id}.jpg`;
 
 const sitio = crearSitio({
-  site, proyectos, base, medidas,
+  site, about, proyectos, base, medidas,
   miniaturaYT: id => (miniaturas.has(id) ? YT(id) : null),
   existe: rel => existsSync(join(ROOT, rel)),
   peso: rel => statSync(join(ROOT, rel)).size,
@@ -98,8 +105,14 @@ const sitio = crearSitio({
 /* ---------- escribir ------------------------------------ */
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
-for (const dir of ['css', 'js', 'assets', 'media']) {
+for (const dir of ['css', 'js', 'assets']) {
   if (existsSync(join(ROOT, dir))) cpSync(join(ROOT, dir), join(OUT, dir), { recursive: true });
+}
+// las fotos y videos de cada proyecto, en el mismo sitio que en el repo; el
+// project.json no, que ya va dentro del HTML
+for (const slug of slugs) {
+  const img = join(ROOT, 'projects', slug, 'img');
+  if (existsSync(img)) cpSync(img, join(OUT, 'projects', slug, 'img'), { recursive: true });
 }
 mkdirSync(join(OUT, 'media/youtube'), { recursive: true });
 for (const [id, bytes] of miniaturas) writeFileSync(join(OUT, YT(id)), bytes);
@@ -124,12 +137,22 @@ writeFileSync(join(OUT, 'robots.txt'),
 // GitHub Pages ensena esta en cualquier direccion que no existe
 writeFileSync(join(OUT, '404.html'), sitio.noEncontrada());
 writeFileSync(join(OUT, '.nojekyll'), '');
+/* El catalan iba en /cat/ y ahora va en /ca/, el codigo de verdad: las
+   direcciones viejas se quedan como paginas que llevan a las nuevas. */
+for (const r of rutas.filter(r => r.ruta.startsWith('/ca/'))) {
+  const nueva = sitio.publica(r.ruta);
+  const file = join(OUT, 'cat' + r.ruta.slice(3), 'index.html');
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, `<!doctype html><meta charset="utf-8"><meta name="robots" content="noindex">`
+    + `<link rel="canonical" href="${nueva}"><meta http-equiv="refresh" content="0; url=${nueva}">`
+    + `<a href="${nueva}">${nueva}</a>\n`);
+}
 if (site.domain) writeFileSync(join(OUT, 'CNAME'), site.domain + '\n');
 
 console.log(`${rutas.length} paginas · ${sitio.live.length} proyectos publicados de ${proyectos.length}`
   + `${sitio.labs.length ? ` · ${sitio.labs.length} en el lab` : ''} · ${sitio.LANGS.length} idiomas`);
 const borradores = proyectos.filter(p => !p.published).map(p => p.slug);
-if (borradores.length) console.log(`borradores (published:false): ${borradores.join(', ')}`);
+if (borradores.length) console.log(`borradores (en projects/ pero en ninguna lista): ${borradores.join(', ')}`);
 
 /* Los avisos no paran el build —una foto que falta no justifica dejar la
    web sin actualizar—, pero salen bien visibles en el log de Actions. */

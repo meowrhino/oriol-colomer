@@ -1,0 +1,28 @@
+{
+  "title": "La Roda - Ouineta",
+  "date": "2026-04-10",
+  "client": "Ouineta",
+  "tags": ["vs", "dc"],
+  "subheader": {
+    "en": "Concert Visuals - Gira Verificada 2026",
+    "es": "Visuales de directo — Gira Verificada 2026",
+    "ca": "Visuals de directe — Gira Verificada 2026"
+  },
+  "text": {
+    "en": [
+      "Recording, production and editing of the live concert visuals for Ouineta's Gira Verificada 2026."
+    ],
+    "es": [
+      "Grabación, producción y montaje de los visuales de directo para la Gira Verificada 2026 de Ouineta."
+    ],
+    "ca": [
+      "Enregistrament, producció i muntatge dels visuals de directe per a la Gira Verificada 2026 d'Ouineta."
+    ]
+  },
+  "credits": [
+    {"role": "edit", "name": "oriol colomer"}
+  ],
+  "url": "https://www.youtube.com/watch?v=qnSf366ULiw",
+  "cover": ["thumb"],
+  "photos": ["1", "2", "3", "4", "5", "6"]
+}

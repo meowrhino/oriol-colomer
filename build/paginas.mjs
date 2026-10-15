@@ -42,24 +42,28 @@ export function leerJSON(texto, nombre) {
   }
 }
 
-/** En el JSON un fichero se escribe con su nombre ("foto.webp", o
-    "web/index.html" si esta en una subcarpeta) y se busca en media/<slug>/,
-    que es la carpeta que toca. Si empieza por "media/" es la ruta entera.
-    Lo usan las plantillas y build/media.mjs. */
-export const enCarpeta = (p, m) => {
-  const s = String(m).trim().replace(/^\/+/, '');
-  return s.startsWith('media/') ? s : `media/${p.slug}/${s}`;
+/** Las extensiones que puede tener un fichero que en el JSON va sin ella
+    ("3" -> 3.webp, 3.webm...), en el orden en que se buscan. */
+export const EXTS = ['webp', 'webm', 'mp4', 'jpg', 'jpeg', 'png', 'gif'];
+
+/** En el JSON un fichero va por su nombre sin extension ("3", "thumb"), y se
+    busca en projects/<slug>/img/: el primero de EXTS que exista, o .webp si no
+    hay ninguno (y la revision avisa). Una pieza interactiva va con su ruta
+    dentro de img/ ("web/index.html"). Lo usan las plantillas y build/media.mjs. */
+export const enCarpeta = (p, m, existe) => {
+  const s = `projects/${p.slug}/img/${String(m).trim().replace(/^\/+/, '')}`;
+  if (/\.[a-z0-9]+$/i.test(s)) return s;
+  return EXTS.map(e => `${s}.${e}`).find(existe) || `${s}.webp`;
 };
 
-/** Junta data/work.json y data/lab.json en una sola lista. El fichero
-    decide la seccion: lo que esta en lab.json sale en /lab/, lo demas en
-    work. La carpeta media/<slug>/ es de los dos, asi que se revisan juntos:
-    un slug no se puede repetir aunque este en ficheros distintos. */
-export function unir(work, lab) {
-  for (const [lista, f] of [[work, 'data/work.json'], [lab, 'data/lab.json']])
-    if (!Array.isArray(lista)) throw new Error(`${f} tiene que ser una lista: empieza por [ y acaba por ]`);
-  const marcar = esLab => p => (p && typeof p === 'object' ? { ...p, lab: esLab } : p);
-  return [...work.map(marcar(false)), ...lab.map(marcar(true))];
+/** Cada proyecto es el project.json de su carpeta, con el nombre de la
+    carpeta como slug. Las listas de site.json dicen cuales salen y en que
+    seccion: lo que esta en "lab" sale en /lab/, lo de "work" en /work/, y lo
+    que no esta en ninguna es un borrador. */
+export function juntar(site, proyectos) {
+  const en = n => site.lists?.[n]?.projects || [];
+  return proyectos.map(p => ({ ...p, lab: en('lab').includes(p.slug),
+                               published: en('work').includes(p.slug) || en('lab').includes(p.slug) }));
 }
 
 /** El id de un video de YouTube a partir de cualquiera de sus enlaces:
@@ -71,7 +75,8 @@ export const youtube = link => (/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:w
    crearSitio — todo lo que depende de los datos
    ------------------------------------------------------------
    opciones:
-     site, proyectos   el contenido de data/*.json
+     site, about       data/site.json y data/about.json
+     proyectos         los de projects/, ya pasados por juntar()
      base              subcarpeta en la que se sirve ('' o '/oriol-colomer')
      existe(ruta)      true si ese fichero esta en el repo
      medidas(ruta)     { w, h } de una imagen, o null
@@ -82,22 +87,20 @@ export const youtube = link => (/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:w
                        a ?p=/ruta/ en vez de a /ruta/, porque Live Server
                        solo tiene un index.html y el resto lo pinta el js
    ============================================================ */
-export function crearSitio({ site, proyectos, base = '', existe = () => false,
+export function crearSitio({ site, about, proyectos, base = '', existe = () => false,
                              medidas = () => null, peso = () => null, miniaturaYT = () => null,
                              preview = false }) {
   const LANGS = site.langs;
-  const DEF   = site.defaultLang;
+  const DEF   = site.lang;
   const B     = String(base).replace(/\/$/, '');
 
-  /* El orden de todo el sitio —indice, tunel, anterior/siguiente y sitemap—
-     es este, de mas reciente a mas antiguo. Un proyecto pegado en cualquier
-     sitio del fichero sale donde le toca por fecha. */
-  const porFecha = (a, b) => String(b.date).localeCompare(String(a.date));
   /* Dos secciones: work (tunel, lista y una pagina por proyecto) y lab
-     (experimentos, piezas interactivas: lista y pagina, sin tunel). Cada
-     proyecto va en la suya segun el fichero del que viene (ver unir()). */
-  const live = proyectos.filter(p => p && p.published && !p.lab).sort(porFecha);
-  const labs = proyectos.filter(p => p && p.published && p.lab).sort(porFecha);
+     (experimentos, piezas interactivas: lista y pagina, sin tunel). El orden
+     de todo el sitio —indice, tunel, anterior/siguiente y sitemap— es el de
+     su lista en site.json. */
+  const enLista = n => (site.lists?.[n]?.projects || []).map(s => proyectos.find(p => p.slug === s)).filter(Boolean);
+  const live = enLista('work');
+  const labs = enLista('lab');
   const de   = sec => (sec === 'lab' ? labs : live);
   /** La seccion de un proyecto y su direccion: work/<slug>/ o lab/<slug>/ */
   const secDe = p => (p.lab ? 'lab' : 'work');
@@ -112,21 +115,21 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
   /** A donde apuntan los enlaces. En la vista previa, al index con ?p= */
   const url  = (l, path = '') => preview ? `${B}/?p=${ruta(l, path)}` : B + ruta(l, path);
   /** La direccion publica, para canonical, hreflang, og, sitemap y robots. */
-  const publica = p => site.baseUrl.replace(/\/$/, '') + raiz(p);
+  const publica = p => site.url.replace(/\/$/, '') + raiz(p);
   const abs  = (l, path = '') => publica(ruta(l, path));
   const absFichero = rel => publica('/' + rel);
   /** Un fichero del repo en un atributo: src, href, poster... */
   const src = f => raiz('/' + esc(f));
-  /** El codigo de idioma de verdad: catalan es "ca", no "cat". */
-  const iso = l => (l === 'cat' ? 'ca' : l);
 
-  const t = (obj, l) => (obj && (obj[l] || obj[DEF])) || '';
+  /** Un fichero de un proyecto, con su extension. */
+  const fichero = (p, m) => enCarpeta(p, m, existe);
+  /** Un texto en un idioma, o en el del sitio si falta. Un texto que es
+      igual en todos los idiomas puede ir sin ellos: "Make up & hair". */
+  const t = (obj, l) => typeof obj === 'string' ? obj : (obj && (obj[l] || obj[DEF])) || '';
 
   /* ---------- formato ---------- */
   /* Mismo formato en los tres idiomas, como la ficha original. */
   const fmtDate = iso => { const [y, m, d] = String(iso).split('-'); return `${d}/${m}/${y}`; };
-  /** Corta el texto en parrafos por linea en blanco. */
-  const paras = txt => String(txt).split(/\n{2,}/).map(s => s.trim()).filter(Boolean);
   /** El titulo lleva la @ en un span para poder darle su propio gris. */
   const titleHtml = tt => esc(tt).replace(/\s@\s/, ' <span class="at">@</span> ');
   /** 155 caracteres limpios para la meta description. */
@@ -164,18 +167,18 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
       { img, video } — img es una imagen fija (puede ser un webp animado)
       y video, si la portada se mueve, la lista de fuentes.
 
-      Si el JSON trae "thumb", esa, sea foto, webp animado o video. Si no,
+      Si el JSON trae "cover", esa, sea foto, webp animado o video. Si no,
       el primer fichero de media; si es un video, su poster, que pesa poco:
       un video por carta en el tunel serian megas. Quien quiera que se
-      mueva pone un "thumb" corto y chico. */
+      mueva pone un "cover" corto y chico. */
   const cover = p => {
-    if (p.thumb) {
-      const th = enCarpeta(p, p.thumb);
+    if (p.cover?.length) {
+      const th = fichero(p, p.cover[0]);
       if (!esVideo(th)) return { img: chica(th), video: null };
       const pj = poster(th);
       return { img: pj ? chica(pj) : '', video: fuentes(th) };
     }
-    const todo = (p.media || []).map(x => enCarpeta(p, x)).filter(x => !esPieza(x));
+    const todo = (p.photos || []).map(x => fichero(p, x)).filter(x => !esPieza(x));
     const m = todo[0];
     if (!m) return null;
     if (!esVideo(m)) return { img: chica(m), video: null };
@@ -192,7 +195,7 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
       si pesa mas de 300 KB: entonces va la version chica. */
   const ogImage = p => {
     if (!p) return OG;
-    const m = (p.media || []).map(x => enCarpeta(p, x)).filter(x => !esPieza(x));
+    const m = (p.photos || []).map(x => fichero(p, x)).filter(x => !esPieza(x));
     const f = m.find(x => !esVideo(x)) || m.map(poster).find(Boolean) || cover(p)?.img;
     if (!f) return OG;
     return existe(f) && peso(f) > 300 * 1024 ? chica(f) : f;
@@ -250,20 +253,27 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
   const cifrado = mail => btoa(String.fromCharCode(
     ...new TextEncoder().encode([...String(mail)].reverse().join(''))));
   const correo = (lang, clase = '') => site.email
-    ? `<button type="button" class="correo ${clase}" data-c="${cifrado(site.email)}">${esc(t(site.ui.mail, lang))}</button>`
+    ? `<button type="button" class="correo ${clase}" data-c="${cifrado(site.email)}">${esc(t(site.menu.mail, lang))}</button>`
     + `<noscript>${esc(site.email.replace('@', ' [at] '))}</noscript>`
     : '';
-  const redes = () => (site.redes || []).map(r =>
-    `<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.texto)}</a>`).join('\n     ');
+  /** El texto de cada red sale de su direccion: @usuario en Instagram, y en
+      las demas el nombre de la web (github, soundcloud...). */
+  const etiqueta = u => {
+    const { hostname, pathname } = new URL(u);
+    const h = hostname.replace(/^www\./, '');
+    return h === 'instagram.com' ? '@' + pathname.replace(/\//g, '') : h.split('.')[0];
+  };
+  const redes = () => (site.social || []).map(u =>
+    `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(etiqueta(u))}</a>`).join('\n     ');
 
   function head({ lang, title, desc, path, image, jsonld, vel, entrar, vista, auto }) {
     const alts = LANGS.map(l =>
-      `<link rel="alternate" hreflang="${iso(l)}" href="${abs(l, path)}">`
+      `<link rel="alternate" hreflang="${l}" href="${abs(l, path)}">`
     ).join('\n  ');
     // las medidas dejan pintar la vista previa sin esperar a bajar la imagen
     const dim = image && medidas(image);
     return `<!doctype html>
-<html lang="${iso(lang)}">
+<html lang="${lang}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -276,8 +286,8 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
   <meta property="og:title" content="${esc(title)}">
   <meta property="og:description" content="${esc(desc)}">
   <meta property="og:url" content="${abs(lang, path)}">
-  <meta property="og:site_name" content="${esc(site.shortName)}">
-  <meta property="og:locale" content="${lang === 'cat' ? 'ca_ES' : lang === 'es' ? 'es_ES' : 'en_GB'}">
+  <meta property="og:site_name" content="${esc(site.short)}">
+  <meta property="og:locale" content="${lang === 'ca' ? 'ca_ES' : lang === 'es' ? 'es_ES' : 'en_GB'}">
   ${image ? `<meta property="og:image" content="${absFichero(image)}">` : ''}
   ${dim ? `<meta property="og:image:width" content="${dim.w}">\n  <meta property="og:image:height" content="${dim.h}">` : ''}
   <meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}">
@@ -302,7 +312,7 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
   /** La barra de arriba. Dentro de un proyecto, su nombre ocupa el sitio
       de "work" —se ve donde estas— y al clicarlo vuelves a work. */
   /* Las secciones. Se llaman igual en los tres idiomas; lab solo sale
-     cuando hay algo publicado en data/lab.json. */
+     cuando hay algo en la lista "lab" de site.json. */
   const SECCIONES = [['home', ''], ['work', 'work/'], ['about', 'about/'], ['lab', 'lab/']];
   function nav(lang, current, proyecto = null) {
     const item = ([id, path]) => {
@@ -325,8 +335,8 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
       El fotograma lo baja el build y se sirve desde aqui: abrir la pagina
       no le pide nada a Google. En la vista previa, de YouTube. */
   const embed = (id, p, lang) => `      <figure class="embed">
-        <a class="yt" href="${esc(p.link)}" target="_blank" rel="noopener" data-yt="${id}"
-           aria-label="${esc(t(site.ui.watch, lang))}: ${esc(p.title)}">
+        <a class="yt" href="${esc(p.url)}" target="_blank" rel="noopener" data-yt="${id}"
+           aria-label="${esc(t(site.menu.watch, lang))}: ${esc(p.title)}">
           ${miniaturaYT(id) ? `<img src="${src(miniaturaYT(id))}" alt="" decoding="async">`
           : `<img src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" alt="" decoding="async"
                onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${id}/hqdefault.jpg'">`}
@@ -336,20 +346,20 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
 
   function langs(lang, path) {
     const sig = LANGS[(LANGS.indexOf(lang) + 1) % LANGS.length];
-    return `<nav class="langs" aria-label="${esc(t(site.ui.aria.lang, lang))}">`
+    return `<nav class="langs" aria-label="${esc(t(site.menu.aria.lang, lang))}">`
       // claro u oscuro: sol y luna, uno encima del otro. Escondido hasta que
       // hay JS que lo mueva
-      + `<button type="button" class="tema" aria-pressed="false" title="${esc(t(site.ui.tema, lang))}" hidden>`
+      + `<button type="button" class="tema" aria-pressed="false" title="${esc(t(site.menu.tema, lang))}" hidden>`
       + `<span class="ico sol" aria-hidden="true"></span><span class="ico luna" aria-hidden="true"></span>`
-      + `<span class="sr">${esc(t(site.ui.tema, lang))}</span></button>`
+      + `<span class="sr">${esc(t(site.menu.tema, lang))}</span></button>`
       // letra normal o wingdings. Sale escondido: js/ajustes.js lo ensena solo si
       // el aparato tiene la fuente (Windows y Mac si, moviles no).
       // Apagado, un ojo; encendido, la mano
-      + `<button type="button" class="tipo" aria-pressed="false" title="${esc(t(site.ui.tipo, lang))}" hidden>`
+      + `<button type="button" class="tipo" aria-pressed="false" title="${esc(t(site.menu.tipo, lang))}" hidden>`
       + `<span class="ico ojo" aria-hidden="true"></span><span class="ico mano" aria-hidden="true"></span>`
-      + `<span class="sr">${esc(t(site.ui.tipo, lang))}</span></button>`
+      + `<span class="sr">${esc(t(site.menu.tipo, lang))}</span></button>`
       // el idioma: dice el actual y al pulsar pasa al siguiente de los tres
-      + `<a class="idioma" href="${url(sig, path)}" hreflang="${iso(sig)}" title="${esc(t(site.ui.aria.lang, lang))}: ${sig}">${lang}</a>`
+      + `<a class="idioma" href="${url(sig, path)}" hreflang="${sig}" title="${esc(t(site.menu.aria.lang, lang))}: ${sig}">${lang}</a>`
       + `</nav>`;
   }
 
@@ -362,15 +372,15 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
   /* ---------- paginas ---------- */
   function landing(lang) {
     return head({
-      lang, path: '', vel: 1, entrar: url(lang, 'work/'), auto: site.entradaAuto,
-      title: `${site.name} — ${t(site.tagline, lang)}`,
+      lang, path: '', vel: 1, entrar: url(lang, 'work/'), auto: site.autoEnter,
+      title: `${site.title} — ${t(site.tagline, lang)}`,
       desc: t(site.tagline, lang),
       image: OG,
       jsonld: {
         '@context':'https://schema.org', '@type':'Person',
-        name: site.name, url: abs(lang),
+        name: site.title, url: abs(lang),
         jobTitle: t(site.tagline, lang),
-        sameAs: (site.redes || []).map(r => r.url),
+        sameAs: (site.social || []),
         address: { '@type':'PostalAddress', addressLocality:'Barcelona', addressCountry:'ES' },
       },
     })
@@ -383,7 +393,7 @@ export function crearSitio({ site, proyectos, base = '', existe = () => false,
         <span class="shape" aria-hidden="true"></span>
         <span class="pupil" id="pupil" aria-hidden="true"></span>
       </div>
-      <h1 class="name">${esc(site.name)}</h1>
+      <h1 class="name">${esc(site.title)}</h1>
     </div>
   </a>
   ${langs(lang, '')}
@@ -431,16 +441,16 @@ ${opciones.map(([v, l], i) => `          <button type="button" data-v="${esc(v)}
         </div>
       </div>`;
 
-    const orden  = [['date', t(site.ui.byDate, lang)], ['client', t(site.ui.byClient, lang)],
-                    ['title', t(site.ui.byTitle, lang)]];
-    const filtro = [['', t(site.ui.all, lang)], ...tags.map(g => [g, g])];
+    const orden  = [['date', t(site.menu.byDate, lang)], ['client', t(site.menu.byClient, lang)],
+                    ['title', t(site.menu.byTitle, lang)]];
+    const filtro = [['', t(site.menu.all, lang)], ...tags.map(g => [g, g])];
 
     return head({
       lang, path: `${sec}/`,
       // La vista por defecto ya viene puesta en el HTML: si la pusiera el
       // guion, la lista entera se pintaria y desapareceria al cargar.
       vista: tunel ? 'tunel' : 'lista',
-      title: `${sec} — ${site.shortName}`,
+      title: `${sec} — ${site.short}`,
       desc: t(site.tagline, lang),
       image: ogImage(items[0]),
       jsonld: {
@@ -454,12 +464,12 @@ ${opciones.map(([v, l], i) => `          <button type="button" data-v="${esc(v)}
   <!-- Orden y filtro a la izquierda del cambio de vista: solo salen en la
        lista, y asi el boton tunel/lista no se mueve de sitio al cambiar. -->
   <div class="controles">
-${menu('sort', t(site.ui.sort, lang), orden)}
+${menu('sort', t(site.menu.sort, lang), orden)}
 ${menu('tag', '', filtro)}
-${tunel ? `    <div class="vistas" role="group" aria-label="${esc(t(site.ui.aria.view, lang))}">
+${tunel ? `    <div class="vistas" role="group" aria-label="${esc(t(site.menu.aria.view, lang))}">
       <!-- un solo boton: ensena el icono de la vista en la que estas y pulsado
            pasa a la otra. Los dos iconos en la misma casilla -->
-      <button type="button" class="vista"><span class="ico" data-vista="tunel" aria-hidden="true"></span><span class="ico" data-vista="lista" aria-hidden="true"></span><span class="sr" data-vista="tunel">${esc(t(site.ui.tunnel, lang))}</span><span class="sr" data-vista="lista">${esc(t(site.ui.list, lang))}</span></button>
+      <button type="button" class="vista"><span class="ico" data-vista="tunel" aria-hidden="true"></span><span class="ico" data-vista="lista" aria-hidden="true"></span><span class="sr" data-vista="tunel">${esc(t(site.menu.tunnel, lang))}</span><span class="sr" data-vista="lista">${esc(t(site.menu.list, lang))}</span></button>
     </div>` : ''}
     <!-- idiomas, letra y tema a la derecha de tunel/lista: en el tunel la
          pagina no scrollea y el pie no se veria nunca -->
@@ -503,11 +513,12 @@ ${tunel ? `<!-- Linea del tiempo: una raya de lado a lado y cada proyecto en su 
   }
 
   function projectPage(p, lang, prev, next) {
-    const desc = t(p.description, lang);
+    const parrafos = [].concat(t(p.text, lang) || []);
+    const desc = parrafos.join(' ');
     const sub  = t(p.subheader, lang);
-    const archivos = (p.media || []).map(m => enCarpeta(p, m));
+    const archivos = (p.photos || []).map(m => fichero(p, m));
 
-    const yt = youtube(p.link);
+    const yt = youtube(p.url);
     /* En lab la pieza manda: va arriba a pantalla entera y el resto, texto
        y fotos, debajo. En work, la pieza (si la hay) es una foto mas. */
     const piezas = p.lab ? archivos.filter(esPieza) : [];
@@ -522,13 +533,12 @@ ${tunel ? `<!-- Linea del tiempo: una raya de lado a lado y cada proyecto en su 
       ? `  <div class="escenario">\n${piezas.map(m => `    ${mediaTag(m, p, sub, 0)}`).join('\n')}\n  </div>\n`
       : '';
 
-    const roles = Object.entries(p.credits || {});
     const credits = creditos(p, lang);
 
     const og = ogImage(p);
     return head({
       lang, path: dir(p),
-      title: `${p.title} — ${sub} — ${site.shortName}`,
+      title: `${p.title} — ${sub} — ${site.short}`,
       desc: metaDesc(desc),
       image: og,
       jsonld: {
@@ -537,14 +547,14 @@ ${tunel ? `<!-- Linea del tiempo: una raya de lado a lado y cada proyecto en su 
         description: metaDesc(desc),
         datePublished: p.date,
         url: abs(lang, dir(p)),
-        inLanguage: iso(lang),
-        creator: { '@type':'Person', name: site.name, url: site.baseUrl },
+        inLanguage: lang,
+        creator: { '@type':'Person', name: site.title, url: site.url },
         about: p.client,
         keywords: (p.tags || []).join(', '),
         ...(og ? { image: absFichero(og) } : {}),
-        ...(p.link ? { sameAs: [p.link] } : {}),
-        contributor: roles.flatMap(([, people]) =>
-          (String(people).match(/@[\w.\-_]+/g) || []).map(h =>
+        ...(p.url ? { sameAs: [p.url] } : {}),
+        contributor: (p.credits || []).flatMap(({ name }) =>
+          (String(name).match(/@[\w.\-_]+/g) || []).map(h =>
             ({ '@type':'Person', name: h, sameAs: igUrl(h) }))),
       },
     })
@@ -559,21 +569,21 @@ ${escenario}  <div class="side">
         <span class="g">${esc((p.tags || []).join(' '))}</span>
       </div>
       <div class="body">
-${paras(desc).map(x => `        <p>${esc(x)}</p>`).join('\n')}
+${parrafos.map(x => `        <p>${esc(x)}</p>`).join('\n')}
       </div>
-      ${p.link && !yt ? `<a class="watch" href="${esc(p.link)}" target="_blank" rel="noopener">${esc(t(site.ui.watch, lang))} →</a>` : ''}
+      ${p.url && !yt ? `<a class="watch" href="${esc(p.url)}" target="_blank" rel="noopener">${esc(t(site.menu.watch, lang))} →</a>` : ''}
     </div>
 ${credits}
     <!-- Al pie del bloque del texto, en dos lineas: anterior y siguiente,
          y debajo, volver a work (bajo el anterior) y los idiomas (bajo el
          siguiente). -->
     <div class="navega">
-      <nav class="pager" aria-label="${esc(t(site.ui.aria.projects, lang))}">
+      <nav class="pager" aria-label="${esc(t(site.menu.aria.projects, lang))}">
         ${prev ? `<a class="ant" href="${url(lang, dir(prev))}" title="${esc(prev.title)}"><span>←</span> <span class="tt">${esc(prev.title)}</span></a>` : '<span></span>'}
         ${next ? `<a class="sgte" href="${url(lang, dir(next))}" title="${esc(next.title)}"><span class="tt">${esc(next.title)}</span> <span>→</span></a>` : '<span></span>'}
       </nav>
       <div class="abajo">
-        <a class="volver" href="${url(lang, secDe(p) + '/')}">${esc(t(site.ui.back, lang))}</a>
+        <a class="volver" href="${url(lang, secDe(p) + '/')}">${esc(t(site.menu.back, lang))}</a>
         ${langs(lang, dir(p))}
       </div>
     </div>
@@ -587,35 +597,36 @@ ${media || '      <!-- sin material grafico todavia -->'}
     + foot();
   }
 
-  /** La ficha tecnica: "rol": "quien", con los @ enlazados a Instagram. */
+  /** La ficha tecnica: una persona (o varias) por linea, con su rol y los @
+      enlazados a Instagram. */
   function creditos(p, lang) {
-    const roles = Object.entries(p.credits || {});
+    const roles = p.credits || [];
     return roles.length ? `    <section class="credits">
-      <h2>${esc(t(site.ui.credits, lang))}</h2>
+      <h2>${esc(t(site.menu.credits, lang))}</h2>
       <dl>
-${roles.map(([role, people]) =>
-  `        <div class="row"><dt>${esc(role)}</dt> <dd>${linkHandles(people)}</dd></div>`).join('\n')}
+${roles.map(({ role, name }) =>
+  `        <div class="row"><dt>${esc(t(role, lang))}</dt> <dd>${linkHandles(name)}</dd></div>`).join('\n')}
       </dl>
     </section>` : '';
   }
 
   function aboutPage(lang) {
-    const ps = site.about[lang] || site.about[DEF];
+    const ps = about[lang]?.length ? about[lang] : about[DEF];
     return head({
       lang, path: 'about/',
-      title: `about — ${site.shortName}`,
+      title: `about — ${site.short}`,
       desc: metaDesc(ps[0]),
       image: OG,
       jsonld: {
         '@context':'https://schema.org', '@type':'AboutPage',
         url: abs(lang, 'about/'),
-        mainEntity: { '@type':'Person', name: site.name, description: metaDesc(ps[0]),
-                      url: site.baseUrl, sameAs: (site.redes || []).map(r => r.url) },
+        mainEntity: { '@type':'Person', name: site.title, description: metaDesc(ps[0]),
+                      url: site.url, sameAs: (site.social || []) },
       },
     })
     + `${nav(lang, 'about')}
 <main class="about">
-  <h1>${esc(site.name)}</h1>
+  <h1>${esc(site.title)}</h1>
 ${ps.map(x => `  <p>${esc(x)}</p>`).join('\n')}
   <p class="contact">${correo(lang)}</p>
   <p class="redes">
@@ -632,14 +643,14 @@ ${ps.map(x => `  <p>${esc(x)}</p>`).join('\n')}
   function noEncontrada() {
     return head({
       lang: DEF, path: '',
-      title: `404 — ${site.shortName}`,
-      desc: t(site.ui.notFound, DEF),
+      title: `404 — ${site.short}`,
+      desc: t(site.menu.notFound, DEF),
       image: OG,
     })
     + `${nav(DEF, null)}
 <main class="about">
   <h1>404</h1>
-${LANGS.map(l => `  <p lang="${iso(l)}">${esc(t(site.ui.notFound, l))}</p>`).join('\n')}
+${LANGS.map(l => `  <p lang="${l}">${esc(t(site.menu.notFound, l))}</p>`).join('\n')}
 </main>`
     + foot();
   }
@@ -672,38 +683,42 @@ ${LANGS.map(l => `  <p lang="${iso(l)}">${esc(t(site.ui.notFound, l))}</p>`).joi
   function revisar() {
     const avisos = [];
     const aviso = (quien, texto) => avisos.push({ quien, texto });
-    const vistos = new Set();
     const EXT = /\.(jpe?g|png|webp|gif|avif|mp4|webm|html?)$/i;
 
     for (const lang of LANGS) {
-      if (!site.about?.[lang]) aviso('site.json', `falta el about en "${lang}"`);
+      if (!about?.[lang]?.length) aviso('about.json', `falta el about en "${lang}"`);
     }
 
-    proyectos.forEach((p, n) => {
-      if (!p || typeof p !== 'object') { aviso(`proyecto ${n + 1}`, 'no es un bloque { ... }'); return; }
-      const quien = p.slug || `proyecto ${n + 1}`;
-      if (!p.slug) aviso(quien, 'falta "slug"');
-      else {
-        if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(p.slug))
-          aviso(quien, 'el slug solo puede llevar minusculas, numeros y guiones (sin acentos ni espacios)');
-        if (vistos.has(p.slug)) aviso(quien, 'hay dos proyectos con el mismo slug');
-        vistos.add(p.slug);
+    /* Las listas: cada nombre tiene que ser una carpeta de projects/, y cada
+       proyecto, estar en una sola. */
+    const vistos = new Set();
+    for (const [nombre, l] of Object.entries(site.lists || {})) {
+      for (const slug of l.projects || []) {
+        if (!proyectos.some(p => p.slug === slug))
+          aviso('site.json', `la lista "${nombre}" dice "${slug}", pero no hay ninguna carpeta projects/${slug}/`);
+        if (vistos.has(slug)) aviso('site.json', `"${slug}" esta en dos listas, o dos veces en la misma`);
+        vistos.add(slug);
       }
+    }
+
+    proyectos.forEach(p => {
+      const quien = p.slug;
+      if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(p.slug))
+        aviso(quien, 'el nombre de la carpeta solo puede llevar minusculas, numeros y guiones (sin acentos ni espacios)');
       if (!p.title) aviso(quien, 'falta "title"');
       if (!/^\d{4}-\d{2}-\d{2}$/.test(p.date || '')) aviso(quien, `la fecha tiene que ser AAAA-MM-DD, y es "${p.date ?? ''}"`);
-      if (typeof p.published !== 'boolean') aviso(quien, '"published" tiene que ser true o false, sin comillas');
       if (p.tags && !Array.isArray(p.tags)) aviso(quien, '"tags" tiene que ser una lista: ["lx", "vs"]');
-      if (p.media && !Array.isArray(p.media)) aviso(quien, '"media" tiene que ser una lista: ["1.webp", "2.webp"]');
+      if (p.photos && !Array.isArray(p.photos)) aviso(quien, '"photos" tiene que ser una lista: ["1", "2"]');
+      if (p.credits && !Array.isArray(p.credits)) aviso(quien, '"credits" tiene que ser una lista: [{ "role": "…", "name": "…" }]');
       if (!p.published) return;             // los borradores no se revisan mas
 
-      if (!t(p.description, DEF)) aviso(quien, `falta la descripcion en "${DEF}"`);
-      if (!p.media?.length && !p.thumb) aviso(quien, 'no tiene ni media ni thumb: en el tunel saldra un hueco gris');
-      const ficheros = [...(p.media || [])];
-      if (p.thumb) ficheros.push(p.thumb);
+      if (!t(p.text, DEF)?.length) aviso(quien, `falta el texto en "${DEF}"`);
+      if (!p.photos?.length && !p.cover?.length) aviso(quien, 'no tiene ni photos ni cover: en el tunel saldra un hueco gris');
+      const ficheros = [...(p.photos || []), ...(p.cover || [])];
       for (const m of ficheros) {
-        const f = enCarpeta(p, m);
+        const f = fichero(p, m);
         if (!EXT.test(f)) aviso(quien, `"${m}": formato que la web no sabe ensenar (usa webp, jpg, png, gif, webm, mp4 o una pieza .html)`);
-        else if (!existe(f)) aviso(quien, `no encuentro ${f}`);
+        else if (!existe(f)) aviso(quien, `"${m}": no hay ningun ${m}.webp (ni .webm, .jpg...) en projects/${p.slug}/img/`);
         else if (/\.gif$/i.test(f)) aviso(quien, `${f} es un GIF: pasalo por imgToWeb, sale un webp animado que pesa mucho menos`);
         else {
           // Oriol no tiene npm run media: esto es lo que le avisa de una foto del movil sin convertir

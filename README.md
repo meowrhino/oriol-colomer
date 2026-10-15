@@ -11,15 +11,18 @@ al hacer push. Oriol no instala nada.
 
 ## Para Oriol: cómo actualizar la web
 
-Todo lo que cambia está en tres ficheros y una carpeta:
+Todo lo que cambia está en dos ficheros y una carpeta por proyecto:
 
 ```
-data/work.json        los proyectos de work: el túnel y la lista
-data/lab.json         los del lab: experimentos, piezas interactivas.
-                      Funciona igual que work: túnel, lista y una página por proyecto
-data/site.json        el about, las redes, el correo, los textos
-media/<slug>/         las fotos y vídeos de cada proyecto
+data/site.json                 lo general: las listas de work y de lab (qué sale y
+                               en qué orden), las redes, el correo, los textos
+data/about.json                el texto del about, en los tres idiomas
+projects/<slug>/project.json   un proyecto: su título, su texto, sus créditos…
+projects/<slug>/img/           sus fotos y vídeos: 1.webp, 2.webm, 3.webp…
 ```
+
+**Un proyecto, una carpeta**: todo lo de un proyecto está junto. Para copiarlo,
+borrarlo o cambiarlo de nombre, se hace con su carpeta entera.
 
 Se puede editar desde la web de GitHub (el lápiz) o con VS Code en tu ordenador.
 En los dos casos, **al hacer commit en `main` la web se actualiza sola** en un par
@@ -39,27 +42,32 @@ Solo se hace una vez.
 
 ### Añadir un proyecto, paso a paso
 
-1. **Elige el slug**: la dirección del proyecto, `/work/<slug>/`. Minúsculas,
-   números y guiones, sin acentos ni espacios: `la-roda-ouineta`.
-   **No lo cambies nunca** una vez publicado: rompe los enlaces que ya circulan.
-2. **Prepara las fotos y los vídeos** (ver abajo) y ponles nombre por orden:
-   `01.webm`, `01.poster.webp`, `02.webp`… (ver "Qué va en la carpeta").
-3. **Crea la carpeta** `media/<slug>/` —el mismo slug— y mete ahí los ficheros.
-4. **Copia un bloque** `{ ... }` entero de `data/work.json` (o de `data/lab.json`
-   si es del lab) y cambia los campos. Pégalo en su sitio por fecha, **el más
-   nuevo arriba**: la web ordena sola, pero así en el fichero lo encuentras todo.
-   Pasar un proyecto de lab a work es cortar su bloque de un fichero y pegarlo
-   en el otro (y su dirección pasa de `/lab/<slug>/` a `/work/<slug>/`).
-5. **Revísalo con la vista previa** (ver abajo) antes de subir.
-6. **Súbelo** (ver abajo).
+1. **Elige el slug**: el nombre de la carpeta, que es también la dirección del
+   proyecto, `/work/<slug>/`. Minúsculas, números y guiones, sin acentos ni
+   espacios: `la-roda-ouineta`. **No lo cambies nunca** una vez publicado:
+   rompe los enlaces que ya circulan.
+2. **Copia la carpeta** de otro proyecto dentro de `projects/`, ponle el slug de
+   nombre y vacía su `img/`.
+3. **Prepara las fotos y los vídeos** (ver abajo) y mételos en `img/`: `1.webp`,
+   `2.webm`, `2.poster.webp`… (ver "Qué va en la carpeta").
+4. **Cambia los campos** de su `project.json` (ver la tabla).
+5. **Ponlo en la lista**: en `data/site.json`, añade el slug a `lists` → `work`
+   → `projects` (o a `lab`), donde quieras que salga: **el primero de la lista
+   es el primero de la web**. Lo nuevo, arriba.
+6. **Revísalo con la vista previa** (ver abajo) y **súbelo**.
+
+Pasar un proyecto de lab a work es mover su slug de una lista a la otra (y su
+dirección pasa de `/lab/<slug>/` a `/work/<slug>/`).
 
 ### Quitar un proyecto
 
-- **Esconderlo** (se puede volver a sacar): `"published": false`. Deja de salir
-  en la web, pero sigue en el fichero y sus fotos en su carpeta.
-- **Quitarlo del todo**: borra su bloque `{ ... }` del JSON **y** su carpeta
-  `media/<slug>/`. Si dejas la carpeta, las fotos se siguen publicando aunque
-  no salgan en ninguna página.
+- **Esconderlo** (se puede volver a sacar): quita su slug de la lista en
+  `data/site.json`. Deja de salir en la web, pero su carpeta sigue ahí (y se
+  puede ver en la vista previa). **No es privado**: el repositorio es público,
+  así que el texto y las fotos se ven en GitHub, y las fotos también en la web
+  si alguien adivina la dirección.
+- **Quitarlo del todo**: quita su slug de la lista **y** borra su carpeta
+  `projects/<slug>/`.
 
 ### Subir los cambios desde VS Code
 
@@ -78,40 +86,42 @@ desde la web de GitHub, así lo bajas y no se pisan.
 
 ### Los campos de un proyecto
 
-Arriba lo que dice qué es, si está publicado y de cuándo; abajo lo largo.
+El `project.json` de `projects/lechatelier-sala-apolo-2025/`:
 
 ```json
 {
-  "slug": "lechatelier-sala-apolo-2025",
-  "published": true,
-  "date": "2025-10-23",
   "title": "LeChatelier @ Sala Apolo [2]",
+  "date": "2025-10-23",
   "client": "LeChatelier",
   "tags": ["lx"],
-  "subheader": { "en": "Lighting design & operation", "es": "…", "cat": "…" },
-  "description": { "en": "…", "es": "…", "cat": "…" },
-  "credits": {
-    "lighting design": "oriol colomer & clàudia aguiló",
-    "photography": "@conamorirene"
+  "subheader": { "en": "Lighting design & operation", "es": "…", "ca": "…" },
+  "text": {
+    "en": ["primer párrafo", "segundo párrafo"],
+    "es": ["…"],
+    "ca": ["…"]
   },
-  "link": "https://youtu.be/…",
-  "thumb": "thumb.webm",
-  "media": ["01.webm", "02.webp", "03.webp"]
+  "credits": [
+    {"role": "lighting design", "name": "oriol colomer & clàudia aguiló"},
+    {"role": "photography", "name": "@conamorirene"}
+  ],
+  "url": "https://youtu.be/…",
+  "cover": ["thumb"],
+  "photos": ["1", "2", "3"]
 }
 ```
 
 | campo | qué es |
 |---|---|
-| `slug` | La dirección: `/work/<slug>/` (o `/lab/<slug>/`), y el nombre de su carpeta en `media/`. No se puede repetir, tampoco entre work y lab. |
-| `published` | `false` = escrito pero sin publicar. No sale en la web (pero se puede ver en la vista previa). **No es privado**: el repositorio es público, así que el texto y las fotos se pueden ver en GitHub, y las fotos también en la web si alguien adivina la dirección. |
 | `title` | No se traduce. Sale tal cual. |
-| `subheader`, `description` | Los tres idiomas. Si dejas `es` o `cat` vacíos, sale el inglés. Una línea en blanco (`\n\n`) separa párrafos. |
-| `date` | `AAAA-MM-DD`. Ordena la web sola: el túnel, la lista y la línea del tiempo. |
+| `date` | `AAAA-MM-DD`. Sale en la ficha y coloca el proyecto en la línea del tiempo. El orden de la web lo da la lista de `site.json`. |
+| `client` | Para quién. Se puede quitar. |
 | `tags` | Las letras de siempre: `lx`, `vs`, `dc`, `xy`, `rs`. |
-| `credits` | `"rol": "quién"`. El rol sale en **negrita**. Los `@handle` se enlazan solos a Instagram. |
-| `link` | Si es de **YouTube**, el vídeo sale embebido el primero, antes de las fotos. Si es otra cosa, sale como "Watch →". Se puede quitar. |
-| `thumb` | La portada del túnel y de la lista. Puede ser una foto, un **webp animado** o un **vídeo** (`.webm`), y entonces se mueve. Sale con su proporción, sin recortar: apaisada, cuadrada o casi vertical. Si no lo pones, se usa el primero de `media`. |
-| `media` | Fotos y vídeos del proyecto, en orden. Basta el nombre del fichero: se busca en `media/<slug>/`. También puede ir una **pieza interactiva** (ver abajo). |
+| `subheader` | La línea de debajo del título, en los tres idiomas. Si dejas `es` o `ca` vacíos, sale el inglés. |
+| `text` | El texto, en los tres idiomas: una lista de párrafos, `["primero", "segundo"]`. |
+| `credits` | Una línea por rol: `{"role": "…", "name": "…"}`. El rol sale en **negrita**. Los `@handle` se enlazan solos a Instagram. |
+| `url` | Si es de **YouTube**, el vídeo sale embebido el primero, antes de las fotos. Si es otra cosa, sale como "Watch →". Se puede quitar. |
+| `cover` | La portada del túnel y de la lista: `["thumb"]` si en `img/` hay un `thumb.webp` o `thumb.webm`. Puede ser una foto, un **webp animado** o un **vídeo**, y entonces se mueve. Sale con su proporción, sin recortar. Si no lo pones, se usa la primera de `photos`. |
+| `photos` | Fotos y vídeos del proyecto, en orden, **por su número y sin extensión**: `"3"` es `img/3.webp` o `img/3.webm`, el que haya. También puede ir una **pieza interactiva** (ver abajo). |
 
 Cuidado con las comas: entre campo y campo va una, y **después del último no**.
 Si se te escapa una, la vista previa te dice en qué línea está.
@@ -122,11 +132,12 @@ Antes de subir nada, pásalo por los conversores. Funcionan en el navegador, no
 suben nada a ningún sitio y dejan los ficheros con el peso justo para la web:
 
 - **Fotos** → [imgToWeb](https://meowrhino.github.io/imgToWeb/), calidad **85 %**.
-  Salen en WebP. Un GIF animado sale como WebP animado, que sirve de `thumb`.
+  Salen en WebP, ya numeradas (`1.webp`, `2.webp`…). Un GIF animado sale como
+  WebP animado, que sirve de portada.
 - **Vídeos** → [videoToWeb](https://meowrhino.github.io/videoToWeb/), preset **720p**,
   con las tres casillas marcadas: **fotograma**, **sin audio** y **numerar**. Ordena
   las tarjetas como quieras que salgan y dale a "descargar todo": el ZIP trae
-  `01.webm`, `01.poster.webp`, `02.webm`… listos para la carpeta. Se recuerdan,
+  los vídeos numerados con su fotograma, listos para la carpeta. Se recuerdan,
   así que solo hay que marcarlas la primera vez.
 
 **No subas GIF ni fotos de móvil sin convertir**: una foto de 5 MB tarda más en
@@ -135,26 +146,28 @@ cargar que todo el resto de la página y hunde el posicionamiento.
 ### Qué va en la carpeta de un proyecto, y con qué nombre
 
 ```
-media/la-roda-ouineta/
-  01.webm              un vídeo (de videoToWeb)
-  01.poster.webp       su fotograma: el mismo nombre + .poster.webp
-  02.webp              una foto (de imgToWeb)
-  03.webp              otra foto
-  thumb.webm           la portada, si quieres una distinta (opcional)
-  thumb.poster.webp    su fotograma
+projects/la-roda-ouineta/
+  project.json
+  img/
+    1.webm             un vídeo (de videoToWeb)
+    1.poster.webp      su fotograma: el mismo número + .poster.webp
+    2.webp             una foto (de imgToWeb)
+    3.webp             otra foto
+    thumb.webm         la portada, si quieres una distinta (opcional)
+    thumb.poster.webp  su fotograma
 ```
 
-- **Nombres**: `01`, `02`, `03`… en el orden en que salen. Con dos cifras, para
-  que en la carpeta se vean en orden.
+- **Nombres**: `1`, `2`, `3`… sin cero delante, como salen de imgToWeb. En
+  `photos` van sin la extensión: `["1", "2", "3"]`.
 - **El fotograma de un vídeo** (`.poster.webp`) es lo que se ve mientras el vídeo
   carga, y lo que sale en el túnel si ese vídeo es la portada. Lo hace
   videoToWeb con la casilla "fotograma". Si no está, el vídeo funciona igual,
   pero hasta que carga hay un hueco.
 - **Si numeras las fotos y los vídeos por separado** (imgToWeb y videoToWeb
-  cuentan cada uno desde `01`), cambia el nombre a mano para que no se repita:
-  un vídeo `01.webm` y una foto `01.webp` pueden convivir, pero se lee mejor
-  seguido.
-- **La portada** (`thumb`) es opcional. Puede ser una foto (`thumb.webp`), un GIF
+  cuentan cada uno desde `1`), cambia el nombre a mano para que no se repita:
+  un `1.webm` y un `1.webp` en la misma carpeta no pueden ir los dos en
+  `photos` (el `"1"` sería la foto).
+- **La portada** (`cover`) es opcional. Puede ser una foto (`thumb.webp`), un GIF
   pasado por imgToWeb (`thumb.webp`, animado) o un vídeo corto: 3–6 s en **480p**
   (`thumb.webm` y su `thumb.poster.webp`). En el túnel se ven todas las portadas a
   la vez y cada una pesa.
@@ -167,16 +180,17 @@ media/la-roda-ouineta/
 ### Piezas interactivas (Unity, webs)
 
 Una build de Unity WebGL o cualquier web hecha a mano se sube entera a una
-subcarpeta del proyecto y se pone su `index.html` en `media`. Suelen ir en
-`data/lab.json` (`lab` sale en el menú en cuanto hay uno publicado). Ponle un
-`thumb`: la pieza no tiene fotograma, y sin él su carta del túnel sale gris.
+subcarpeta de `img/` y se pone en `photos` la ruta de su `index.html`, esta vez
+con la extensión. Suelen ir en la lista `lab` (`lab` sale en el menú en cuanto
+hay uno). Ponle una portada (`cover`): la pieza no tiene fotograma, y sin ella
+su carta sale gris.
 
 ```
-media/spacetime/web/index.html
-media/spacetime/web/Build/...
+projects/spacetime/img/web/index.html
+projects/spacetime/img/web/Build/...
 ```
 ```json
-"media": ["web/index.html"]
+"photos": ["web/index.html"]
 ```
 
 En lab, la pieza arranca sola en un ordenador; en el móvil sale un play y solo
@@ -197,24 +211,26 @@ como están, y **se recarga sola cada vez que guardas**.
 Si el JSON está roto (una coma, unas comillas), en vez de la web sale el error
 con la línea donde mirar.
 
-Para ver un borrador, entra en su dirección:
+Para ver un borrador (una carpeta que aún no está en ninguna lista), entra en su dirección:
 `http://127.0.0.1:5500/?p=/work/<slug>/`.
 
 Lo que no cuadra (una foto que no está en su carpeta, una fecha mal escrita, un
-slug repetido, un `published` entre comillas, **una foto de más de 1 MB o un
+slug de la lista sin carpeta, un proyecto en dos listas, **una foto de más de 1 MB o un
 vídeo de más de 12 MB**, un GIF…) sale en GitHub, en la pestaña **Actions**, al
 publicar.
 
-### El resto: `data/site.json`
+### El resto: `data/site.json` y `data/about.json`
 
 | campo | qué es |
 |---|---|
-| `about` | El texto del about, un párrafo por línea de la lista, en los tres idiomas. |
+| `lists` | Lo que sale en work y en lab, en este orden. Cada nombre es una carpeta de `projects/`. |
 | `email` | El correo. En la web no va escrito: sale un botón "email" que lo enseña al clicarlo, para que no lo recojan los robots de spam. |
-| `redes` | Las redes del about: `{ "texto": "github", "url": "https://…" }`. Añade o quita las que quieras. |
-| `entradaAuto` | Segundos que espera la portada antes de entrar sola al túnel. `0` para que no entre sola. |
+| `social` | Las redes del about, la dirección entera: `"https://github.com/…"`. El texto sale solo: `@usuario` en Instagram y el nombre de la web en las demás. |
+| `autoEnter` | Segundos que espera la portada antes de entrar sola al túnel. `0` para que no entre sola. |
 | `tagline` | La frase que sale en Google y al compartir el enlace. |
-| `ui` | Los textos de los botones, en los tres idiomas. |
+| `menu` | Los textos de los botones, en los tres idiomas. |
+
+`data/about.json` es el texto del about: un párrafo por línea de la lista, en los tres idiomas.
 
 ### El fondo
 
@@ -235,7 +251,7 @@ ordenador o su móvil. Los colores de los dos están al principio de
 Cuando esté comprado (`oriolcolomerdelgado.com`, por ejemplo), en `site.json`:
 
 ```json
-"baseUrl": "https://oriolcolomerdelgado.com",
+"url": "https://oriolcolomerdelgado.com",
 "base": "",
 "domain": "oriolcolomerdelgado.com"
 ```
@@ -258,7 +274,7 @@ tiene la web. Cómo pasarle una copia a Oriol: [TRASPASO.md](TRASPASO.md).
 
 ```bash
 npm run build          # genera dist/ (lo mismo que hace GitHub al publicar)
-npm run media          # convierte lo que haya en media/ (necesita: brew install ffmpeg webp)
+npm run media          # convierte lo que haya en projects/*/img/ (necesita: brew install ffmpeg webp)
 npm run media -- --mp4 # lo mismo, y deja un mp4 de respaldo de cada video
 ```
 
@@ -284,14 +300,17 @@ que sale al compartir el enlace por WhatsApp.
 Una página por proyecto y por idioma:
 
 ```
-/                            /es/                /cat/
-/work/                       /es/work/           /cat/work/
-/work/<slug>/                /es/work/<slug>/    /cat/work/<slug>/
-/lab/                        /es/lab/            /cat/lab/
-/lab/<slug>/                 /es/lab/<slug>/     /cat/lab/<slug>/
-/about/                      /es/about/          /cat/about/
+/                            /es/                /ca/
+/work/                       /es/work/           /ca/work/
+/work/<slug>/                /es/work/<slug>/    /ca/work/<slug>/
+/lab/                        /es/lab/            /ca/lab/
+/lab/<slug>/                 /es/lab/<slug>/     /ca/lab/<slug>/
+/about/                      /es/about/          /ca/about/
 sitemap.xml   robots.txt     (CNAME si hay dominio)
 ```
+
+El catalán iba antes en `/cat/`: esas direcciones siguen existiendo y llevan a
+las de `/ca/`.
 
 Cada una con su `<title>`, su `meta description`, su `og:image`, sus `hreflang`
 a los otros dos idiomas y su JSON-LD. Por eso hay un slug por proyecto: es la
@@ -301,9 +320,9 @@ indexar y que un cliente pueda compartir.
 ### Los archivos
 
 ```
-data/work.json         los proyectos de work  <- lo que edita Oriol
-data/lab.json          los del lab            <- lo que edita Oriol
-data/site.json         about, redes, textos   <- lo que edita Oriol
+data/site.json         listas, redes, textos  <- lo que edita Oriol
+data/about.json        el about               <- lo que edita Oriol
+projects/<slug>/       un proyecto: project.json + img/  <- lo que edita Oriol
 index.html             la vista previa para Live Server (no se publica)
 build/paginas.mjs      las plantillas: todo el HTML sale de aqui
 build/build.mjs        las escribe en dist/ (Node, en GitHub Actions)
@@ -319,7 +338,6 @@ js/media.js            videos del proyecto al verlos, YouTube, bloque de texto
 js/correo.js           el boton del correo
 js/ajustes.js          los botones de wingdings y de claro / oscuro, y el desplegable del idioma
 assets/cursor/         los cursores (32 px y @2x de 64 px)
-media/<slug>/          fotos y videos
 ```
 
 ### Una sola plantilla, dos sitios
@@ -338,14 +356,14 @@ que podrían estar (el mp4 de respaldo, un poster) y no están. No son errores.
 
 ### Los ficheros de un vídeo
 
-De `01.webm` el generador busca solo, al lado:
+De `1.webm` el generador busca solo, al lado:
 
-- `01.poster.webp` (o `.jpg`) — el fotograma que se ve antes de que cargue
-- `01.mp4` — respaldo para iPhones anteriores a iOS 17.4, que no leen WebM. No se
+- `1.poster.webp` (o `.jpg`) — el fotograma que se ve antes de que cargue
+- `1.mp4` — respaldo para iPhones anteriores a iOS 17.4, que no leen WebM. No se
   sube ninguno (sin él, esos iPhones ven el fotograma quieto), pero si se pone,
   se usa. `npm run media -- --mp4` los hace.
 
-y de una foto de portada, `01.thumb.webp`: 720 px, lo que pintan el túnel y la
+y de una foto de portada, `1.thumb.webp`: 720 px, lo que pintan el túnel y la
 lista. Todo lo hace `npm run media`; si falta algo, se usa lo que hay y nunca se
 rompe nada, solo pesa más.
 

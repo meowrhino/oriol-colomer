@@ -1,0 +1,20 @@
+{
+  "title": "spacetime",
+  "date": "2026-09-28",
+  "subheader": {
+    "en": "Interactive piece (Unity)",
+    "es": "Pieza interactiva (Unity)",
+    "ca": "Peça interactiva (Unity)"
+  },
+  "text": {
+    "en": [
+      "interactive piece made in unity. it runs right here in the browser: click on it and explore."
+    ],
+    "es": [
+      "pieza interactiva hecha en unity. funciona aquí mismo, en el navegador: haz clic y explora."
+    ],
+    "ca": ["peça interactiva feta amb unity. funciona aquí mateix, al navegador: fes clic i explora."]
+  },
+  "cover": ["thumb"],
+  "photos": ["web/index.html"]
+}

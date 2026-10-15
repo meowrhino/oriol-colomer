@@ -1,0 +1,34 @@
+{
+  "title": "AMORE @ Razzmatazz 2",
+  "date": "2025-03-13",
+  "client": "AMORE",
+  "tags": ["lx", "vs"],
+  "subheader": {
+    "en": "Lighting design & concert visuals",
+    "es": "Diseño de iluminación y visuales de directo",
+    "ca": "Disseny d'il·luminació i visuals de directe"
+  },
+  "text": {
+    "en": [
+      "Live concert lighting design and visuals together with Clàudia Aguiló for AMORE's concert in Razzmatazz 2 (Barcelona) on March 13th as part of B·SERIES25.\nWHaT Magazine article."
+    ],
+    "es": [
+      "Diseño de iluminación y visuales en directo junto a Clàudia Aguiló para el concierto de AMORE en Razzmatazz 2 (Barcelona) el 13 de marzo, dentro de B·SERIES25.\nArtículo en la revista WHaT."
+    ],
+    "ca": [
+      "Disseny d'il·luminació i visuals en directe amb la Clàudia Aguiló per al concert d'AMORE a Razzmatazz 2 (Barcelona) el 13 de març, dins de B·SERIES25.\nArticle a la revista WHaT."
+    ]
+  },
+  "credits": [
+    {"role": "coreography", "name": "@viritualove"},
+    {"role": "coreography assistant", "name": "@mariona.ona"},
+    {"role": "video recording", "name": "@sashabiniabenarie"},
+    {"role": "dancers", "name": "@mariona.ona @nurialozzano @auro.elena"},
+    {"role": "lighting & visuals", "name": "@claguilo @oriolonbass"},
+    {"role": "styling", "name": "@agustinapirizc"},
+    {"role": "video production", "name": "@fomotrauma"},
+    {"role": "photography", "name": "@armandcarrillo_"}
+  ],
+  "cover": ["thumb"],
+  "photos": ["1", "2", "3", "4"]
+}

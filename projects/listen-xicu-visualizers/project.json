@@ -1,0 +1,31 @@
+{
+  "title": "LISTEN – xicu",
+  "date": "2026-02-13",
+  "client": "xicu",
+  "tags": ["vs", "dc"],
+  "subheader": {
+    "en": "Song visualizers + Lyric videos",
+    "es": "Visualizers + lyric videos",
+    "ca": "Visualizers + lyric videos"
+  },
+  "text": {
+    "en": [
+      "Song visualizers for the entire album \"LISTEN\" by xicu. Revolving around the idea of listening and the trends in resurrecting internet-core and the nostalgia tied to digital audio, the design is a reference to the original Windows Media Player and its iconic green head skin \"Headspace\".",
+      "Each song has its own visualizer with lyrics, with a variation of the video on-screen together with a variation in the overall animation of the image in movement, effects and overall vibes, with the aim to better tie it to the song being played. For the album's listening party, the videos were strung together in a continuous single animation where the head would gradually experience each song in order."
+    ],
+    "es": [
+      "Visualizers para todas las canciones del álbum «LISTEN» de xicu. Girando alrededor de la idea de escuchar y de la tendencia a resucitar el internet-core y la nostalgia ligada al audio digital, el diseño referencia al Windows Media Player original y su icónica skin de cabeza verde, «Headspace».",
+      "Cada canción tiene su propio visualizer con letra, con una variación del vídeo en pantalla junto a una variación en la animación general de la imagen en movimiento, los efectos y el rollo general, con la intención de atarlo mejor a la canción que suena. Para la escucha del álbum, los vídeos se encadenaron en una única animación continua donde la cabeza iba experimentando cada canción en orden."
+    ],
+    "ca": [
+      "Visualizers per a totes les cançons de l'àlbum «LISTEN» de xicu. Girant al voltant de la idea d'escoltar i de la tendència a ressuscitar l'internet-core i la nostàlgia lligada a l'àudio digital, el disseny referencia el Windows Media Player original i la seva icònica skin de cap verd, «Headspace».",
+      "Cada cançó té el seu propi visualizer amb lletra, amb una variació del vídeo en pantalla juntament amb una variació en l'animació general de la imatge en moviment, els efectes i l'aire general, amb la intenció de lligar-lo millor a la cançó que sona. Per a l'escolta de l'àlbum, els vídeos es van encadenar en una única animació contínua on el cap anava experimentant cada cançó en ordre."
+    ]
+  },
+  "credits": [
+    {"role": "edit", "name": "oriol colomer"},
+    {"role": "photo", "name": "guillermo solas"}
+  ],
+  "url": "https://www.youtube.com/watch?v=KoBBsKgxERA",
+  "photos": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13"]
+}

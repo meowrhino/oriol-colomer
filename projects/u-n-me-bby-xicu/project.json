@@ -1,0 +1,36 @@
+{
+  "title": "u n me bby – xicu",
+  "date": "2025-11-21",
+  "client": "xicu",
+  "tags": ["vs", "dc"],
+  "subheader": {
+    "en": "Music video | Direction, editing & VFX",
+    "es": "Videoclip | Dirección, montaje y VFX",
+    "ca": "Videoclip | Direcció, muntatge i VFX"
+  },
+  "text": {
+    "en": [
+      "I conceptualized, directed —together with Guillermo Solas— and edited (+VFX) the music/lyric video for xicu's new single \"u n me bby\", part of the upcoming album LISTEN. Recorded on an iPone 15 Pro at Dazz Creative Studios, edited in Davinci Resolve, graphics done in Affinity Photo, VFX done in After Effects and Blender."
+    ],
+    "es": [
+      "Conceptualicé, dirigí —junto a Guillermo Solas— y monté (+VFX) el videoclip/lyric video del nuevo single de xicu «u n me bby», parte del próximo álbum LISTEN. Grabado con un iPhone 15 Pro en Dazz Creative Studios, montado en DaVinci Resolve, gráficos en Affinity Photo y VFX en After Effects y Blender."
+    ],
+    "ca": [
+      "Vaig conceptualitzar, dirigir —amb en Guillermo Solas— i muntar (+VFX) el videoclip/lyric video del nou senzill de xicu «u n me bby», part del pròxim àlbum LISTEN. Enregistrat amb un iPhone 15 Pro a Dazz Creative Studios, muntat amb DaVinci Resolve, gràfics amb Affinity Photo i VFX amb After Effects i Blender."
+    ]
+  },
+  "credits": [
+    {
+      "role": "direction oriol colomer (@oriolonbass) & guillermo solas (@guillermo.solas)",
+      "name": ""
+    },
+    {"role": "direction of photography & lighting souto (@souto_____)", "name": ""},
+    {"role": "editing & vfx oriol colomer (@oriolonbass)", "name": ""},
+    {"role": "production guillermo solas (@guillermo.solas)", "name": ""},
+    {"role": "colour souto (@souto_____)", "name": ""},
+    {"role": "music xicu (@xicu__)", "name": ""}
+  ],
+  "url": "https://www.youtube.com/watch?v=tHU8d8UUBMU",
+  "cover": ["thumb"],
+  "photos": ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+}

@@ -40,14 +40,14 @@ Collaborators) y aceptamos la invitación, o lo hace él desde su ordenador.
 Sin dominio:
 
 ```json
-"baseUrl": "https://<su-usuario>.github.io",
+"url": "https://<su-usuario>.github.io",
 "base": "/oriol-colomer"
 ```
 
 Con dominio (y `"domain"`, que hace que el build escriba el `CNAME`):
 
 ```json
-"baseUrl": "https://oriolcolomerdelgado.com",
+"url": "https://oriolcolomerdelgado.com",
 "base": "",
 "domain": "oriolcolomerdelgado.com"
 ```
@@ -79,7 +79,7 @@ lo acepte, **Enforce HTTPS**. Los DNS pueden tardar de minutos a un día.
 
 - [ ] La portada, `/work/`, un proyecto, `/lab/` y `/about/` cargan.
 - [ ] Los tres idiomas.
-- [ ] Un vídeo se reproduce y una foto se ve (las rutas de `media/` van bien).
+- [ ] Un vídeo se reproduce y una foto se ve (las rutas de `projects/*/img/` van bien).
 - [ ] Ver el código de la página (`view-source:`): el `canonical` y el
       `og:url` apuntan a la dirección nueva, no a meowrhino.
 - [ ] `https://<la-dirección>/sitemap.xml` tiene las direcciones nuevas.

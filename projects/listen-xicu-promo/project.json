@@ -1,0 +1,27 @@
+{
+  "title": "LISTEN – xicu",
+  "date": "2026-03-11",
+  "client": "xicu",
+  "tags": ["vs", "dc"],
+  "subheader": {"en": "Promotional content", "es": "Contenido promocional", "ca": "Contingut promocional"},
+  "text": {
+    "en": [
+      "Advertisement video to promote xicu's concert in Barcelona to present the artist's new album LISTEN. Recorded using a SONY digital tape handycam (Mini-DV) and then digitalized. Edited in Davinci Resolve and VFX done using Adobe After Effects. Graphics designed and created in Affinity Photo.",
+      "The video references David Lynch's cinematography and American Psycho's vibes, 80s-90s american TV commercials and Nettspend's recent homage to maxell's ad for his album campaign for early life crisis."
+    ],
+    "es": [
+      "Vídeo publicitario para promocionar el concierto de xicu en Barcelona de presentación de su nuevo álbum LISTEN. Grabado con una handycam SONY de cinta digital (Mini-DV) y luego digitalizado. Montado en DaVinci Resolve, VFX en Adobe After Effects y gráficos diseñados en Affinity Photo.",
+      "El vídeo referencia la fotografía de David Lynch y el rollo de American Psycho, los anuncios de televisión americanos de los 80-90 y el homenaje reciente de Nettspend al anuncio de maxell para la campaña de su álbum early life crisis."
+    ],
+    "ca": [
+      "Vídeo publicitari per promocionar el concert de xicu a Barcelona de presentació del seu nou àlbum LISTEN. Enregistrat amb una handycam SONY de cinta digital (Mini-DV) i després digitalitzat. Muntat amb DaVinci Resolve, VFX amb Adobe After Effects i gràfics dissenyats amb Affinity Photo.",
+      "El vídeo referencia la fotografia de David Lynch i l'aire d'American Psycho, els anuncis de televisió americans dels 80-90 i l'homenatge recent de Nettspend a l'anunci de maxell per a la campanya del seu àlbum early life crisis."
+    ]
+  },
+  "credits": [
+    {"role": "talent", "name": "xicu, vida salzano"},
+    {"role": "direction, editing & gfx", "name": "oriol colomer"}
+  ],
+  "url": "https://youtu.be/8Sa7vvJxJzc",
+  "photos": ["1", "2", "3", "4", "5", "6"]
+}

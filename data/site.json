@@ -1,149 +1,68 @@
 {
-  "name": "oriol colomer delgado",
-  "shortName": "oriol colomer",
-  "baseUrl": "https://meowrhino.github.io",
-  "defaultLang": "en",
-  "langs": [
-    "cat",
-    "es",
-    "en"
-  ],
+  "_": "Lo general de la web. «lists»: lo que sale en work y en lab, en este orden (cada nombre es una carpeta de projects/); un proyecto que no está en ninguna lista no sale en la web, pero se puede ver en la vista previa. «social»: direcciones enteras; el texto del enlace sale solo (@usuario en Instagram, el nombre de la web en las demás). «menu»: las palabras de la web, por idioma.",
+  "title": "oriol colomer delgado",
+  "short": "oriol colomer",
+  "url": "https://meowrhino.github.io",
+  "base": "/oriol-colomer",
+  "lang": "en",
+  "langs": ["ca", "es", "en"],
   "email": "oriolcolomerdelgado@gmail.com",
-  "redes": [
-    {
-      "texto": "@oriolonbass",
-      "url": "https://instagram.com/oriolonbass"
-    },
-    {
-      "texto": "github",
-      "url": "https://github.com/ics-de"
-    },
-    {
-      "texto": "soundcloud",
-      "url": "https://soundcloud.com/oriolcolomer"
-    },
-    {
-      "texto": "behance",
-      "url": "https://www.behance.net/oriolcolomerdelgado"
-    },
-    {
-      "texto": "linkedin",
-      "url": "https://www.linkedin.com/in/oriolcolomerdelgado/"
-    }
+  "social": [
+    "https://instagram.com/oriolonbass",
+    "https://github.com/ics-de",
+    "https://soundcloud.com/oriolcolomer",
+    "https://www.behance.net/oriolcolomerdelgado",
+    "https://www.linkedin.com/in/oriolcolomerdelgado/"
   ],
-  "entradaAuto": 8,
+  "autoEnter": 8,
   "tagline": {
     "en": "Lighting design, concert visuals and music videos. Barcelona.",
     "es": "Diseño de iluminación, visuales de directo y videoclips. Barcelona.",
-    "cat": "Disseny d'il·luminació, visuals de directe i videoclips. Barcelona."
+    "ca": "Disseny d'il·luminació, visuals de directe i videoclips. Barcelona."
   },
-  "about": {
-    "en": [
-      "i design using light and visuals, mostly for live music. i come from 3d and animation oriented towards videogames but my focus is on the live experience. i've also worked as creative director for artists and from time to time i research interaction in art and new media. the title that best describes my work is technical artist, because i use my technical knowledge and abilities to find solutions and realize my creative vision.",
-      "barcelona"
-    ],
-    "cat": [
-      "dissenyo a través de la llum i els visuals, sobretot per a música en directe. vinc del 3d i l'animació per a videojocs, però he reorientat els meus coneixements al món de les experiències live. també he treballat com a director creatiu per a artistes i de tant en tant faig recerca artística sobre la interacció i els nous mitjans. el títol que millor descriu la meva feina és el de technical artist, perquè utilitzo els meus coneixements i habilitats tècniques per a trobar solucions i poder dur a terme la meva visió creativa.",
-      "barcelona"
-    ],
-    "es": [
-      "diseño a través de la luz y los visuales, sobre todo para música en directo. me formé en 3d y animación para videojuegos, pero he reorientado mis conocimientos al mundo de las experiencias live. también he trabajado como director creativo para artistas y de vez en cuando hago investigación artística sobre la interacción y los nuevos medios. el título que mejor describe mi trabajo es el de technical artist, porque uso mis conocimientos y habilidades técnicas para encontrar soluciones y poder llevar a cabo mi visión creativa.",
-      "barcelona"
-    ]
+  "lists": {
+    "work": {
+      "name": "work",
+      "projects": [
+        "liquid-latex-rmx-llum",
+        "el-nino-bola-mori",
+        "la-roda-ouineta",
+        "listen-xicu-promo",
+        "listen-xicu-visualizers",
+        "u-n-me-bby-xicu",
+        "lechatelier-sala-apolo-2025",
+        "amore-razzmatazz-2"
+      ]
+    },
+    "lab": {
+      "name": "lab",
+      "projects": ["spacetime"]
+    }
   },
-  "credit": {
-    "label": "web",
-    "name": "meowrhino estudio",
-    "url": "https://meowrhino.studio"
-  },
-  "ui": {
-    "credits": {
-      "en": "Credits",
-      "es": "Créditos",
-      "cat": "Crèdits"
-    },
-    "watch": {
-      "en": "Watch",
-      "es": "Ver",
-      "cat": "Veure"
-    },
-    "all": {
-      "en": "all",
-      "es": "todo",
-      "cat": "tot"
-    },
-    "sort": {
-      "en": "sort",
-      "es": "orden",
-      "cat": "ordre"
-    },
-    "byDate": {
-      "en": "date",
-      "es": "fecha",
-      "cat": "data"
-    },
-    "byClient": {
-      "en": "client",
-      "es": "cliente",
-      "cat": "client"
-    },
-    "byTitle": {
-      "en": "title",
-      "es": "título",
-      "cat": "títol"
-    },
-    "tunnel": {
-      "en": "tunnel",
-      "es": "túnel",
-      "cat": "túnel"
-    },
-    "list": {
-      "en": "list",
-      "es": "lista",
-      "cat": "llista"
-    },
+  "menu": {
+    "credits": {"en": "Credits", "es": "Créditos", "ca": "Crèdits"},
+    "watch": {"en": "Watch", "es": "Ver", "ca": "Veure"},
+    "all": {"en": "all", "es": "todo", "ca": "tot"},
+    "sort": {"en": "sort", "es": "orden", "ca": "ordre"},
+    "byDate": {"en": "date", "es": "fecha", "ca": "data"},
+    "byClient": {"en": "client", "es": "cliente", "ca": "client"},
+    "byTitle": {"en": "title", "es": "título", "ca": "títol"},
+    "tunnel": {"en": "tunnel", "es": "túnel", "ca": "túnel"},
+    "list": {"en": "list", "es": "lista", "ca": "llista"},
     "aria": {
-      "lang": {
-        "en": "language",
-        "es": "idioma",
-        "cat": "idioma"
-      },
-      "view": {
-        "en": "view",
-        "es": "vista",
-        "cat": "vista"
-      },
-      "projects": {
-        "en": "projects",
-        "es": "proyectos",
-        "cat": "projectes"
-      }
+      "lang": {"en": "language", "es": "idioma", "ca": "idioma"},
+      "view": {"en": "view", "es": "vista", "ca": "vista"},
+      "projects": {"en": "projects", "es": "proyectos", "ca": "projectes"}
     },
-    "mail": {
-      "en": "email",
-      "es": "email",
-      "cat": "email"
-    },
-    "tipo": {
-      "en": "switch to wingdings",
-      "es": "cambiar a wingdings",
-      "cat": "canviar a wingdings"
-    },
-    "tema": {
-      "en": "dark mode",
-      "es": "modo oscuro",
-      "cat": "mode fosc"
-    },
-    "back": {
-      "en": "back",
-      "es": "volver",
-      "cat": "tornar"
-    },
+    "mail": {"en": "email", "es": "email", "ca": "email"},
+    "tipo": {"en": "switch to wingdings", "es": "cambiar a wingdings", "ca": "canviar a wingdings"},
+    "tema": {"en": "dark mode", "es": "modo oscuro", "ca": "mode fosc"},
+    "back": {"en": "back", "es": "volver", "ca": "tornar"},
     "notFound": {
       "en": "this page doesn't exist.",
       "es": "esta página no existe.",
-      "cat": "aquesta pàgina no existeix."
+      "ca": "aquesta pàgina no existeix."
     }
   },
-  "base": "/oriol-colomer"
+  "credit": {"label": "web", "name": "meowrhino estudio", "url": "https://meowrhino.studio"}
 }
