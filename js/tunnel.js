@@ -394,7 +394,7 @@ if (zona && lista && escena) {
     if (c < 0 || c !== g.carta) return;
     // clicar algo que esta al fondo te lleva hasta el; lo de delante, entra
     if (Math.abs(prof - c) > ALCANCE) irA(c);
-    else location.href = datos[c].href;
+    else cartas[c].click();   // como un enlace: con la transicion de la casa
   };
   addEventListener('pointerup', soltar);
   addEventListener('pointercancel', soltar);
@@ -430,7 +430,7 @@ if (zona && lista && escena) {
     if (e.key === 'Home') { e.preventDefault(); irA(0); }        // mas reciente
     if (e.key === 'End')  { e.preventDefault(); irA(ultimo); }   // mas antiguo
     if (e.key === 'Enter' && datos.length && !e.target.closest('a')) {
-      location.href = datos[lim(Math.round(prof), 0, ultimo)].href;
+      cartas[lim(Math.round(prof), 0, ultimo)].click();
     }
   });
 

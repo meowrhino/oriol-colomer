@@ -34,6 +34,10 @@ export function leerJSON(texto, nombre) {
     else if (m) {
       const antes = texto.slice(0, +m[1]).split('\n');
       donde = ` (linea ${antes.length}, columna ${antes.at(-1).length + 1})`;
+    } else {
+      // una coma de mas ("Unexpected token ']'") no trae posicion: se busca la coma
+      const coma = /,\s*[\]}]/.exec(texto);
+      if (coma) donde = ` (linea ${texto.slice(0, coma.index).split('\n').length}: sobra la coma del final)`;
     }
     const err = new Error(`${nombre} no es un JSON valido${donde}. Suele ser una coma de mas `
       + `o de menos, o unas comillas sin cerrar. Detalle: ${e.message}`);
@@ -59,11 +63,17 @@ export const enCarpeta = (p, m, existe) => {
 /** Cada proyecto es el project.json de su carpeta, con el nombre de la
     carpeta como slug. Las listas de site.json dicen cuales salen y en que
     seccion: lo que esta en "lab" sale en /lab/, lo de "work" en /work/, y lo
-    que no esta en ninguna es un borrador. */
+    que no esta en ninguna es un borrador. Uno oculto,
+    { "project": "slug", "visible": false }, tiene su pagina (para mandarla en
+    privado), con noindex y fuera del indice, del tunel y del sitemap. */
+export const entradas = lista => (Array.isArray(lista?.projects) ? lista.projects : []).map(e =>
+  e && typeof e === 'object' ? { slug: e.project, visible: e.visible !== false } : { slug: e, visible: true });
 export function juntar(site, proyectos) {
-  const en = n => site.lists?.[n]?.projects || [];
-  return proyectos.map(p => ({ ...p, lab: en('lab').includes(p.slug),
-                               published: en('work').includes(p.slug) || en('lab').includes(p.slug) }));
+  const de = (n, slug) => entradas(site.lists?.[n]).find(e => e.slug === slug);
+  return proyectos.map(p => {
+    const e = de('work', p.slug) || de('lab', p.slug);
+    return { ...p, lab: !!de('lab', p.slug), published: !!e, oculto: !!e && !e.visible };
+  });
 }
 
 /** El id de un video de YouTube a partir de cualquiera de sus enlaces:
@@ -78,6 +88,11 @@ export const youtube = link => (/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:w
      site, about       data/site.json y data/about.json
      proyectos         los de projects/, ya pasados por juntar()
      base              subcarpeta en la que se sirve ('' o '/oriol-colomer')
+     origen            el dominio de las direcciones publicas (canonical, og),
+                       sin barra final; '' si aun no hay
+     indexar           si Google la puede indexar (no en github.io ni sin dominio)
+     og(ruta)          la imagen para compartir (1200x630) hecha de esa foto,
+                       o null: entonces se comparte la foto tal cual
      existe(ruta)      true si ese fichero esta en el repo
      medidas(ruta)     { w, h } de una imagen, o null
      peso(ruta)        bytes de un fichero, o null (para avisar de lo pesado)
@@ -87,9 +102,9 @@ export const youtube = link => (/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:w
                        a ?p=/ruta/ en vez de a /ruta/, porque Live Server
                        solo tiene un index.html y el resto lo pinta el js
    ============================================================ */
-export function crearSitio({ site, about, proyectos, base = '', existe = () => false,
-                             medidas = () => null, peso = () => null, miniaturaYT = () => null,
-                             preview = false }) {
+export function crearSitio({ site, about, proyectos, base = '', origen = '', indexar: INDEXAR = false,
+                             existe = () => false, medidas = () => null, peso = () => null,
+                             miniaturaYT = () => null, og = () => null, preview = false }) {
   const LANGS = site.langs;
   const DEF   = site.lang;
   const B     = String(base).replace(/\/$/, '');
@@ -98,9 +113,11 @@ export function crearSitio({ site, about, proyectos, base = '', existe = () => f
      (experimentos, piezas interactivas: lista y pagina, sin tunel). El orden
      de todo el sitio —indice, tunel, anterior/siguiente y sitemap— es el de
      su lista en site.json. */
-  const enLista = n => (site.lists?.[n]?.projects || []).map(s => proyectos.find(p => p.slug === s)).filter(Boolean);
+  const enLista = (n, visible = true) => entradas(site.lists?.[n]).filter(e => e.visible === visible)
+    .map(e => proyectos.find(p => p.slug === e.slug)).filter(Boolean);
   const live = enLista('work');
   const labs = enLista('lab');
+  const ocultos = [...enLista('work', false), ...enLista('lab', false)];
   const de   = sec => (sec === 'lab' ? labs : live);
   /** La seccion de un proyecto y su direccion: work/<slug>/ o lab/<slug>/ */
   const secDe = p => (p.lab ? 'lab' : 'work');
@@ -115,7 +132,7 @@ export function crearSitio({ site, about, proyectos, base = '', existe = () => f
   /** A donde apuntan los enlaces. En la vista previa, al index con ?p= */
   const url  = (l, path = '') => preview ? `${B}/?p=${ruta(l, path)}` : B + ruta(l, path);
   /** La direccion publica, para canonical, hreflang, og, sitemap y robots. */
-  const publica = p => site.url.replace(/\/$/, '') + raiz(p);
+  const publica = p => origen + raiz(p);
   const abs  = (l, path = '') => publica(ruta(l, path));
   const absFichero = rel => publica('/' + rel);
   /** Un fichero del repo en un atributo: src, href, poster... */
@@ -191,14 +208,15 @@ export function crearSitio({ site, about, proyectos, base = '', existe = () => f
       portada, el about y lo que no tiene imagen propia. */
   const OG = 'assets/og.jpg';
   /** La imagen con la que se comparte un proyecto: la primera foto, o el
-      poster de un video, o su portada. WhatsApp se salta la vista previa
-      si pesa mas de 300 KB: entonces va la version chica. */
+      poster de un video, o su portada, pasada a 1200x630 por el build (og/,
+      con sharp). Si no la ha hecho, la foto tal cual; WhatsApp se salta la
+      vista previa si pesa mas de 300 KB: entonces va la version chica. */
   const ogImage = p => {
     if (!p) return OG;
     const m = (p.photos || []).map(x => fichero(p, x)).filter(x => !esPieza(x));
     const f = m.find(x => !esVideo(x)) || m.map(poster).find(Boolean) || cover(p)?.img;
     if (!f) return OG;
-    return existe(f) && peso(f) > 300 * 1024 ? chica(f) : f;
+    return og(f) || (existe(f) && peso(f) > 300 * 1024 ? chica(f) : f);
   };
 
   /** Un item de media: imagen, o video en bucle mudo sin controles.
@@ -266,19 +284,42 @@ export function crearSitio({ site, about, proyectos, base = '', existe = () => f
   const redes = () => (site.social || []).map(u =>
     `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(etiqueta(u))}</a>`).join('\n     ');
 
-  function head({ lang, title, desc, path, image, jsonld, vel, entrar, vista, auto }) {
+  /* La transicion entre paginas, la de la casa (JAMstack, patrones.md §6c),
+     copiada tal cual de almarbra: js/transicion.js y css/transicion.css, y
+     este script, que tapa la pagina antes de pintar si se llega desde otra de
+     la web. Sin dibujo propio (window.dibujo): un fundido al color del fondo. */
+  const headScript = `<script>{
+const html = document.documentElement;
+html.classList.add('js');
+let back = false;
+try {
+  const d = JSON.parse(sessionStorage.getItem('transicion'));
+  back = !d && performance.getEntriesByType('navigation')[0]?.type === 'back_forward';
+  if (d?.carga) html.style.setProperty('--carga', d.carga);   // el color del loader, del dibujo
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches && (back || d)) html.classList.add('tapada');
+} catch {}
+window.revelada = ${preview ? 'false' : "'onpagereveal' in window"} ? new Promise((done) => addEventListener('pagereveal', (e) => {
+  const vt = e.viewTransition;
+  if (vt && back && html.classList.contains('tapada')) { html.classList.add('tapando'); done(vt); }
+  else { vt?.ready.catch(() => {}); vt?.skipTransition(); done(null); }   // saltarla rechaza ready: sin error en la consola
+}, { once: true })) : Promise.resolve(null);
+}</script>`;
+
+  /* En github.io o sin dominio, noindex: la web aun es de prueba. Los
+     proyectos ocultos, siempre. */
+  function head({ lang, title, desc, path, image, jsonld, vel, entrar, vista, auto, indexar = INDEXAR }) {
     const alts = LANGS.map(l =>
       `<link rel="alternate" hreflang="${l}" href="${abs(l, path)}">`
     ).join('\n  ');
     // las medidas dejan pintar la vista previa sin esperar a bajar la imagen
-    const dim = image && medidas(image);
+    const dim = image?.startsWith('og/') ? { w: 1200, h: 630 } : image && medidas(image);
     return `<!doctype html>
 <html lang="${lang}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>${esc(title)}</title>
-  <meta name="description" content="${esc(desc)}">
+  <meta name="description" content="${esc(desc)}">${indexar ? '' : '\n  <meta name="robots" content="noindex">'}
   <link rel="canonical" href="${abs(lang, path)}">
   ${alts}
   <link rel="alternate" hreflang="x-default" href="${abs(DEF, path)}">
@@ -294,7 +335,10 @@ export function crearSitio({ site, about, proyectos, base = '', existe = () => f
   <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#151515" media="(prefers-color-scheme: dark)">
   <link rel="icon" href="${FAVICON}">
+  ${headScript}
+  <link rel="stylesheet" href="${raiz('/css/transicion.css')}">
   <link rel="stylesheet" href="${raiz('/css/style.css')}">
+  <script src="${raiz('/js/transicion.js')}" defer></script>
   <!-- La letra (normal o wingdings) y el tema (claro u oscuro) se aplican
        antes de pintar nada, para que no parpadee al cargar. El tema, si nunca
        se ha tocado el boton, es el del sistema. Los botones: js/ajustes.js. -->
@@ -537,7 +581,7 @@ ${tunel ? `<!-- Linea del tiempo: una raya de lado a lado y cada proyecto en su 
 
     const og = ogImage(p);
     return head({
-      lang, path: dir(p),
+      lang, path: dir(p), indexar: INDEXAR && !p.oculto,
       title: `${p.title} — ${sub} — ${site.short}`,
       desc: metaDesc(desc),
       image: og,
@@ -548,7 +592,7 @@ ${tunel ? `<!-- Linea del tiempo: una raya de lado a lado y cada proyecto en su 
         datePublished: p.date,
         url: abs(lang, dir(p)),
         inLanguage: lang,
-        creator: { '@type':'Person', name: site.title, url: site.url },
+        creator: { '@type':'Person', name: site.title, url: publica('/') },
         about: p.client,
         keywords: (p.tags || []).join(', '),
         ...(og ? { image: absFichero(og) } : {}),
@@ -621,7 +665,7 @@ ${roles.map(({ role, name }) =>
         '@context':'https://schema.org', '@type':'AboutPage',
         url: abs(lang, 'about/'),
         mainEntity: { '@type':'Person', name: site.title, description: metaDesc(ps[0]),
-                      url: site.url, sameAs: (site.social || []) },
+                      url: publica('/'), sameAs: (site.social || []) },
       },
     })
     + `${nav(lang, 'about')}
@@ -672,6 +716,8 @@ ${LANGS.map(l => `  <p lang="${l}">${esc(t(site.menu.notFound, l))}</p>`).join('
           pintar: () => projectPage(p, lang, items[i - 1], items[i + 1]),
         }));
       }
+      // los ocultos tienen su pagina (para mandarla), fuera del sitemap
+      for (const p of ocultos) r.push({ ruta: ruta(lang, dir(p)), oculto: true, pintar: () => projectPage(p, lang) });
     }
     return r;
   }
@@ -693,7 +739,11 @@ ${LANGS.map(l => `  <p lang="${l}">${esc(t(site.menu.notFound, l))}</p>`).join('
        proyecto, estar en una sola. */
     const vistos = new Set();
     for (const [nombre, l] of Object.entries(site.lists || {})) {
-      for (const slug of l.projects || []) {
+      for (const { slug } of entradas(l)) {
+        if (typeof slug !== 'string') {
+          aviso('site.json', `en la lista "${nombre}", cada proyecto es "slug" o, si esta oculto, { "project": "slug", "visible": false }`);
+          continue;
+        }
         if (!proyectos.some(p => p.slug === slug))
           aviso('site.json', `la lista "${nombre}" dice "${slug}", pero no hay ninguna carpeta projects/${slug}/`);
         if (vistos.has(slug)) aviso('site.json', `"${slug}" esta en dos listas, o dos veces en la misma`);

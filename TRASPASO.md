@@ -1,101 +1,64 @@
 # Traspaso: la web a la cuenta de Oriol
 
-Se copia el repositorio a su cuenta de GitHub. El de meowrhino se queda como
-está, de copia nuestra. A partir del traspaso son dos repositorios separados:
-lo que se toque en uno no pasa al otro.
+Se le pasa una copia del repositorio a su cuenta de GitHub, y la publica su
+Cloudflare con su dominio. El de meowrhino se queda como está, de copia
+nuestra en `meowrhino.github.io/oriol-colomer/` (sin indexar). Desde el
+traspaso son dos repositorios separados: los cambios, en el suyo.
 
-Todo lo que hace falta viaja dentro del repositorio: el código, los JSON, las
-fotos y la receta que publica (`.github/workflows/deploy.yml`). No hay nada
-más que llevarse.
+Todo viaja dentro del repositorio: el código, los JSON, las fotos y cómo se
+publica (`wrangler.jsonc`). En su copia la Action no corre (lleva
+`if: github.repository_owner == 'meowrhino'`) y el build, al no estar en
+GitHub, publica en la raíz con el `url` de `site.json`.
 
-Tiempo: unos 20 minutos, más lo que tarden los DNS si hay dominio.
+Tiempo: unos 20 minutos, más lo que tarden los DNS.
 
 ## Antes
 
-- [ ] Oriol tiene cuenta de GitHub. Apunta su usuario: `<su-usuario>`.
 - [ ] `main` está al día y sin cambios a medias (`git status` limpio).
-- [ ] Decidido si va con dominio propio o en `https://<su-usuario>.github.io/oriol-colomer/`.
+- [ ] Oriol tiene cuenta de GitHub. Su usuario: `<su-usuario>`.
+- [ ] Oriol tiene cuenta de Cloudflare, y el dominio (`oriolcolomerdelgado.com`, por ejemplo) a mano.
 
-## 1. Crear su repositorio
+## 1. Su copia
 
-En su cuenta (o en la nuestra, con Oriol dentro del navegador):
-**New repository** → nombre `oriol-colomer`, **público**, y **vacío**: sin
-README, sin `.gitignore`, sin licencia.
+- [ ] En su cuenta, **New repository** → `oriol-colomer`, público y vacío (sin README ni licencia).
+- [ ] Desde esta carpeta: `git push https://github.com/<su-usuario>/oriol-colomer.git main`
+      (si pide permiso, que nos añada antes como colaboradores, paso 3).
 
-Si se llama distinto, hay que cambiar `base` en el paso 3.
+## 2. Cloudflare
 
-## 2. Subirle todo, con el historial
+- [ ] En su Cloudflare: **Workers & Pages → Create → Import a repository** → `<su-usuario>/oriol-colomer`.
+      Lo demás lo lee de `wrangler.jsonc` (instala sharp con `npm install`, build `node build/build.mjs`, sale `dist/`).
+- [ ] **Settings → Domains & Routes → Add → Custom domain**: su dominio (y `www`, si lo quiere).
+- [ ] En **su** repo, `data/site.json` → `"url": "https://oriolcolomerdelgado.com"`. Commit y push
+      a su repo (no al de meowrhino). Con eso deja de llevar `noindex`.
 
-Desde esta carpeta:
+## 3. Que nos deje entrar
 
-```bash
-git push https://github.com/<su-usuario>/oriol-colomer.git main
-```
+- [ ] GitHub, en su repo: Settings → Collaborators → `meowrhino`, con **Write** (no hace falta admin).
+- [ ] Cloudflare: Manage account → Members → nos invita. Ahí se ve el error entero de un build que falla.
 
-Si pide permiso: Oriol nos añade como colaboradores (Settings →
-Collaborators) y aceptamos la invitación, o lo hace él desde su ordenador.
+## 4. Comprobar en su dominio
 
-## 3. Ajustar `data/site.json` en su repositorio
+- [ ] La portada, `/work/`, un proyecto, `/lab/` y `/about/`, y los mismos en `/es/` y `/ca/`.
+- [ ] Un vídeo se reproduce y la pieza de lab arranca (los `.br` de Unity).
+- [ ] `view-source:`: `canonical` y `og:url` con su dominio, y **sin** `<meta name="robots" content="noindex">`.
+- [ ] `/robots.txt` dice `Allow` y `/sitemap.xml` tiene las direcciones de su dominio.
+- [ ] Compartir un proyecto por WhatsApp: sale su foto (la og).
 
-Sin dominio:
+## 5. Search Console, con su cuenta de Google
 
-```json
-"url": "https://<su-usuario>.github.io",
-"base": "/oriol-colomer"
-```
+- [ ] Dar de alta el dominio (el registro TXT, en el DNS de Cloudflare) y enviar `sitemap.xml`.
 
-Con dominio (y `"domain"`, que hace que el build escriba el `CNAME`):
+## 6. Oriol en su ordenador
 
-```json
-"url": "https://oriolcolomerdelgado.com",
-"base": "",
-"domain": "oriolcolomerdelgado.com"
-```
-
-Commit y push **a su repositorio**. Ojo: no al de meowrhino, que tiene que
-seguir apuntando a sí mismo.
-
-## 4. Encender la publicación
-
-En su repositorio: Settings → Pages → *Build and deployment* → *Source*:
-**GitHub Actions**.
-
-Después, pestaña **Actions** → *build & deploy* → **Run workflow** (o cualquier
-push). En un par de minutos, bolita verde y la web está en la dirección del
-paso 3.
-
-## 5. Dominio (si lo hay)
-
-En el proveedor del dominio:
-
-- registros `A` a `185.199.108.153`, `185.199.109.153`, `185.199.110.153` y
-  `185.199.111.153`
-- `CNAME` de `www` a `<su-usuario>.github.io`
-
-En su repositorio: Settings → Pages → *Custom domain* → el dominio, y cuando
-lo acepte, **Enforce HTTPS**. Los DNS pueden tardar de minutos a un día.
-
-## 6. Comprobar
-
-- [ ] La portada, `/work/`, un proyecto, `/lab/` y `/about/` cargan.
-- [ ] Los tres idiomas.
-- [ ] Un vídeo se reproduce y una foto se ve (las rutas de `projects/*/img/` van bien).
-- [ ] Ver el código de la página (`view-source:`): el `canonical` y el
-      `og:url` apuntan a la dirección nueva, no a meowrhino.
-- [ ] `https://<la-dirección>/sitemap.xml` tiene las direcciones nuevas.
-
-## 7. Oriol en su ordenador
-
-Con él delante, siguiendo el README ("La primera vez: preparar VS Code"):
+Con él delante, siguiendo [GUIA.md](GUIA.md) ("La primera vez: preparar VS Code"):
 
 - [ ] Clona **su** repositorio, no el de meowrhino.
-- [ ] Instala Live Server y ve la vista previa con **Go Live**.
-- [ ] Hace un cambio pequeño (una coma en el about), Confirmar → Sincronizar, y
-      lo ve publicado en Actions.
+- [ ] Live Server: **Go Live** y ve la vista previa.
+- [ ] Un cambio pequeño (una coma en el about), Confirmar → Sincronizar, y la bolita verde en GitHub.
 
-## 8. El de meowrhino
+## 7. Al acabar
 
-La copia de meowrhino sigue publicada en `meowrhino.github.io/oriol-colomer`.
-Dos webs iguales en dos direcciones compiten en Google, así que cuando la suya
-esté en marcha: en el repositorio de meowrhino, Settings → Pages → **Unpublish
-site**. El repositorio se queda, con todo su historial.
+- [ ] Fila de oriol en `JAMstack/inventario.md` con las dos direcciones (github.io y su dominio).
+- [ ] La copia de meowrhino sigue en github.io con `noindex`: no compite en Google. Si molesta,
+      Settings → Pages → **Unpublish site** (el repo se queda).

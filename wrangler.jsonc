@@ -1,0 +1,8 @@
+// La copia de Oriol, en Cloudflare: Workers Builds conectado a su repo.
+// Se publica en la raiz; con el dominio en data/site.json → "url", se indexa.
+{
+  "name": "oriol-colomer",
+  "compatibility_date": "2026-10-01",
+  "build": { "command": "node build/build.mjs" },
+  "assets": { "directory": "./dist", "not_found_handling": "404-page" }
+}

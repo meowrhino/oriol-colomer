@@ -86,9 +86,14 @@ if (lista) {
   // con fundido si el navegador sabe (View Transitions); si no, de golpe
   document.querySelector('.vistas .vista')?.addEventListener('click', () => {
     const otra = document.body.dataset.vista === 'tunel' ? 'lista' : 'tunel';
-    if (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches)
-      document.startViewTransition(() => aplicar(otra)).ready.catch(() => {}); // pestana oculta: se salta el fundido
-    else aplicar(otra);
+    if (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      // .vista-cambia: el fundido de esta (css/style.css), no el de ir a otra pagina
+      const html = document.documentElement;
+      html.classList.add('vista-cambia');
+      const vt = document.startViewTransition(() => aplicar(otra));
+      vt.ready.catch(() => {});   // pestana oculta: se salta el fundido
+      vt.finished.finally(() => html.classList.remove('vista-cambia'));
+    } else aplicar(otra);
   });
   // lab no tiene tunel: se queda en la lista que trae el HTML, y sin tocar
   // la vista guardada, que es la de work

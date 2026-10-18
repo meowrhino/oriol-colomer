@@ -84,6 +84,8 @@ if (ojo && destino) {
     yendo = true;
     if (seco) { location.href = destino; return; }
     document.body.classList.add('entrando');          // parpadea, y luego funde
+    // work llega tapada y se destapa, como al ir de una pagina a otra (js/transicion.js)
+    try { sessionStorage.setItem('transicion', '{}'); } catch {}
     setTimeout(() => { location.href = destino; }, ms('--parpadeo') + ms('--fundido'));
   }
 

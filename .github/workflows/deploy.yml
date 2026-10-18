@@ -1,6 +1,6 @@
-# Cada push a main regenera el sitio y lo publica.
-# Oriol edita data/*.json desde la web de GitHub y esto hace el resto:
-# el no instala nada ni ejecuta nada.
+# Cada push a main regenera la web y la publica en meowrhino.github.io/oriol-colomer/
+# (sin indexar). Solo en nuestra copia: en la de Oriol publica Cloudflare
+# (wrangler.jsonc) y esto no corre.
 name: build & deploy
 on:
   push:
@@ -18,11 +18,13 @@ concurrency:
 
 jobs:
   build:
+    if: github.repository_owner == 'meowrhino'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: '22' }
+      - run: npm ci   # sharp: las imagenes para compartir (og:image)
       - run: node build/build.mjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

@@ -1,9 +1,8 @@
 {
-  "_": "Lo general de la web. «lists»: lo que sale en work y en lab, en este orden (cada nombre es una carpeta de projects/); un proyecto que no está en ninguna lista no sale en la web, pero se puede ver en la vista previa. «social»: direcciones enteras; el texto del enlace sale solo (@usuario en Instagram, el nombre de la web en las demás). «menu»: las palabras de la web, por idioma.",
+  "_": "Lo general de la web. «lists»: lo que sale en work y en lab, en este orden (cada nombre es una carpeta de projects/); un proyecto que no está en ninguna lista no sale en la web, pero se puede ver en la vista previa. Uno oculto, { \"project\": \"slug\", \"visible\": false }: tiene su página (para mandarla), pero no sale en la lista, ni en el túnel, ni en Google. «url»: el dominio, cuando lo haya (null hasta entonces). «social»: direcciones enteras; el texto del enlace sale solo (@usuario en Instagram, el nombre de la web en las demás). «menu»: las palabras de la web, por idioma.",
   "title": "oriol colomer delgado",
   "short": "oriol colomer",
-  "url": "https://meowrhino.github.io",
-  "base": "/oriol-colomer",
+  "url": null,
   "lang": "en",
   "langs": ["ca", "es", "en"],
   "email": "oriolcolomerdelgado@gmail.com",

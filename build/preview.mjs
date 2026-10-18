@@ -13,7 +13,7 @@
    Lo que no cuadra en los JSON (una foto que no esta, una fecha
    mal escrita...) lo dice el build: npm run build.
    ============================================================ */
-import { crearSitio, leerJSON, juntar, esc } from './paginas.mjs';
+import { crearSitio, leerJSON, juntar, entradas, esc } from './paginas.mjs';
 
 /* La carpeta en la que esta el index.html: normalmente la raiz, pero si
    Live Server se abre desde una carpeta de mas arriba, sera una subcarpeta. */
@@ -66,12 +66,13 @@ async function arrancar() {
        sirve para repasarlo antes de publicarlo. Se pinta como si estuviera
        en la lista de su seccion. */
     const [, sec, slug] = /\/(work|lab)\/([^/]+)\/$/.exec(pedida) || [];
-    const listas = Object.values(site.lists || {}).flatMap(l => l.projects || []);
+    const listas = Object.values(site.lists || {}).flatMap(l => entradas(l).map(e => e.slug));
     if (slug && !listas.includes(slug)) {
       const l = site.lists?.[sec] || { name: sec, projects: [] };
       site = { ...site, lists: { ...site.lists, [sec]: { ...l, projects: [...l.projects, slug] } } };
     }
-    const slugs = [...new Set(Object.values(site.lists || {}).flatMap(l => l.projects || []))];
+    const slugs = [...new Set(Object.values(site.lists || {}).flatMap(l => entradas(l).map(e => e.slug)))]
+      .filter(s => typeof s === 'string');
     const proyectos = await Promise.all(slugs.map(async s => {
       const f = `projects/${s}/project.json`;
       try { return { ...leerJSON(await pedir(f), f), slug: s }; }
