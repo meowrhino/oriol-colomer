@@ -1,4 +1,5 @@
 {
+  "$schema": "../../schema/project.json",
   "title": "Salvatge Tour 2025",
   "date": "2025-07-03",
   "client": "Ouineta",

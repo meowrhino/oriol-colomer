@@ -1,4 +1,5 @@
 {
+  "$schema": "../../schema/project.json",
   "title": "El Niño Bola – mori",
   "date": "2026-05-21",
   "client": "mori",

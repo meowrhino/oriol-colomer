@@ -1,4 +1,5 @@
 {
+  "$schema": "../../schema/project.json",
   "title": "SEMPRE PER INSTINT TOUR",
   "date": "2026-01-28",
   "client": "gavina.mp3",

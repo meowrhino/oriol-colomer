@@ -1,4 +1,5 @@
 {
+  "$schema": "../../schema/project.json",
   "title": "ESTAT D'ALARMA – MERCÈ",
   "date": "2025-05-08",
   "client": "MERCÈ",

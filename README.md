@@ -16,8 +16,18 @@ al publicar. Oriol no instala nada.
   `wrangler.jsonc`. El build mira dónde está: con `GITHUB_ACTIONS`, base
   `/oriol-colomer` y `noindex`; si no, la raíz y el `url` de `site.json` (con
   `url`, se indexa). Cómo pasarle la copia: [TRASPASO.md](TRASPASO.md).
-- **og:image**: 1200×630 JPG con sharp (`npm ci`), en `.cache/og/` (fuera de
-  git), copiadas a `dist/og/`. Sin sharp, avisa y comparte la foto tal cual.
+- **og:image y miniaturas, con sharp** (`npm ci`), fuera de git: la og, 1200×630
+  JPG en `.cache/og/` → `dist/og/`; la miniatura de cada portada, 720 px webp
+  (con su animación) en `.cache/thumb/` → `dist/projects/<slug>/img/N.thumb.webp`,
+  junto a la foto. En el repo solo hay la foto. Sin sharp, avisa y publica con
+  la foto tal cual.
+- **JSON Schema** (`schema/site.json`, `about.json`, `project.json`): cada JSON
+  lleva `"$schema"` arriba y VS Code autocompleta, explica y subraya. El build y
+  la vista previa validan con los mismos ficheros (`validar` en `paginas.mjs`,
+  sin dependencias) y paran con el mensaje en castellano. Un fichero por tipo:
+  VS Code no entiende `schema.json#/$defs/project`.
+- **`tools/imgToWeb/`**: una copia de imgToWeb con sus librerías dentro, por si
+  un día no está la nuestra.
 - **Transición**: la de la casa (`js/transicion.js` + `css/transicion.css`, de
   almarbra, y el script del `<head>` en `paginas.mjs`), sin dibujo propio: un
   fundido al color del fondo. La portada (`js/welcome.js`) y el túnel entran por
@@ -82,11 +92,13 @@ data/about.json        el about               <- lo que edita Oriol
 projects/<slug>/       un proyecto: project.json + img/  <- lo que edita Oriol
 index.html             la vista previa para Live Server (no se publica)
 GUIA.md                para Oriol
+schema/                qué campos lleva cada JSON (VS Code, el build y la vista previa)
+tools/imgToWeb/        copia de imgToWeb, para Oriol (no se publica)
 TRASPASO.md            la lista para pasarle su copia
 build/paginas.mjs      las plantillas: todo el HTML sale de aqui
 build/build.mjs        las escribe en dist/ (Node, en la Action o en Cloudflare)
 build/preview.mjs      las pinta en el navegador (vista previa)
-build/media.mjs        fotos a WebP, videos a WebM, posters y miniaturas
+build/media.mjs        fotos a WebP, videos a WebM y posters (las miniaturas, el build)
 css/style.css          toda la hoja de estilo
 js/util.js             lo poco que comparten los guiones
 js/bg.js               el fondo de puntos
@@ -123,9 +135,10 @@ De `1.webm` el generador busca solo, al lado:
   sube ninguno (sin él, esos iPhones ven el fotograma quieto), pero si se pone,
   se usa. `npm run media -- --mp4` los hace.
 
-y de una foto de portada, `1.thumb.webp`: 720 px, lo que pintan el túnel y la
-lista. Todo lo hace `npm run media`; si falta algo, se usa lo que hay y nunca se
-rompe nada, solo pesa más.
+Los dos los hace `npm run media` (o videoToWeb); si falta algo, se usa lo que hay
+y nunca se rompe nada, solo pesa más. De la portada de cada proyecto, el build
+hace con sharp una miniatura de 720 px, `1.thumb.webp`, lo que pintan el túnel y
+la lista: va a `.cache/thumb/` y a `dist/`, nunca al repo.
 
 `npm run media` usa los mismos ajustes que imgToWeb y videoToWeb (WebP calidad
 85 hasta 2000 px; vídeo 1280×720 como mucho, con techo de 1200 kbps y sin audio),

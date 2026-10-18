@@ -20,10 +20,6 @@
    respaldo para iPhones anteriores a iOS 17.4, que no leen webm (sin el
    ven el poster quieto). La web lo usa solo si esta.
 
-   Y de la portada de cada proyecto, una miniatura:
-
-     <nombre>.thumb.webp   720 px, lo que pintan el tunel y la lista
-
    En el JSON los ficheros van sin extension ("3"), asi que pasar
    3.jpg a 3.webp no obliga a tocar ningun project.json.
 
@@ -33,11 +29,10 @@
    Necesita:  brew install ffmpeg webp
        npm run media
    ============================================================ */
-import { readFileSync, existsSync, statSync, rmSync, readdirSync, renameSync } from 'node:fs';
+import { existsSync, statSync, rmSync, readdirSync, renameSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { enCarpeta } from './paginas.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PROJECTS = join(ROOT, 'projects');
@@ -52,8 +47,6 @@ const VIDEO_MAX_H   = 720;
 const VIDEO_TECHO   = '1200k';
 const VIDEO_CRF     = 32;        // VP9: 0 (mejor) a 63
 const POSTER_CALIDAD = 80;
-const THUMB_ANCHO   = 720;       // el doble de lo que se ve, por las pantallas retina
-const THUMB_CALIDAD = 82;
 
 for (const [bin, arg] of [['ffmpeg', '-version'], ['ffprobe', '-version'], ['cwebp', '-version']]) {
   try { execFileSync(bin, [arg], { stdio: 'ignore' }); }
@@ -159,30 +152,6 @@ for (const b of bases) {
   if (existsSync(b + '.poster.jpg')) rmSync(b + '.poster.jpg');
 }
 
-/* ---------- 4. los proyectos ---------- */
-const proyectos = readdirSync(PROJECTS).filter(slug => existsSync(join(PROJECTS, slug, 'project.json')))
-  .map(slug => ({ ...JSON.parse(readFileSync(join(PROJECTS, slug, 'project.json'), 'utf8')), slug }));
-const existe = r => existsSync(join(ROOT, r));
-
-/* ---------- 5. miniaturas de las portadas ----------
-   La misma regla que cover() en paginas.mjs: "cover" si lo hay, y si no
-   el primer fichero; si es un video, su poster. Se hacen tambien las de
-   los borradores: el dia que se publican ya estan. */
-const portada = p => {
-  const m = p.cover?.[0] || p.photos?.[0];
-  if (!m) return null;
-  const f = enCarpeta(p, m, existe);
-  if (!/\.(mp4|webm)$/i.test(f)) return f;
-  const pj = f.replace(/\.(mp4|webm)$/i, '.poster.webp');
-  return existsSync(join(ROOT, pj)) ? pj : null;
-};
-for (const f of [...new Set(proyectos.map(portada).filter(Boolean))]) {
-  const src = join(ROOT, f);
-  const out = src.replace(/\.(jpe?g|png|webp|gif)$/i, '.thumb.webp');
-  if (!existsSync(src) || out === src || existsSync(out)) continue;
-  run('cwebp', ['-q', String(THUMB_CALIDAD), '-resize', String(THUMB_ANCHO), '0', '-m', '6', '-quiet', src, '-o', out]);
-  // Si no baja al menos un 15%, no compensa: se usa el original
-  if (statSync(out).size > statSync(src).size * .85) { rmSync(out); continue; }
-  log('thumb', out, `${kb(src)} -> ${kb(out)}`);
-}
+/* Las miniaturas de las portadas (<nombre>.thumb.webp, 720 px) ya no van
+   aqui: las hace el build con sharp, fuera del repo (build/build.mjs). */
 console.log('listo');

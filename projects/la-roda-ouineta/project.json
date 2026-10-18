@@ -1,4 +1,5 @@
 {
+  "$schema": "../../schema/project.json",
   "title": "La Roda - Ouineta",
   "date": "2026-04-10",
   "client": "Ouineta",

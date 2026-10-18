@@ -1,4 +1,5 @@
 {
+  "$schema": "../../schema/project.json",
   "title": "arxiu (archive)",
   "date": "2025-06-20",
   "client": "Personal project",

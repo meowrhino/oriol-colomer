@@ -127,6 +127,11 @@ El `project.json` de `projects/lechatelier-sala-apolo-2025/`:
 Cuidado con las comas: entre campo y campo va una, y **después del último no**.
 Si se te escapa una, la vista previa te dice en qué línea está.
 
+**VS Code te ayuda**: la primera línea de cada JSON (`"$schema": …`) le dice qué
+campos hay. Al escribir unas comillas te propone los campos que faltan, al pasar
+el ratón por uno te explica qué es, y lo que está mal (un campo mal escrito, una
+fecha que no es `AAAA-MM-DD`) sale **subrayado en rojo**. No borres esa línea.
+
 ## Preparar fotos y vídeos
 
 Antes de subir nada, pásalo por los conversores. Funcionan en el navegador, no
@@ -134,7 +139,9 @@ suben nada a ningún sitio y dejan los ficheros con el peso justo para la web:
 
 - **Fotos** → [imgToWeb](https://meowrhino.github.io/imgToWeb/), calidad **85 %**.
   Salen en WebP, ya numeradas (`1.webp`, `2.webp`…). Un GIF animado sale como
-  WebP animado, que sirve de portada.
+  WebP animado, que sirve de portada. Si un día esa dirección no funciona, la
+  misma herramienta está dentro de la web: abre `tools/imgToWeb/index.html` con
+  doble clic, en Chrome o Firefox (en Safari no sale bien el WebP).
 - **Vídeos** → [videoToWeb](https://meowrhino.github.io/videoToWeb/), preset **720p**,
   con las tres casillas marcadas: **fotograma**, **sin audio** y **numerar**. Ordena
   las tarjetas como quieras que salgan y dale a "descargar todo": el ZIP trae
@@ -174,9 +181,8 @@ projects/la-roda-ouineta/
   la vez y cada una pesa.
 - **Los originales** (los `.mp4` y `.mov` de la cámara o de Premiere) **no van
   aquí**: se quedan en tu ordenador o en tu nube. La web solo usa el `.webm`.
-- Los ficheros que acaban en `.thumb.webp` los hace meowrhino: son copias
-  pequeñas para el túnel. No hace falta que los hagas tú; sin ellos se usa la
-  imagen grande.
+- Las copias pequeñas para el túnel y la lista las hace la web sola al
+  publicar: en la carpeta solo van las fotos.
 
 ## Piezas interactivas (Unity, webs)
 
@@ -265,6 +271,10 @@ roja, luego **Details**, y lee el último mensaje, que dice el fichero y qué pa
 - **"projects/la-roda-ouineta/project.json no es un JSON valido (linea 12, columna 5)"**
   → casi siempre **una coma** de más o de menos, o unas comillas sin cerrar, cerca
   de esa línea. Live Server te lo dice igual, antes de subir.
+- **"projects/la-roda-ouineta/project.json: "cliente" no es un campo de aquí (¿mal
+  escrito?)"**, **"falta "title""**, **""date": "23/10/2025" no tiene la forma que
+  toca"** → lo mismo que VS Code subraya en rojo: un campo mal escrito, uno que
+  falta o uno escrito de otra manera. Dice el campo y, entre paréntesis, cómo va.
 
 Los avisos con ⚠ no paran nada: solo dicen que algo quizá no es como querías
-(una foto que no está, una fecha mal escrita, una foto que pesa demasiado).
+(una foto que no está en `img/`, una foto que pesa demasiado, un GIF).

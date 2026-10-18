@@ -1,4 +1,5 @@
 {
+  "$schema": "../../schema/project.json",
   "title": "u n me bby – xicu",
   "date": "2025-11-21",
   "client": "xicu",

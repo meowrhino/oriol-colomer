@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "data/site.json: lo general de la web",
+  "description": "data/site.json: lo general de la web. Este fichero lo lee VS Code (por el \"$schema\" de arriba del JSON) para autocompletar, explicar cada campo y subrayar lo que está mal; el build valida con él mismo.",
+  "type": "object",
+  "required": [
+    "title",
+    "short",
+    "lang",
+    "langs",
+    "lists",
+    "menu"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "_": {
+      "type": "string",
+      "description": "Una nota para quien edita. No sale en la web."
+    },
+    "title": {
+      "type": "string",
+      "description": "El nombre entero: sale en el about, en Google y al compartir."
+    },
+    "short": {
+      "type": "string",
+      "description": "El nombre corto: sale detrás del título de cada página."
+    },
+    "url": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^https://[^/]+$",
+      "description": "El dominio, cuando lo haya: \"https://oriolcolomerdelgado.com\" (sin barra al final). Hasta entonces, null, y Google no la indexa."
+    },
+    "lang": {
+      "enum": [
+        "en",
+        "es",
+        "ca"
+      ],
+      "description": "El idioma de la raíz de la web; los otros van en /es/ y /ca/."
+    },
+    "langs": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "en",
+          "es",
+          "ca"
+        ]
+      },
+      "description": "Los idiomas de la web."
+    },
+    "email": {
+      "type": "string",
+      "description": "El correo. En la web no va escrito: sale un botón que lo enseña."
+    },
+    "social": {
+      "type": "array",
+      "description": "Las redes del about, la dirección entera.",
+      "items": {
+        "type": "string",
+        "pattern": "^https?://"
+      }
+    },
+    "autoEnter": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Segundos que espera la portada antes de entrar sola. 0: no entra sola."
+    },
+    "tagline": {
+      "$ref": "#/$defs/texto",
+      "description": "La frase que sale en Google y al compartir la portada."
+    },
+    "lists": {
+      "type": "object",
+      "description": "Lo que sale en work y en lab, en este orden: el primero de la lista es el primero de la web.",
+      "additionalProperties": false,
+      "properties": {
+        "work": {
+          "$ref": "#/$defs/lista"
+        },
+        "lab": {
+          "$ref": "#/$defs/lista"
+        }
+      }
+    },
+    "menu": {
+      "type": "object",
+      "description": "Las palabras de los botones, en los tres idiomas.",
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/texto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/$defs/texto"
+            }
+          }
+        ]
+      }
+    },
+    "credit": {
+      "type": "object",
+      "description": "El crédito de la web, al pie.",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "texto": {
+      "description": "Un texto en los tres idiomas: { \"en\": \"…\", \"es\": \"…\", \"ca\": \"…\" }. Si falta uno, sale el inglés. Si es igual en todos, puede ir sin idiomas: \"…\".",
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "en": {
+              "type": "string"
+            },
+            "es": {
+              "type": "string"
+            },
+            "ca": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "lista": {
+      "type": "object",
+      "required": [
+        "projects"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "projects": {
+          "type": "array",
+          "description": "Los proyectos de la lista, por el nombre de su carpeta. Uno oculto: { \"project\": \"slug\", \"visible\": false } (tiene su página, para mandarla, pero no sale en la web).",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/slug"
+              },
+              {
+                "type": "object",
+                "required": [
+                  "project",
+                  "visible"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "project": {
+                    "$ref": "#/$defs/slug"
+                  },
+                  "visible": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "El nombre de una carpeta de projects/: minúsculas, números y guiones."
+    }
+  }
+}

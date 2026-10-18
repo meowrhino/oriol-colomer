@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "projects/<slug>/project.json: un proyecto",
+  "description": "projects/<slug>/project.json: un proyecto. Sus fotos y vídeos, en img/ de la misma carpeta. Este fichero lo lee VS Code (por el \"$schema\" de arriba del JSON) para autocompletar, explicar cada campo y subrayar lo que está mal; el build valida con él mismo.",
+  "type": "object",
+  "required": [
+    "title",
+    "date"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "_": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string",
+      "description": "No se traduce. Sale tal cual, y en Google."
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "description": "AAAA-MM-DD. Coloca el proyecto en la línea del tiempo."
+    },
+    "client": {
+      "type": "string",
+      "description": "Para quién. Se puede quitar."
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Las letras de siempre: lx, vs, dc, xy, rs."
+    },
+    "subheader": {
+      "$ref": "#/$defs/texto",
+      "description": "La línea de debajo del título, en los tres idiomas. Sale también en Google."
+    },
+    "text": {
+      "type": "object",
+      "description": "El texto, una lista de párrafos por idioma. El principio sale en Google.",
+      "additionalProperties": false,
+      "properties": {
+        "en": {
+          "$ref": "#/$defs/parrafos"
+        },
+        "es": {
+          "$ref": "#/$defs/parrafos"
+        },
+        "ca": {
+          "$ref": "#/$defs/parrafos"
+        }
+      }
+    },
+    "credits": {
+      "type": "array",
+      "description": "Una línea por rol. Los @handle se enlazan solos a Instagram.",
+      "items": {
+        "type": "object",
+        "required": [
+          "role",
+          "name"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "role": {
+            "$ref": "#/$defs/texto",
+            "description": "Sale en negrita. Puede ir por idioma."
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "url": {
+      "type": "string",
+      "pattern": "^https?://",
+      "description": "De YouTube: sale el vídeo, el primero. Otra: un enlace \"Watch →\"."
+    },
+    "cover": {
+      "type": "array",
+      "maxItems": 1,
+      "items": {
+        "type": "string"
+      },
+      "description": "La portada del túnel y de la lista: [\"thumb\"] si en img/ hay un thumb.webp o thumb.webm. Si no, la primera de photos."
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Fotos y vídeos, en orden, por su número y sin extensión: \"3\" es img/3.webp o img/3.webm. La primera es la que sale al compartir. Una pieza interactiva, con su ruta: \"web/index.html\"."
+    }
+  },
+  "$defs": {
+    "texto": {
+      "description": "Un texto en los tres idiomas: { \"en\": \"…\", \"es\": \"…\", \"ca\": \"…\" }. Si falta uno, sale el inglés. Si es igual en todos, puede ir sin idiomas: \"…\".",
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "en": {
+              "type": "string"
+            },
+            "es": {
+              "type": "string"
+            },
+            "ca": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "parrafos": {
+      "type": "array",
+      "description": "Una lista de párrafos: [\"primero\", \"segundo\"].",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

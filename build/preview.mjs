@@ -13,7 +13,7 @@
    Lo que no cuadra en los JSON (una foto que no esta, una fecha
    mal escrita...) lo dice el build: npm run build.
    ============================================================ */
-import { crearSitio, leerJSON, juntar, entradas, esc } from './paginas.mjs';
+import { crearSitio, leerJSON, juntar, entradas, validar, esc } from './paginas.mjs';
 
 /* La carpeta en la que esta el index.html: normalmente la raiz, pero si
    Live Server se abre desde una carpeta de mas arriba, sera una subcarpeta. */
@@ -46,7 +46,7 @@ function pantallaDeError(titulo, texto) {
   escribir(`<!doctype html><html lang="es"><head><meta charset="utf-8">
 <title>vista previa — error</title><meta name="viewport" content="width=device-width,initial-scale=1">
 <style>body{margin:0;padding:clamp(24px,6vw,80px);font:16px/1.5 Helvetica,Arial,sans-serif;background:#fafafa;color:#4f4f4f}
-h1{font-weight:400;font-size:28px;margin:0 0 .6em;color:#b3261e}p{max-width:62ch}code{background:#eee;padding:.1em .3em}</style>
+h1{font-weight:400;font-size:28px;margin:0 0 .6em;color:#b3261e}p{max-width:62ch;white-space:pre-line}code{background:#eee;padding:.1em .3em}</style>
 </head><body><h1>${esc(titulo)}</h1><p>${esc(texto)}</p>
 <p>Arreglalo, guarda, y esta pagina se recarga sola.</p></body></html>`);
 }
@@ -79,6 +79,20 @@ async function arrancar() {
       catch (e) { if (e.json) throw e; return null; }   // sin carpeta: lo dice el build
     }));
     datos = juntar(site, proyectos.filter(Boolean));
+
+    /* Lo mismo que comprueba el build con schema/: un campo mal escrito o del
+       tipo que no es (en VS Code, subrayado en rojo). */
+    const esquemas = {};
+    for (const t of ['site', 'about', 'project']) {
+      try { esquemas[t] = JSON.parse(await pedir(`schema/${t}.json`)); } catch { /* sin esquema, sin mirar */ }
+    }
+    const mirar = (d, t, f) => (esquemas[t] ? validar(d, esquemas[t], f) : []);
+    const errores = [...mirar(site, 'site', 'data/site.json'), ...mirar(about, 'about', 'data/about.json'),
+      ...proyectos.filter(Boolean).flatMap(({ slug, ...p }) => mirar(p, 'project', `projects/${slug}/project.json`))];
+    if (errores.length) {
+      pantallaDeError('Hay algo mal en un JSON', errores.join('\n'));
+      return;
+    }
   } catch (e) {
     pantallaDeError(e.json ? 'Hay un error en un JSON' : 'No puedo leer los datos', e.message);
     return;

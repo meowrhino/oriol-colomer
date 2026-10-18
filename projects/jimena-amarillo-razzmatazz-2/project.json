@@ -1,4 +1,5 @@
 {
+  "$schema": "../../schema/project.json",
   "title": "Jimena Amarillo @ Razzmatazz 2",
   "date": "2025-11-21",
   "client": "Jimena Amarillo",

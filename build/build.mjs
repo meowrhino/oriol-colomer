@@ -11,7 +11,7 @@ import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, existsSync, sta
 import { createHash } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { crearSitio, leerJSON, juntar, youtube } from './paginas.mjs';
+import { crearSitio, leerJSON, juntar, youtube, validar } from './paginas.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT  = join(ROOT, 'dist');
@@ -22,15 +22,26 @@ const slugs = readdirSync(join(ROOT, 'projects'), { withFileTypes: true })
   .filter(d => d.isDirectory() && existsSync(join(ROOT, 'projects', d.name, 'project.json')))
   .map(d => d.name);
 
+/* Cada JSON se lee y se comprueba con su esquema (schema/), el mismo con el
+   que VS Code subraya lo que esta mal: un campo mal escrito o del tipo que no
+   es para el build, en vez de salir una pagina a medias. */
+const esquema = tipo => JSON.parse(readFileSync(join(ROOT, 'schema', tipo + '.json'), 'utf8'));
+const errores = [];
+const leerYMirar = (f, tipo) => { const d = leer(f); errores.push(...validar(d, esquema(tipo), f)); return d; };
 let site, about, proyectos;
 try {
-  site = leer('data/site.json');
-  about = leer('data/about.json');
-  proyectos = juntar(site, slugs.map(slug => ({ ...leer(`projects/${slug}/project.json`), slug })));
+  site = leerYMirar('data/site.json', 'site');
+  about = leerYMirar('data/about.json', 'about');
+  proyectos = juntar(site, slugs.map(slug => ({ ...leerYMirar(`projects/${slug}/project.json`, 'project'), slug })));
 } catch (e) {
-  // En GitHub esto es lo que sale en rojo en la pestana Actions: que se
-  // entienda sin saber programar.
+  // Lo que sale en rojo al publicar (GitHub o Cloudflare): que se entienda
+  // sin saber programar.
   console.error('\n✗ ' + e.message + '\n');
+  process.exit(1);
+}
+if (errores.length) {
+  console.error('\n' + errores.map(e => '✗ ' + e).join('\n')
+    + '\n\nNo se publica nada hasta que se arregle (en VS Code sale subrayado en rojo).\n');
   process.exit(1);
 }
 
@@ -48,12 +59,16 @@ const indexar = !github && !!site.url;
     Van al <img> para que el navegador reserve el hueco antes de que baje la
     imagen: sin ellos la columna de media crece de golpe con cada foto.
     Treinta lineas de leer bytes en vez de una dependencia. */
+/** Donde esta un fichero: en el repo, o en .cache/ si lo ha hecho el build
+    (las miniaturas). */
+const thumbsHechas = new Set();   // las miniaturas que ha hecho el build (mas abajo)
+const donde = rel => (thumbsHechas.has(rel) ? join(ROOT, '.cache', 'thumb', rel) : join(ROOT, rel));
 const medidasCache = new Map();
 function medidas(rel) {
   if (medidasCache.has(rel)) return medidasCache.get(rel);
   let r = null;
   try {
-    const b = readFileSync(join(ROOT, rel));
+    const b = readFileSync(donde(rel));
     if (b[0] === 0xFF && b[1] === 0xD8) {                 // jpeg
       let o = 2;
       while (o + 9 < b.length) {
@@ -110,40 +125,78 @@ const YT = id => `media/youtube/${id}.jpg`;
    comparte la foto tal cual y se avisa. Las plantillas piden la og mientras
    pintan, y sharp va aparte: una primera pasada apunta cuales hacen falta,
    se hacen, y se pinta. */
+let sharpCargado;
+async function cargarSharp() {
+  if (sharpCargado === undefined) {
+    try { sharpCargado = (await import('sharp')).default; }
+    catch (e) {
+      sharpCargado = null;
+      console.warn(`⚠ sin sharp (${e.code || e.message}): al compartir sale la foto tal cual, y el tunel `
+        + 'pinta las fotos grandes en vez de las miniaturas. Se arregla con: npm ci');
+    }
+  }
+  return sharpCargado;
+}
 const ogNom = rel => createHash('sha1').update(rel).digest('hex').slice(0, 12) + '.jpg';
 const ogHechas = new Map();   // foto → og/<nom>.jpg, las que estan
 async function hacerOgs(rels) {
-  let sharp = null;
+  const sharp = await cargarSharp();
+  if (!sharp) return;
   for (const rel of rels) {
     if (!existsSync(join(ROOT, rel))) continue;
     const cache = join(ROOT, '.cache', 'og', ogNom(rel));
     if (!(existsSync(cache) && statSync(cache).mtimeMs >= statSync(join(ROOT, rel)).mtimeMs)) {
       try {
-        sharp ??= (await import('sharp')).default;
         const m = medidas(rel);
         mkdirSync(dirname(cache), { recursive: true });
         await sharp(join(ROOT, rel))
           .resize(1200, 630, m && m.w / m.h >= 1.2 ? { fit: 'cover' } : { fit: 'contain', background: '#fafafa' })
           .flatten({ background: '#fafafa' }).jpeg({ quality: 85, mozjpeg: true }).toFile(cache);
-      } catch (e) {
-        console.warn(`⚠ sin sharp (${e.code || e.message}): al compartir sale la foto tal cual. Se arregla con: npm ci`);
-        return;
-      }
+      } catch (e) { console.warn(`⚠ ${rel}: no se ha podido hacer su imagen para compartir (${e.message})`); continue; }
     }
     ogHechas.set(rel, `og/${ogNom(rel)}`);
+  }
+}
+
+/* Las miniaturas: la portada de cada proyecto a 720 px (el doble de lo que se
+   ve en el tunel y en la lista, por las pantallas retina), webp 82, con su
+   animacion si la tiene. Las pide la plantilla (1.webp → 1.thumb.webp), las
+   hace el build en .cache/thumb/ y van a dist/ en el mismo sitio, junto a la
+   foto. En el repo solo esta la foto. Si no baja al menos un 15 %, no
+   compensa: se usa la foto. */
+async function hacerThumbs(rels) {
+  const sharp = await cargarSharp();
+  if (!sharp) return;
+  for (const rel of rels) {
+    const src = ['webp', 'jpg', 'jpeg', 'png'].map(e => rel.replace(/\.thumb\.webp$/, '.' + e))
+      .find(f => existsSync(join(ROOT, f)));
+    if (!src) continue;
+    const cache = join(ROOT, '.cache', 'thumb', rel);
+    if (!(existsSync(cache) && statSync(cache).mtimeMs >= statSync(join(ROOT, src)).mtimeMs)) {
+      try {
+        mkdirSync(dirname(cache), { recursive: true });
+        await sharp(join(ROOT, src), { animated: true }).resize({ width: 720, withoutEnlargement: true })
+          .webp({ quality: 82, effort: 6 }).toFile(cache);
+      } catch (e) { console.warn(`⚠ ${src}: no se ha podido hacer su miniatura (${e.message})`); continue; }
+    }
+    if (statSync(cache).size <= statSync(join(ROOT, src)).size * .85) thumbsHechas.add(rel);
   }
 }
 
 const opciones = {
   site, about, proyectos, base, origen, indexar, medidas,
   miniaturaYT: id => (miniaturas.has(id) ? YT(id) : null),
-  existe: rel => existsSync(join(ROOT, rel)),
-  peso: rel => statSync(join(ROOT, rel)).size,
+  existe: rel => thumbsHechas.has(rel) || existsSync(join(ROOT, rel)),
+  peso: rel => statSync(donde(rel)).size,
 };
-const hacen = new Set();
-const prueba = crearSitio({ ...opciones, og: rel => (hacen.add(rel), null) });
+/* Las plantillas piden og y miniaturas mientras pintan, y sharp va aparte:
+   una primera pasada apunta cuales hacen falta, se hacen, y se pinta. */
+const ogPedidas = new Set(), thumbsPedidas = new Set();
+const prueba = crearSitio({ ...opciones, og: rel => (ogPedidas.add(rel), null),
+  existe: rel => (/\.thumb\.webp$/.test(rel) ? (thumbsPedidas.add(rel), false) : opciones.existe(rel)) });
 for (const r of prueba.rutas()) r.pintar();
-await hacerOgs(hacen);
+await hacerOgs(ogPedidas);
+await hacerThumbs(thumbsPedidas);
 const sitio = crearSitio({ ...opciones, og: rel => ogHechas.get(rel) ?? null });
 
 /* ---------- escribir ------------------------------------ */
@@ -161,6 +214,7 @@ for (const slug of slugs) {
 cpSync(join(ROOT, '_headers'), join(OUT, '_headers'));   // la cache, en Cloudflare
 mkdirSync(join(OUT, 'og'), { recursive: true });
 for (const o of ogHechas.values()) cpSync(join(ROOT, '.cache', 'og', o.slice(3)), join(OUT, o), { recursive: true });
+for (const t of thumbsHechas) cpSync(donde(t), join(OUT, t));
 mkdirSync(join(OUT, 'media/youtube'), { recursive: true });
 for (const [id, bytes] of miniaturas) writeFileSync(join(OUT, YT(id)), bytes);
 

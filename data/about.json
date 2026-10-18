@@ -1,4 +1,5 @@
 {
+  "$schema": "../schema/about.json",
   "_": "El texto del about, uno por idioma, como una lista de párrafos: [\"primero\", \"segundo\"].",
   "en": [
     "i design using light and visuals, mostly for live music. i come from 3d and animation oriented towards videogames but my focus is on the live experience. i've also worked as creative director for artists and from time to time i research interaction in art and new media. the title that best describes my work is technical artist, because i use my technical knowledge and abilities to find solutions and realize my creative vision.",
