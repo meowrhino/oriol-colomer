@@ -199,6 +199,16 @@ await hacerOgs(ogPedidas);
 await hacerThumbs(thumbsPedidas);
 const sitio = crearSitio({ ...opciones, og: rel => ogHechas.get(rel) ?? null });
 
+/* Lo que el esquema no ve (mirar el disco): lo grave para y no se publica
+   nada, para no dejar una foto rota en la web; lo demas solo avisa. */
+const avisos = sitio.revisar();
+for (const a of avisos) console.warn(`${a.grave ? '✗' : '⚠'} ${a.quien}: ${a.texto}`);
+if (avisos.some(a => a.grave)) {
+  console.error('\nHay errores (los marcados con ✗). No se publica nada hasta que se arreglen;'
+    + ' la vista previa (Live Server) te los ensena igual.\n');
+  process.exit(1);
+}
+
 /* ---------- escribir ------------------------------------ */
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
@@ -258,7 +268,3 @@ if (ocultos.length) console.log(`ocultos (con pagina, sin salir en la web): ${oc
 const borradores = proyectos.filter(p => !p.published).map(p => p.slug);
 if (borradores.length) console.log(`borradores (en projects/ pero en ninguna lista): ${borradores.join(', ')}`);
 
-/* Los avisos no paran el build —una foto que falta no justifica dejar la
-   web sin actualizar—, pero salen bien visibles en el log de Actions. */
-const avisos = sitio.revisar();
-for (const a of avisos) console.warn(`⚠ ${a.quien}: ${a.texto}`);

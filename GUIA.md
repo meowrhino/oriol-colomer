@@ -221,10 +221,14 @@ con la línea donde mirar.
 Para ver un borrador (una carpeta que aún no está en ninguna lista), entra en su dirección:
 `http://127.0.0.1:5500/?p=/work/<slug>/`.
 
-Lo que no cuadra (una foto que no está en su carpeta, una fecha mal escrita, un
-slug de la lista sin carpeta, un proyecto en dos listas, **una foto de más de 1 MB o un
-vídeo de más de 12 MB**, un GIF…) sale al publicar, con un ⚠, en el registro de
-la bolita (clícala → **Details**). Eso no para nada: la web se publica igual.
+Lo que no cuadra también sale aquí, antes de subir:
+
+- **Lo que dejaría la web rota** (una foto de `photos` que no está en `img/`, un
+  slug de la lista sin carpeta, un proyecto en dos listas): en vez de la página
+  sale el error, en rojo. Así tampoco se publicaría: arréglalo antes de subir.
+- **Lo que solo conviene mirar** (**una foto de más de 1 MB o un vídeo de más de
+  12 MB**, un GIF, un texto que falta en inglés): una franja amarilla arriba de
+  la página. La web se publica igual.
 
 ## El resto: `data/site.json` y `data/about.json`
 
@@ -276,5 +280,9 @@ roja, luego **Details**, y lee el último mensaje, que dice el fichero y qué pa
   toca"** → lo mismo que VS Code subraya en rojo: un campo mal escrito, uno que
   falta o uno escrito de otra manera. Dice el campo y, entre paréntesis, cómo va.
 
+- **"✗ la-roda-ouineta: "5": no hay ningun 5.webp … en projects/la-roda-ouineta/img/"**
+  → en `photos` hay una foto que no está en `img/` (o con otro número). Ponla, o
+  quítala de la lista.
+
 Los avisos con ⚠ no paran nada: solo dicen que algo quizá no es como querías
-(una foto que no está en `img/`, una foto que pesa demasiado, un GIF).
+(una foto que pesa demasiado, un GIF, un texto que falta en un idioma).

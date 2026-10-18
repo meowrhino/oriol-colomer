@@ -123,7 +123,24 @@ async function arrancar() {
     return;
   }
 
+  /* Lo mismo que mira el build: lo grave (una foto que no esta…) no se
+     publicaria, asi que aqui sale en vez de la pagina; los avisos, en una
+     franja arriba, para verlos antes de subir. */
+  const avisos = sitio.revisar();
+  const graves = avisos.filter(a => a.grave);
+  if (graves.length) {
+    pantallaDeError('Esto no se publicaria', graves.map(a => `${a.quien}: ${a.texto}`).join('\n'));
+    return;
+  }
   escribir(pagina.pintar());
+  // la pagina recien escrita aun se esta montando: la franja, cuando haya <body>
+  const franja = html => (document.body ? document.body.insertAdjacentHTML('afterbegin', html)
+    : document.addEventListener('DOMContentLoaded', () => document.body.insertAdjacentHTML('afterbegin', html), { once: true }));
+  if (avisos.length) franja(
+    `<div style="position:fixed;inset:0 0 auto;z-index:20;padding:8px 12px;background:#fff3c4;color:#5c4400;`
+    + `font:13px/1.4 Helvetica,Arial,sans-serif;max-height:30vh;overflow:auto">`
+    + avisos.map(a => `⚠ ${esc(a.quien)}: ${esc(a.texto)}`).join('<br>')
+    + ` <button onclick="this.parentNode.remove()" style="font:inherit">cerrar</button></div>`);
 }
 
 arrancar().catch(e => pantallaDeError('La vista previa ha fallado', e.message));

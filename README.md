@@ -35,6 +35,10 @@ al publicar. Oriol no instala nada.
 - **Ocultos**: `{ "project": "x", "visible": false }` en una lista: su página con
   `noindex`, fuera del índice, del túnel, del anterior/siguiente y del sitemap.
 - **Cache**: `_headers` (Cloudflare; en GitHub Pages no se puede).
+- **Si el build falla**: lo que tiene ✗ para y no se publica nada (una coma, un
+  campo mal escrito, una foto de `photos` que no está); la vista previa lo
+  enseña igual. En nuestra copia la Action abre un issue con el error (etiqueta
+  `build`) y lo cierra al volver a publicar. Cómo arreglarlo: [CLAUDE.md](CLAUDE.md).
 
 ## Para desarrollo
 

@@ -770,12 +770,15 @@ ${LANGS.map(l => `  <p lang="${l}">${esc(t(site.menu.notFound, l))}</p>`).join('
   }
 
   /* ---------- revision de los datos ----------
-     Lo que se puede equivocar al editar el JSON a mano. Devuelve avisos,
-     no rompe nada: el build los escribe en el log y la vista previa los
-     ensena encima de la pagina. */
+     Lo que se puede equivocar al editar a mano y el esquema no ve, porque
+     hay que mirar el disco. Los graves (grave: true) son los que dejarian la
+     web rota —una foto que no esta, un slug de la lista sin carpeta— y paran
+     el build, como en polroig (la receta, regla 4). Los demas solo avisan:
+     la web sale bien, pero quiza no como se queria (una foto que pesa
+     demasiado, un GIF). La vista previa ensena los dos. */
   function revisar() {
     const avisos = [];
-    const aviso = (quien, texto) => avisos.push({ quien, texto });
+    const aviso = (quien, texto, grave = false) => avisos.push({ quien, texto, grave });
     const EXT = /\.(jpe?g|png|webp|gif|avif|mp4|webm|html?)$/i;
 
     for (const lang of LANGS) {
@@ -792,8 +795,8 @@ ${LANGS.map(l => `  <p lang="${l}">${esc(t(site.menu.notFound, l))}</p>`).join('
           continue;
         }
         if (!proyectos.some(p => p.slug === slug))
-          aviso('site.json', `la lista "${nombre}" dice "${slug}", pero no hay ninguna carpeta projects/${slug}/`);
-        if (vistos.has(slug)) aviso('site.json', `"${slug}" esta en dos listas, o dos veces en la misma`);
+          aviso('site.json', `la lista "${nombre}" dice "${slug}", pero no hay ninguna carpeta projects/${slug}/`, true);
+        if (vistos.has(slug)) aviso('site.json', `"${slug}" esta en dos listas, o dos veces en la misma`, true);
         vistos.add(slug);
       }
     }
@@ -801,7 +804,7 @@ ${LANGS.map(l => `  <p lang="${l}">${esc(t(site.menu.notFound, l))}</p>`).join('
     proyectos.forEach(p => {
       const quien = p.slug;
       if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(p.slug))
-        aviso(quien, 'el nombre de la carpeta solo puede llevar minusculas, numeros y guiones (sin acentos ni espacios)');
+        aviso(quien, 'el nombre de la carpeta solo puede llevar minusculas, numeros y guiones (sin acentos ni espacios)', true);
       if (!p.title) aviso(quien, 'falta "title"');
       if (!/^\d{4}-\d{2}-\d{2}$/.test(p.date || '')) aviso(quien, `la fecha tiene que ser AAAA-MM-DD, y es "${p.date ?? ''}"`);
       if (p.tags && !Array.isArray(p.tags)) aviso(quien, '"tags" tiene que ser una lista: ["lx", "vs"]');
@@ -814,8 +817,8 @@ ${LANGS.map(l => `  <p lang="${l}">${esc(t(site.menu.notFound, l))}</p>`).join('
       const ficheros = [...(p.photos || []), ...(p.cover || [])];
       for (const m of ficheros) {
         const f = fichero(p, m);
-        if (!EXT.test(f)) aviso(quien, `"${m}": formato que la web no sabe ensenar (usa webp, jpg, png, gif, webm, mp4 o una pieza .html)`);
-        else if (!existe(f)) aviso(quien, `"${m}": no hay ningun ${m}.webp (ni .webm, .jpg...) en projects/${p.slug}/img/`);
+        if (!EXT.test(f)) aviso(quien, `"${m}": formato que la web no sabe ensenar (usa webp, jpg, png, gif, webm, mp4 o una pieza .html)`, true);
+        else if (!existe(f)) aviso(quien, `"${m}": no hay ningun ${m}.webp (ni .webm, .jpg...) en projects/${p.slug}/img/`, true);
         else if (/\.gif$/i.test(f)) aviso(quien, `${f} es un GIF: pasalo por imgToWeb, sale un webp animado que pesa mucho menos`);
         else {
           // Oriol no tiene npm run media: esto es lo que le avisa de una foto del movil sin convertir
