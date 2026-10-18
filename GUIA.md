@@ -139,9 +139,8 @@ suben nada a ningún sitio y dejan los ficheros con el peso justo para la web:
 
 - **Fotos** → [imgToWeb](https://meowrhino.github.io/imgToWeb/), calidad **85 %**.
   Salen en WebP, ya numeradas (`1.webp`, `2.webp`…). Un GIF animado sale como
-  WebP animado, que sirve de portada. Si un día esa dirección no funciona, la
-  misma herramienta está dentro de la web: abre `tools/imgToWeb/index.html` con
-  doble clic, en Chrome o Firefox (en Safari no sale bien el WebP).
+  WebP animado, que sirve de portada. Ábrelo en Chrome o Firefox (en Safari no
+  sale bien el WebP).
 - **Vídeos** → [videoToWeb](https://meowrhino.github.io/videoToWeb/), preset **720p**,
   con las tres casillas marcadas: **fotograma**, **sin audio** y **numerar**. Ordena
   las tarjetas como quieras que salgan y dale a "descargar todo": el ZIP trae

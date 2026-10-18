@@ -26,8 +26,6 @@ al publicar. Oriol no instala nada.
   la vista previa validan con los mismos ficheros (`validar` en `paginas.mjs`,
   sin dependencias) y paran con el mensaje en castellano. Un fichero por tipo:
   VS Code no entiende `schema.json#/$defs/project`.
-- **`tools/imgToWeb/`**: una copia de imgToWeb con sus librerías dentro, por si
-  un día no está la nuestra.
 - **Transición**: la de la casa (`js/transicion.js` + `css/transicion.css`, de
   almarbra, y el script del `<head>` en `paginas.mjs`), sin dibujo propio: un
   fundido al color del fondo. La portada (`js/welcome.js`) y el túnel entran por
@@ -97,7 +95,6 @@ projects/<slug>/       un proyecto: project.json + img/  <- lo que edita Oriol
 index.html             la vista previa para Live Server (no se publica)
 GUIA.md                para Oriol
 schema/                qué campos lleva cada JSON (VS Code, el build y la vista previa)
-tools/imgToWeb/        copia de imgToWeb, para Oriol (no se publica)
 TRASPASO.md            la lista para pasarle su copia
 build/paginas.mjs      las plantillas: todo el HTML sale de aqui
 build/build.mjs        las escribe en dist/ (Node, en la Action o en Cloudflare)
