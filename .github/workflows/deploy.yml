@@ -38,6 +38,7 @@ jobs:
       # cierra solo cuando vuelve a publicarse. Como arreglarlo: CLAUDE.md.
       - name: avisar del error en un issue
         if: failure()
+        continue-on-error: true   # el aviso nunca impide publicar
         env:
           GH_TOKEN: ${{ github.token }}
           REGISTRO: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -53,6 +54,7 @@ jobs:
           fi
       - name: cerrar el aviso, si lo hay
         if: success()
+        continue-on-error: true   # el aviso nunca impide publicar
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
