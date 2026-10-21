@@ -91,8 +91,14 @@ for (const f of ficheros(PROJECTS).filter(f => /\/img\//.test(f)).filter(f => /\
 for (const f of ficheros(PROJECTS).filter(f => /\/img\//.test(f)).filter(f => /\.gif$/i.test(f))) {
   const out = f.replace(/\.gif$/i, '.mp4');
   if (!existsSync(out)) {
+    // Un gif con menos de 2 centesimas entre fotogramas, los navegadores lo
+    // pasan a 10 por segundo; ffmpeg no, y salia diez veces mas rapido
+    // (Gradients, a 100 fps). Se hace como el navegador.
+    const fps = execFileSync('ffprobe', ['-v', 'error', '-select_streams', 'v', '-show_entries',
+      'stream=r_frame_rate', '-of', 'csv=p=0', f]).toString().trim().split('/').reduce((a, b) => a / b);
+    const lento = fps > 50 ? ['-vf', `setpts=N/(10*TB),${escala}`, '-r', '10'] : ['-vf', escala];
     run('ffmpeg', ['-nostdin', '-loglevel', 'error', '-y', '-i', f, '-an', '-movflags', '+faststart',
-      '-pix_fmt', 'yuv420p', '-vf', escala, '-c:v', 'libx264', '-crf', '24', '-preset', 'slow', out]);
+      '-pix_fmt', 'yuv420p', ...lento, '-c:v', 'libx264', '-crf', '24', '-preset', 'slow', out]);
     log('gif', out, `${kb(f)} -> ${kb(out)}`);
   }
   rmSync(f);
