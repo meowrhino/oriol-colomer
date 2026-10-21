@@ -1,0 +1,42 @@
+{
+  "$schema": "../../schema/project.json",
+  "title": "*****2025/... – Carles Castaño",
+  "date": "2025-02-27",
+  "client": "Carles Castaño",
+  "tags": ["vs"],
+  "subheader": {
+    "en": "Immersive Experience",
+    "es": "Experiencia inmersiva",
+    "ca": "Experiència immersiva"
+  },
+  "text": {
+    "en": [
+      "3D modelling, texturing, rigging and animation for the VR immersive experience *****2025/... by Carles Castaño (Servicios Inmersivos), exhibited during March 2025 at digital art gallery HYPER HOUSE (Madrid). The entire 3D pipeline (modelling, UVs, texturing, rigging and animation) was done in Blender by us at vertebra studios. Servicios Inmersivos then implemented them and programmed the VR immersive experience in Unity.",
+      "*****2025/... is an interactive immersive installation/experience in mixed reality by the artist Carles Castaño that proposes to occupy the entire physical space of HYPER HOUSE, transforming and readapting it with the virtual environment.",
+      "The artwork proposes a complex and extensive narrative, just like the reality -physical and virtual- of the consumer society we inhabit. It addresses a myriad of current real issues and possibilities through metaphor, directly or indirectly, in the form of a 3D virtual universe: fictitious reality, extreme consumerism, consumers and not people, strict rules focused on a broad but disadvantaged sector of society, unbridled inequality, frustrating inequality, prevailing individualism, death of the collective, the fall of basic rights, impossible housing, housing as a method of investment profitability, housing in a desperate format, imposed speed, no rights, ultraCapitalism, exploitation, ultra-rich ultra-poor, destruction, destruction of everything around us, destruction of the living, destruction of the real, destruction of what was already here.",
+      "‘We are witnessing the apocalypse, everything is being destroyed, the walls of the premises are cracking and pulverising, the plants are burning and turning into viscous black chapapote, the buildings are turning into fireballs.... We travel inside a chaotic universe in VR format. Users are invited to leave’."
+    ],
+    "es": [
+      "Modelado 3D, texturizado, rigging y animación para la experiencia inmersiva en realidad virtual *****2025/... de Carles Castaño (Servicios Inmersivos), expuesta durante marzo de 2025 en la galería de arte digital HYPER HOUSE (Madrid). Todo el proceso 3D (modelado, UVs, texturizado, rigging y animación) lo hicimos en Blender desde vertebra studios. Después, Servicios Inmersivos lo implementó y programó la experiencia inmersiva en Unity.",
+      "*****2025/... es una instalación/experiencia inmersiva e interactiva en realidad mixta del artista Carles Castaño que propone ocupar todo el espacio físico de HYPER HOUSE, transformándolo y readaptándolo con el entorno virtual.",
+      "La obra propone una narrativa compleja y extensa, como la realidad —física y virtual— de la sociedad de consumo que habitamos. Aborda, a través de la metáfora, de forma directa o indirecta, multitud de problemas y posibilidades reales y actuales en forma de universo virtual 3D: realidad ficticia, consumismo extremo, consumidores y no personas, normas estrictas centradas en un sector amplio pero desfavorecido de la sociedad, desigualdad desatada, desigualdad frustrante, individualismo imperante, muerte de lo colectivo, caída de los derechos básicos, vivienda imposible, vivienda como método de rentabilidad de inversión, vivienda en formato desesperado, velocidad impuesta, sin derechos, ultracapitalismo, explotación, ultrarricos ultrapobres, destrucción, destrucción de todo lo que nos rodea, destrucción de lo vivo, destrucción de lo real, destrucción de lo que ya estaba aquí.",
+      "‘Estamos presenciando el apocalipsis, todo se está destruyendo, las paredes del local se agrietan y se pulverizan, las plantas arden y se convierten en chapapote negro y viscoso, los edificios se convierten en bolas de fuego... Viajamos dentro de un universo caótico en formato VR. Se invita a los usuarios a salir’."
+    ],
+    "ca": [
+      "Modelatge 3D, texturització, rigging i animació per a l'experiència immersiva en realitat virtual *****2025/... de Carles Castaño (Servicios Inmersivos), exposada durant el març de 2025 a la galeria d'art digital HYPER HOUSE (Madrid). Tot el procés 3D (modelatge, UVs, texturització, rigging i animació) el vam fer amb Blender des de vertebra studios. Després, Servicios Inmersivos el va implementar i va programar l'experiència immersiva amb Unity.",
+      "*****2025/... és una instal·lació/experiència immersiva i interactiva en realitat mixta de l'artista Carles Castaño que proposa ocupar tot l'espai físic d'HYPER HOUSE, transformant-lo i readaptant-lo amb l'entorn virtual.",
+      "L'obra proposa una narrativa complexa i extensa, com la realitat —física i virtual— de la societat de consum que habitem. Aborda, a través de la metàfora, de manera directa o indirecta, multitud de problemes i possibilitats reals i actuals en forma d'univers virtual 3D: realitat fictícia, consumisme extrem, consumidors i no persones, normes estrictes centrades en un sector ampli però desafavorit de la societat, desigualtat desfermada, desigualtat frustrant, individualisme imperant, mort del col·lectiu, caiguda dels drets bàsics, habitatge impossible, habitatge com a mètode de rendibilitat d'inversió, habitatge en format desesperat, velocitat imposada, sense drets, ultracapitalisme, explotació, ultrarics ultrapobres, destrucció, destrucció de tot el que ens envolta, destrucció del que és viu, destrucció del que és real, destrucció del que ja era aquí.",
+      "‘Estem presenciant l'apocalipsi, tot s'està destruint, les parets del local s'esquerden i es polvoritzen, les plantes cremen i es converteixen en quitrà negre i viscós, els edificis es converteixen en boles de foc... Viatgem dins d'un univers caòtic en format VR. Es convida els usuaris a sortir’."
+    ]
+  },
+  "credits": [
+    {"role": "concept & direction", "name": "@c4158chestnut3olive3"},
+    {"role": "3d & animation", "name": "@vertebrastudios @oriolonbass @d4rk1r4"},
+    {"role": "programming", "name": "@_pepinillo"},
+    {"role": "production & management", "name": "@serviciosinmersivos"},
+    {"role": "hosting", "name": "@hyperhouse.art"}
+  ],
+  "url": "https://youtu.be/bsMEaFVIGpw",
+  "cover": ["thumb"],
+  "photos": ["1", "2", "3", "4"]
+}

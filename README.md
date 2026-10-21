@@ -110,7 +110,6 @@ js/media.js            videos del proyecto al verlos, YouTube, bloque de texto
 js/correo.js           el boton del correo
 js/ajustes.js          los botones de wingdings y de claro / oscuro, y el desplegable del idioma
 js/transicion.js       la transición entre páginas, la de la casa (con css/transicion.css)
-assets/cursor/         los cursores (32 px y @2x de 64 px)
 ```
 
 ### Una sola plantilla, dos sitios

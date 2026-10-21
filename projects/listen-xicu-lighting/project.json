@@ -24,5 +24,6 @@
     {"role": "lighting design", "name": "oriol colomer & clàudia aguiló"}
   ],
   "url": "https://youtu.be/wzY41m8vtxs",
-  "photos": []
+  "cover": ["thumb"],
+  "photos": ["1", "2", "3", "4", "5"]
 }
