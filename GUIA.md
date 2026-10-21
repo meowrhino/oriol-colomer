@@ -30,7 +30,8 @@ Solo se hace una vez.
 
 1. En VS Code: **Archivo → Nueva ventana**, y en la bienvenida, **Clonar repositorio
    Git…** → **Clonar desde GitHub**. Te pide entrar con tu cuenta de GitHub:
-   acepta. Elige `oriol-colomer` y una carpeta de tu ordenador.
+   acepta. Elige `oriol-colomer` y una carpeta de tu ordenador, **fuera de
+   Google Drive** (ni iCloud ni Dropbox): estropean la carpeta oculta de git.
 2. Al abrirla, VS Code te propone instalar **Live Server** (abajo a la derecha):
    **Instalar**. Si no sale, búscalo en la pestaña de extensiones (los cuatro
    cuadraditos de la izquierda).

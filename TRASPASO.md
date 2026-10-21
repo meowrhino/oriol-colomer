@@ -21,8 +21,13 @@ Tiempo: unos 20 minutos, más lo que tarden los DNS.
 ## 1. Su copia
 
 - [ ] En su cuenta, **New repository** → `oriol-colomer`, público y vacío (sin README ni licencia).
-- [ ] Desde esta carpeta: `git push https://github.com/<su-usuario>/oriol-colomer.git main`
-      (si pide permiso, que nos añada antes como colaboradores, paso 3).
+- [ ] La copia va **sin historial** (la nuestra lleva pruebas y rutas que ya no son). Desde esta carpeta:
+      ```bash
+      rm -rf /tmp/oriol && mkdir /tmp/oriol && git archive HEAD | tar -x -C /tmp/oriol
+      cd /tmp/oriol && git init -b main && git add -A && git commit -m "La web de Oriol"
+      git push https://github.com/<su-usuario>/oriol-colomer.git main
+      ```
+      (si pide permiso, que nos añada antes como colaboradores, paso 3). Nada de `push --mirror`.
 
 ## 2. Cloudflare
 
@@ -44,6 +49,7 @@ Tiempo: unos 20 minutos, más lo que tarden los DNS.
 - [ ] `view-source:`: `canonical` y `og:url` con su dominio, y **sin** `<meta name="robots" content="noindex">`.
 - [ ] `/robots.txt` dice `Allow` y `/sitemap.xml` tiene las direcciones de su dominio.
 - [ ] Compartir un proyecto por WhatsApp: sale su foto (la og).
+- [ ] En `/about/`, la firma `web: meowrhino estudio` con su enlace.
 
 ## 5. Search Console, con su cuenta de Google
 
@@ -53,7 +59,8 @@ Tiempo: unos 20 minutos, más lo que tarden los DNS.
 
 Con él delante, siguiendo [GUIA.md](GUIA.md) ("La primera vez: preparar VS Code"):
 
-- [ ] Clona **su** repositorio, no el de meowrhino.
+- [ ] Clona **su** repositorio, no el de meowrhino, en una carpeta **fuera de Google Drive** (ni iCloud ni Dropbox).
+      El repo ya lleva `.vscode/settings.json`: *Sync* pone sus commits encima de los nuestros sin preguntar.
 - [ ] Live Server: **Go Live** y ve la vista previa.
 - [ ] Un cambio pequeño (una coma en el about), Confirmar → Sincronizar, y la bolita verde en GitHub.
 
