@@ -17,6 +17,9 @@
    ============================================================ */
 import { seco } from './util.js';
 
+// el ultimo proyecto visto: al volver a work, el tunel arranca en el (tunnel.js)
+try { sessionStorage.setItem('proyecto', location.pathname + location.search); } catch {}
+
 const videos = [...document.querySelectorAll('.media video')];
 
 if (videos.length) {

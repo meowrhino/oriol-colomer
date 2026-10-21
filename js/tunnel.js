@@ -96,8 +96,30 @@ if (zona && lista && escena) {
     porFecha = !movil();
     const f = datos.map(d => dias(d.fecha));
     const t0 = Math.min(...f), span = Math.max(...f) - t0;
-    T = porFecha && span > 0 ? f.map(v => (v - t0) / span) : igual();
+    T = porFecha && span > 0 ? separar(f.map(v => (v - t0) / span)) : igual();
     puntos.forEach((b, i) => b && (b.style.left = (T[i] * 100).toFixed(3) + '%'));
+  }
+  /* Por fecha, dos proyectos de la misma semana salian con las bolas una
+     encima de otra. Cada hueco entre bolas tiene un minimo en pixeles; lo
+     que falta se quita, a partes iguales, de los huecos grandes. Si no caben
+     todas, a la misma distancia, como en el movil. */
+  const HUECO_MIN = 24;
+  function separar(t) {
+    const g = HUECO_MIN / (barra?.offsetWidth || innerWidth);
+    const n = t.length - 1;
+    if (n < 1) return t;
+    if (n * g >= 1) return igual();
+    const huecos = t.slice(0, -1).map((v, i) => v - t[i + 1]);   // t va de 1 (reciente) a 0
+    const fijo = huecos.map(() => false);
+    for (let k = 0; k < n; k++) {             // como mucho una vuelta por hueco
+      const libre = 1 - g * fijo.filter(Boolean).length;
+      const suma = huecos.reduce((s, h, i) => s + (fijo[i] ? 0 : h), 0);
+      let cambia = false;
+      huecos.forEach((h, i) => { if (!fijo[i] && h * libre / suma < g) { fijo[i] = cambia = true; } });
+      if (!cambia) { huecos.forEach((h, i) => { huecos[i] = fijo[i] ? g : h * libre / suma; }); break; }
+    }
+    let x = 1;
+    return [1, ...huecos.map(h => (x -= h))];
   }
   /** profundidad (fraccionaria) -> sitio en la barra, 0..1 */
   function enBarra(d) {
@@ -214,7 +236,7 @@ if (zona && lista && escena) {
      por estrecha que sea la ventana. */
   function medir() {
     an = innerWidth; al = innerHeight;
-    if (datos.length && porFecha !== !movil()) repartir();   // se ha cruzado el corte movil
+    if (datos.length) repartir();   // el corte movil, y el hueco minimo va en pixeles
     if (!cartas.length) return;
     const arriba = (document.querySelector('.topbar')?.offsetHeight || 0) + 8;
     const abajo  = (document.getElementById('tiempo')?.offsetHeight || 0) + 24;
@@ -485,5 +507,13 @@ if (zona && lista && escena) {
   addEventListener('resize', () => { medir(); pintar(); despertar(); });
 
   construir();
+  // Si vienes de un proyecto, el tunel arranca en el y no en el mas reciente
+  // (el proyecto lo apunta en js/media.js).
+  try {
+    const vengo = sessionStorage.getItem('proyecto');
+    const url = d => { const u = new URL(d.href, location.href); return u.pathname + u.search; };
+    const i = datos.findIndex(d => url(d) === vengo);
+    if (i > 0) { prof = meta = i; pintar(); }
+  } catch {}
   despertar();
 }

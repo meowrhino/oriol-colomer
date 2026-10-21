@@ -1,6 +1,6 @@
 {
   "$schema": "../../schema/project.json",
-  "title": "LISTEN – xicu",
+  "title": "LISTEN – visualizers",
   "date": "2026-02-13",
   "client": "xicu",
   "tags": ["vs", "dc"],

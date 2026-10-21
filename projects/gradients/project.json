@@ -1,0 +1,18 @@
+{
+  "$schema": "../../schema/project.json",
+  "title": "Gradients",
+  "date": "2025-03-05",
+  "client": "Personal project",
+  "tags": ["vs"],
+  "subheader": {
+    "en": "Abstract visuals",
+    "es": "Visuales abstractos",
+    "ca": "Visuals abstractes"
+  },
+  "text": {
+    "en": ["Abstract visuals."],
+    "es": ["Visuales abstractos."],
+    "ca": ["Visuals abstractes."]
+  },
+  "photos": ["1", "2", "3", "4"]
+}
