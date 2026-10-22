@@ -122,7 +122,7 @@ El `project.json` de `projects/lechatelier-sala-apolo-2025/`:
 | `text` | El texto, en los tres idiomas: una lista de párrafos, `["primero", "segundo"]`. |
 | `credits` | Una línea por rol: `{"role": "…", "name": "…"}`. El rol sale en **negrita**. Los `@handle` se enlazan solos a Instagram. |
 | `url` | Si es de **YouTube**, el vídeo sale embebido el primero, antes de las fotos. Si es otra cosa, sale como "Watch →". Se puede quitar. |
-| `cover` | La portada del túnel y de la lista: `["thumb"]` si en `img/` hay un `thumb.webp` o `thumb.webm`. Puede ser una foto, un **webp animado** o un **vídeo**, y entonces se mueve. Sale con su proporción, sin recortar. Si no lo pones, se usa la primera de `photos`. |
+| `cover` | La portada del túnel y de la lista: `["thumb"]` si en `img/` hay un `thumb.webp` o `thumb.webm`. Puede ser una foto, un **webp animado** o un **vídeo**, y entonces se mueve. Sale con su proporción, sin recortar. Si no lo pones, se usa la primera de `photos` (quieta, si es un vídeo: para que se mueva, ponla también aquí, `["1"]`). La portada no sale en la página del proyecto: si quieres que salga, ponla también en `photos` (`["thumb", "1", "2"]`). |
 | `photos` | Fotos y vídeos del proyecto, en orden, **por su número y sin extensión**: `"3"` es `img/3.webp` o `img/3.webm`, el que haya. También puede ir una **pieza interactiva** (ver abajo). |
 
 Cuidado con las comas: entre campo y campo va una, y **después del último no**.

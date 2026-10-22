@@ -86,17 +86,20 @@ if (zona && lista && escena) {
      T[i] = donde cae el proyecto i en la barra, de 0 (el mas antiguo, a
      la izquierda) a 1 (el mas reciente).
 
-     En pantalla ancha, por fecha real: dos del mismo mes salen pegados y un
-     ano sin nada deja hueco. En el movil no: con el dedo, dos bolas a medio
-     centimetro son imposibles de acertar, asi que van todas a la misma
-     distancia. */
+     En pantalla ancha, mitad por fecha real y mitad a la misma distancia:
+     solo por fecha, los meses llenos salian pegados y los vacios dejaban
+     hueco (Oriol, oct 2026; la escala logaritmica aplastaba lo antiguo).
+     Asi un ano sin nada aun se nota, pero no se come la barra. En el movil,
+     todas a la misma distancia: con el dedo, dos bolas a medio centimetro
+     son imposibles de acertar. */
   let porFecha = null;
   const igual = () => datos.map((_, i) => (ultimo ? 1 - i / ultimo : .5));
   function repartir() {
     porFecha = !movil();
     const f = datos.map(d => dias(d.fecha));
     const t0 = Math.min(...f), span = Math.max(...f) - t0;
-    T = porFecha && span > 0 ? separar(f.map(v => (v - t0) / span)) : igual();
+    const eq = igual();
+    T = porFecha && span > 0 ? separar(f.map((v, i) => ((v - t0) / span + eq[i]) / 2)) : eq;
     puntos.forEach((b, i) => b && (b.style.left = (T[i] * 100).toFixed(3) + '%'));
   }
   /* Por fecha, dos proyectos de la misma semana salian con las bolas una
