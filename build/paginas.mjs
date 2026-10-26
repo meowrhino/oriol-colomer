@@ -202,7 +202,8 @@ export function crearSitio({ site, about, proyectos, base = '', origen = '', ind
     return flat.length <= 155 ? flat : flat.slice(0, 152).replace(/\s+\S*$/, '') + '…';
   };
   const igUrl = h => `https://instagram.com/${h.replace(/^@/, '')}`;
-  /** Los @handle del texto de creditos se enlazan solos a Instagram. */
+  /** Los @handle del texto de creditos se enlazan solos a Instagram (si el
+      credito no trae su propio "link"). */
   const linkHandles = txt => esc(txt).replace(/@[\w.\-_]+/g,
     h => `<a href="${igUrl(h)}" target="_blank" rel="noopener">${h}</a>`);
 
@@ -221,7 +222,7 @@ export function crearSitio({ site, about, proyectos, base = '', origen = '', ind
   };
   /** La version chica de una imagen, si la hay (la hace npm run media).
       Donde se usa la portada —la carta del tunel y la vista previa de la
-      lista— se pinta a 360 px como mucho. Si no hay, el original. */
+      lista— se pinta a 500 px como mucho. Si no hay, el original. */
   const chica = m => {
     const th = m.replace(/\.(jpe?g|png|webp)$/i, '.thumb.webp');
     return th !== m && existe(th) ? th : m;
@@ -644,8 +645,9 @@ ${tunel ? `<!-- Linea del tiempo: una raya de lado a lado y cada proyecto en su 
         keywords: (p.tags || []).join(', '),
         ...(og ? { image: absFichero(og) } : {}),
         ...(p.url ? { sameAs: [p.url] } : {}),
-        contributor: (p.credits || []).flatMap(({ name }) =>
-          (String(name).match(/@[\w.\-_]+/g) || []).map(h =>
+        contributor: (p.credits || []).flatMap(({ name, link }) => link
+          ? [{ '@type':'Person', name, sameAs: link }]
+          : (String(name).match(/@[\w.\-_]+/g) || []).map(h =>
             ({ '@type':'Person', name: h, sameAs: igUrl(h) }))),
       },
     })
@@ -695,8 +697,9 @@ ${media || '      <!-- sin material grafico todavia -->'}
     return roles.length ? `    <section class="credits">
       <h2>${esc(t(site.menu.credits, lang))}</h2>
       <dl>
-${roles.map(({ role, name }) =>
-  `        <div class="row"><dt>${esc(t(role, lang))}</dt> <dd>${linkHandles(name)}</dd></div>`).join('\n')}
+${roles.map(({ role, name, link }) =>
+  `        <div class="row"><dt>${esc(t(role, lang))}</dt> <dd>${link
+    ? `<a href="${esc(link)}" target="_blank" rel="noopener">${esc(name)}</a>` : linkHandles(name)}</dd></div>`).join('\n')}
       </dl>
     </section>` : '';
   }

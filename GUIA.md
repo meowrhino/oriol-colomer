@@ -104,7 +104,8 @@ El `project.json` de `projects/lechatelier-sala-apolo-2025/`:
   },
   "credits": [
     {"role": "lighting design", "name": "oriol colomer & clàudia aguiló"},
-    {"role": "photography", "name": "@conamorirene"}
+    {"role": "photography", "name": "@conamorirene"},
+    {"role": "scenography", "name": "clàudia aguiló", "link": "https://…"}
   ],
   "url": "https://youtu.be/…",
   "cover": ["thumb"],
@@ -120,7 +121,7 @@ El `project.json` de `projects/lechatelier-sala-apolo-2025/`:
 | `tags` | Las letras de siempre: `lx`, `vs`, `dc`, `xy`, `rs`. |
 | `subheader` | La línea de debajo del título, en los tres idiomas. Si dejas `es` o `ca` vacíos, sale el inglés. |
 | `text` | El texto, en los tres idiomas: una lista de párrafos, `["primero", "segundo"]`. |
-| `credits` | Una línea por rol: `{"role": "…", "name": "…"}`. El rol sale en **negrita**. Los `@handle` se enlazan solos a Instagram. |
+| `credits` | Una línea por rol: `{"role": "…", "name": "…"}`. El rol sale en **negrita**. Con `"link": "https://…"` el nombre sale enlazado ahí (su web, Instagram, Vimeo, lo que sea); sin `link`, los `@handle` se enlazan solos a Instagram. El link es de toda la línea: si son dos personas con dos links, ponlas en dos líneas. |
 | `url` | Si es de **YouTube**, el vídeo sale embebido el primero, antes de las fotos. Si es otra cosa, sale como "Watch →". Se puede quitar. |
 | `cover` | La portada del túnel y de la lista: `["thumb"]` si en `img/` hay un `thumb.webp` o `thumb.webm`. Puede ser una foto, un **webp animado** o un **vídeo**, y entonces se mueve. Sale con su proporción, sin recortar. Si no lo pones, se usa la primera de `photos` (quieta, si es un vídeo: para que se mueva, ponla también aquí, `["1"]`). La portada no sale en la página del proyecto: si quieres que salga, ponla también en `photos` (`["thumb", "1", "2"]`). |
 | `photos` | Fotos y vídeos del proyecto, en orden, **por su número y sin extensión**: `"3"` es `img/3.webp` o `img/3.webm`, el que haya. También puede ir una **pieza interactiva** (ver abajo). |
@@ -269,8 +270,12 @@ ordenador o su móvil. Los colores de los dos están al principio de
 
 ## Si sale en rojo
 
-La web no se rompe: se queda como estaba hasta que se arregla. Clica la bolita
-roja, luego **Details**, y lee el último mensaje, que dice el fichero y qué pasa:
+La web no se rompe: se queda como estaba hasta que se arregla. Te enteras
+aunque no mires: GitHub te manda un correo, **"La web no se ha publicado"**,
+con el mensaje dentro. Cuando lo arreglas y lo subes, se cierra solo.
+
+El mensaje (en el correo, o clicando la bolita roja y luego **Details**) dice
+el fichero y qué pasa:
 
 - **"projects/la-roda-ouineta/project.json no es un JSON valido (linea 12, columna 5)"**
   → casi siempre **una coma** de más o de menos, o unas comillas sin cerrar, cerca

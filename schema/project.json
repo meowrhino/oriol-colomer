@@ -57,7 +57,7 @@
     },
     "credits": {
       "type": "array",
-      "description": "Una línea por rol. Los @handle se enlazan solos a Instagram.",
+      "description": "Una línea por rol. Con \"link\", el nombre sale enlazado; sin él, los @handle se enlazan solos a Instagram.",
       "items": {
         "type": "object",
         "required": [
@@ -72,6 +72,11 @@
           },
           "name": {
             "type": "string"
+          },
+          "link": {
+            "type": "string",
+            "pattern": "^https?://",
+            "description": "Opcional: el nombre sale enlazado aquí (su web, Instagram, Vimeo…). Empieza por https://."
           }
         }
       }

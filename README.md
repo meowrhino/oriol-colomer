@@ -12,13 +12,14 @@ un único sitio: `build/build.mjs`, que lee los JSON y escribe los HTML en `dist
 al publicar. Oriol no instala nada.
 
 - **Publicar, uno en cada copia**: la nuestra, `.github/workflows/deploy.yml` a
-  GitHub Pages (solo corre en `meowrhino`); la de Oriol, Workers Builds con
-  `wrangler.jsonc`. El build mira dónde está: con `GITHUB_ACTIONS`, base
+  GitHub Pages (solo en `meowrhino`); la de Oriol, Workers Builds con
+  `wrangler.jsonc`. La Action corre en las dos: en la suya solo pasa el build,
+  para avisar si falla (abajo). El build mira dónde está: con `GITHUB_ACTIONS`, base
   `/oriol-colomer` y `noindex`; si no, la raíz y el `url` de `site.json` (con
   `url`, se indexa). Cómo pasarle la copia: [TRASPASO.md](TRASPASO.md).
 - **og:image y miniaturas, con sharp** (`npm ci`), fuera de git: la og, 1200×630
-  JPG en `.cache/og/` → `dist/og/`; la miniatura de cada portada, 720 px webp
-  (con su animación) en `.cache/thumb/` → `dist/projects/<slug>/img/N.thumb.webp`,
+  JPG en `.cache/og/` → `dist/og/`; la miniatura de cada portada, 1200 px webp
+  (con su animación) en `.cache/thumb1200/` → `dist/projects/<slug>/img/N.thumb.webp`,
   junto a la foto. En el repo solo hay la foto. Sin sharp, avisa y publica con
   la foto tal cual.
 - **JSON Schema** (`schema/site.json`, `about.json`, `project.json`): cada JSON
@@ -35,8 +36,10 @@ al publicar. Oriol no instala nada.
 - **Cache**: `_headers` (Cloudflare; en GitHub Pages no se puede).
 - **Si el build falla**: lo que tiene ✗ para y no se publica nada (una coma, un
   campo mal escrito, una foto de `photos` que no está); la vista previa lo
-  enseña igual. En nuestra copia la Action abre un issue con el error (etiqueta
-  `build`) y lo cierra al volver a publicar. Cómo arreglarlo: [CLAUDE.md](CLAUDE.md).
+  enseña igual. En las dos copias la Action abre un issue con el error (etiqueta
+  `build`), que GitHub manda por correo, y lo cierra cuando el build vuelve a
+  pasar. Sin esto, en la de Oriol el error se quedaba en su Cloudflare y él no
+  se enteraba. Cómo arreglarlo: [CLAUDE.md](CLAUDE.md).
 
 ## Para desarrollo
 
@@ -137,8 +140,8 @@ De `1.webm` el generador busca solo, al lado:
 
 Los dos los hace `npm run media` (o videoToWeb); si falta algo, se usa lo que hay
 y nunca se rompe nada, solo pesa más. De la portada de cada proyecto, el build
-hace con sharp una miniatura de 720 px, `1.thumb.webp`, lo que pintan el túnel y
-la lista: va a `.cache/thumb/` y a `dist/`, nunca al repo.
+hace con sharp una miniatura de 1200 px, `1.thumb.webp`, lo que pintan el túnel y
+la lista: va a `.cache/thumb1200/` y a `dist/`, nunca al repo.
 
 `npm run media` usa los mismos ajustes que imgToWeb y videoToWeb (WebP calidad
 85 hasta 2000 px; vídeo 1280×720 como mucho, con techo de 1200 kbps y sin audio),
@@ -198,7 +201,7 @@ sujetan:
   hay su fotograma. Son medio mega de guiones que no baja nadie que no lo mire.
 - **No hay ficheros de fuente.** Helvetica es la del sistema: en Mac e iPhone es
   Helvetica de verdad; en Windows y Android sale Arial.
-- **Todo en WebP y WebM**, y las portadas con miniatura de 720 px.
+- **Todo en WebP y WebM**, y las portadas con miniatura de 1200 px (eran 720: se veian blandas).
 
 ---
 

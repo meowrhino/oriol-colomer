@@ -62,7 +62,9 @@ const indexar = !github && !!site.url;
 /** Donde esta un fichero: en el repo, o en .cache/ si lo ha hecho el build
     (las miniaturas). */
 const thumbsHechas = new Set();   // las miniaturas que ha hecho el build (mas abajo)
-const donde = rel => (thumbsHechas.has(rel) ? join(ROOT, '.cache', 'thumb', rel) : join(ROOT, rel));
+// El ancho va en la carpeta: si cambia, las de antes no se reutilizan.
+const THUMB = 1200, THUMBS = join(ROOT, '.cache', `thumb${THUMB}`);
+const donde = rel => (thumbsHechas.has(rel) ? join(THUMBS, rel) : join(ROOT, rel));
 const medidasCache = new Map();
 function medidas(rel) {
   if (medidasCache.has(rel)) return medidasCache.get(rel);
@@ -158,12 +160,12 @@ async function hacerOgs(rels) {
   }
 }
 
-/* Las miniaturas: la portada de cada proyecto a 720 px (el doble de lo que se
-   ve en el tunel y en la lista, por las pantallas retina), webp 82, con su
+/* Las miniaturas: la portada de cada proyecto a 1200 px, webp 82, con su
    animacion si la tiene. Las pide la plantilla (1.webp → 1.thumb.webp), las
-   hace el build en .cache/thumb/ y van a dist/ en el mismo sitio, junto a la
+   hace el build en .cache/thumb1200/ y van a dist/ en el mismo sitio, junto a la
    foto. En el repo solo esta la foto. Si no baja al menos un 15 %, no
-   compensa: se usa la foto. */
+   compensa: se usa la foto. A 720 se veia blanda: la carta de delante mide
+   hasta 500 px, 1000 en una retina (Oriol, LLUM, 2026-10). */
 async function hacerThumbs(rels) {
   const sharp = await cargarSharp();
   if (!sharp) return;
@@ -171,11 +173,11 @@ async function hacerThumbs(rels) {
     const src = ['webp', 'jpg', 'jpeg', 'png'].map(e => rel.replace(/\.thumb\.webp$/, '.' + e))
       .find(f => existsSync(join(ROOT, f)));
     if (!src) continue;
-    const cache = join(ROOT, '.cache', 'thumb', rel);
+    const cache = join(THUMBS, rel);
     if (!(existsSync(cache) && statSync(cache).mtimeMs >= statSync(join(ROOT, src)).mtimeMs)) {
       try {
         mkdirSync(dirname(cache), { recursive: true });
-        await sharp(join(ROOT, src), { animated: true }).resize({ width: 720, withoutEnlargement: true })
+        await sharp(join(ROOT, src), { animated: true }).resize({ width: THUMB, withoutEnlargement: true })
           .webp({ quality: 82, effort: 6 }).toFile(cache);
       } catch (e) { console.warn(`⚠ ${src}: no se ha podido hacer su miniatura (${e.message})`); continue; }
     }

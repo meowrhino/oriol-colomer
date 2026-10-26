@@ -6,9 +6,11 @@ nuestra en `meowrhino.github.io/oriol-colomer/` (sin indexar). Desde el
 traspaso son dos repositorios separados: los cambios, en el suyo.
 
 Todo viaja dentro del repositorio: el código, los JSON, las fotos y cómo se
-publica (`wrangler.jsonc`). En su copia la Action no corre (lleva
-`if: github.repository_owner == 'meowrhino'`) y el build, al no estar en
-GitHub, publica en la raíz con el `url` de `site.json`.
+publica (`wrangler.jsonc`). En su copia la Action solo comprueba el build y,
+si falla, abre un issue que le llega por correo; no publica en GitHub Pages
+(eso lleva `if: github.repository_owner == 'meowrhino'`). Quien publica es
+Cloudflare: el build, al no estar en GitHub, va a la raíz con el `url` de
+`site.json`.
 
 Tiempo: unos 20 minutos, más lo que tarden los DNS.
 
@@ -63,6 +65,9 @@ Con él delante, siguiendo [GUIA.md](GUIA.md) ("La primera vez: preparar VS Code
       El repo ya lleva `.vscode/settings.json`: *Sync* pone sus commits encima de los nuestros sin preguntar.
 - [ ] Live Server: **Go Live** y ve la vista previa.
 - [ ] Un cambio pequeño (una coma en el about), Confirmar → Sincronizar, y la bolita verde en GitHub.
+- [ ] El aviso: quitar una coma a propósito, subirlo, y que le llegue el correo de GitHub
+      "La web no se ha publicado". Ponerla, subirlo, y que el issue se cierre solo. Si el correo
+      no llega: en GitHub, Settings → Notifications, que tenga el correo marcado en *Watching*.
 
 ## 7. Al acabar
 

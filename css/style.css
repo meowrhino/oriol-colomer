@@ -236,9 +236,10 @@ html.wingdings .langs, html.wingdings .langs *{ font-family: Helvetica, 'Helveti
   -webkit-mask: url('../assets/eye_shape.png') center/contain no-repeat;
           mask: url('../assets/eye_shape.png') center/contain no-repeat;
 }
-/* La pupila es la bola: la misma pieza que el pomo de la linea del tiempo
-   y el favicon. Sin el brillo aparte y sin el nucleo oscuro de antes: mas
-   clara, dentro de la banda de grises de todo el sitio.
+/* La pupila es la bola, pero con brillo: un punto blanco nitido arriba a
+   la izquierda. Con solo la bola (luz difusa) el ojo se veia muerto
+   (Oriol, 2026-10). El fondo es mas hondo que la bola para que el punto
+   se lea; el brillo de antes era difuso y tampoco se leia.
 
    La mueve welcome.js con un muelle (translate), asi que no lleva
    transicion de posicion: arranca y frena sola, en curva. El parpadeo es
@@ -248,8 +249,17 @@ html.wingdings .langs, html.wingdings .langs *{ font-family: Helvetica, 'Helveti
   width:43.75%;                       /* 70/160, la proporcion real del ojo */
   aspect-ratio:1; border-radius:50%;
   translate:-50% -50%;
-  background: var(--bola-activa);
+  background:
+    radial-gradient(circle at 32% 28%, #fff 0 11%, transparent 12.5%),
+    radial-gradient(circle at 40% 36%, var(--ink-soft) 0%, var(--ink-hard) 78%);
   transition: scale var(--parpadeo) cubic-bezier(.45,0,.55,1);
+}
+/* En oscuro las tintas van del reves: sin esto el borde salia mas claro
+   que el centro y la pupila parecia hundida. */
+html.oscuro .eye .pupil{
+  background:
+    radial-gradient(circle at 32% 28%, #fff 0 11%, transparent 12.5%),
+    radial-gradient(circle at 40% 36%, var(--ink-hard) 0%, var(--ink-soft) 78%);
 }
 /* Un ojo que no parpadea nunca esta muerto. Lo dispara welcome.js a
    intervalos irregulares: a ritmo fijo se oye el metronomo. El de la
