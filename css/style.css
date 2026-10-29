@@ -795,7 +795,3 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
 .vista-cambia::view-transition-new(root){ animation: .35s ease both vt-dentro; }
 @keyframes vt-fuera{ to{ opacity:0; } }
 @keyframes vt-dentro{ from{ opacity:0; } }
-
-@media (prefers-reduced-motion: reduce){
-  *{ transition:none !important; animation:none !important; }
-}

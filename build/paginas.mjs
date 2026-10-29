@@ -344,7 +344,7 @@ try {
   const d = JSON.parse(sessionStorage.getItem('transicion'));
   back = !d && performance.getEntriesByType('navigation')[0]?.type === 'back_forward';
   if (d?.carga) html.style.setProperty('--carga', d.carga);   // el color del loader, del dibujo
-  if (!matchMedia('(prefers-reduced-motion: reduce)').matches && (back || d)) html.classList.add('tapada');
+  if (back || d) html.classList.add('tapada');
 } catch {}
 window.revelada = ${preview ? 'false' : "'onpagereveal' in window"} ? new Promise((done) => addEventListener('pagereveal', (e) => {
   const vt = e.viewTransition;
@@ -455,9 +455,9 @@ window.revelada = ${preview ? 'false' : "'onpagereveal' in window"} ? new Promis
       + `</nav>`;
   }
 
+  // La firma va en la plantilla, no en el JSON (JAMstack, regla 18): el cliente no la borra sin querer.
   const sig = () =>
-    `<p class="sig">${esc(site.credit.label)}: `
-    + `<a href="${site.credit.url}" target="_blank" rel="noopener">${esc(site.credit.name)}</a></p>`;
+    `<p class="sig">web: <a href="https://meowrhino.studio" target="_blank" rel="noopener">meowrhino estudio</a></p>`;
 
   const foot = () => `</body>\n</html>\n`;
 

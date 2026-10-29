@@ -86,7 +86,7 @@ if (lista) {
   // con fundido si el navegador sabe (View Transitions); si no, de golpe
   document.querySelector('.vistas .vista')?.addEventListener('click', () => {
     const otra = document.body.dataset.vista === 'tunel' ? 'lista' : 'tunel';
-    if (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (document.startViewTransition) {
       // .vista-cambia: el fundido de esta (css/style.css), no el de ir a otra pagina
       const html = document.documentElement;
       html.classList.add('vista-cambia');

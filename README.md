@@ -39,7 +39,7 @@ al publicar. Oriol no instala nada.
   enseña igual. En las dos copias la Action abre un issue con el error (etiqueta
   `build`), que GitHub manda por correo, y lo cierra cuando el build vuelve a
   pasar. Sin esto, en la de Oriol el error se quedaba en su Cloudflare y él no
-  se enteraba. Cómo arreglarlo: [CLAUDE.md](CLAUDE.md).
+  se enteraba. Cómo arreglarlo: [GUIA.md](GUIA.md#si-sale-en-rojo).
 
 ## Para desarrollo
 
@@ -98,7 +98,7 @@ projects/<slug>/       un proyecto: project.json + img/  <- lo que edita Oriol
 index.html             la vista previa para Live Server (no se publica)
 GUIA.md                para Oriol
 schema/                qué campos lleva cada JSON (VS Code, el build y la vista previa)
-TRASPASO.md            la lista para pasarle su copia
+TRASPASO.md            la lista para pasarle su copia (solo en el repo de meowrhino, como CLAUDE.md)
 build/paginas.mjs      las plantillas: todo el HTML sale de aqui
 build/build.mjs        las escribe en dist/ (Node, en la Action o en Cloudflare)
 build/preview.mjs      las pinta en el navegador (vista previa)

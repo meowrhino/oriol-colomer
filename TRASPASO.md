@@ -26,15 +26,25 @@ Tiempo: unos 20 minutos, más lo que tarden los DNS.
 - [ ] La copia va **sin historial** (la nuestra lleva pruebas y rutas que ya no son). Desde esta carpeta:
       ```bash
       rm -rf /tmp/oriol && mkdir /tmp/oriol && git archive HEAD | tar -x -C /tmp/oriol
-      cd /tmp/oriol && git init -b main && git add -A && git commit -m "La web de Oriol"
+      cd /tmp/oriol && rm CLAUDE.md TRASPASO.md
+      git init -b main && git add -A && git commit -m "La web de Oriol"
       git push https://github.com/<su-usuario>/oriol-colomer.git main
       ```
       (si pide permiso, que nos añada antes como colaboradores, paso 3). Nada de `push --mirror`.
+- [ ] En su copia no van `CLAUDE.md` ni `TRASPASO.md` (son nuestros; se quedan en el repo de
+      meowrhino). `GUIA.md` y `README.md` sí: el README le manda a la GUIA en la primera línea.
 
 ## 2. Cloudflare
 
 - [ ] En su Cloudflare: **Workers & Pages → Create → Import a repository** → `<su-usuario>/oriol-colomer`.
       Lo demás lo lee de `wrangler.jsonc` (instala sharp con `npm install`, build `node build/build.mjs`, sale `dist/`).
+- [ ] **Ojo, es la primera web de la receta que Workers Builds publica en vivo** (tatara va por
+      SFTP). Mirar el primer build entero antes de seguir. Si falla por la versión de Node (Workers
+      Builds no lee `engines` de `package.json`): **Settings → Build → Variables** →
+      `NODE_VERSION` = `22`, y *Retry*. Si aun así no arranca, el respaldo es GitHub Pages en **su**
+      cuenta: en su repo, Settings → Pages → Source *GitHub Actions*, y en `.github/workflows/deploy.yml`
+      quitar la guarda `if: github.repository_owner == 'meowrhino'` del paso que publica. El dominio
+      se apunta entonces a Pages (Settings → Pages → Custom domain) en vez de a Cloudflare.
 - [ ] **Settings → Domains & Routes → Add → Custom domain**: su dominio (y `www`, si lo quiere).
 - [ ] En **su** repo, `data/site.json` → `"url": "https://oriolcolomerdelgado.com"`. Commit y push
       a su repo (no al de meowrhino). Con eso deja de llevar `noindex`.

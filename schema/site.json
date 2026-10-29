@@ -105,21 +105,6 @@
           }
         ]
       }
-    },
-    "credit": {
-      "type": "object",
-      "description": "El crédito de la web, al pie.",
-      "properties": {
-        "label": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "url": {
-          "type": "string"
-        }
-      }
     }
   },
   "$defs": {

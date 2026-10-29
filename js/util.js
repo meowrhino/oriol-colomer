@@ -4,9 +4,9 @@
    reducida estaba escrita cuatro veces, y la interpolacion dos.
    ============================================================ */
 
-/** El sistema pide que no haya movimiento. Se mira una vez al cargar,
-    igual que antes: un cambio de ajuste a media sesion no se recoge. */
-export const seco = matchMedia('(prefers-reduced-motion: reduce)').matches;
+/** Antes miraba prefers-reduced-motion; ya no (JAMstack, regla 11): con
+    "reducir movimiento" activado en el sistema la web salia sin su diseno. */
+export const seco = false;
 
 /** Deja `v` dentro de [a, b]. */
 export const lim = (v, a, b) => Math.min(b, Math.max(a, v));
