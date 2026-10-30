@@ -69,6 +69,10 @@ Con él delante, siguiendo [GUIA.md](GUIA.md) ("La primera vez: preparar VS Code
 
 - [ ] Clona **su** repositorio, no el de meowrhino, en una carpeta **fuera de Google Drive** (ni iCloud ni Dropbox).
       El repo ya lleva `.vscode/settings.json`: *Sync* pone sus commits encima de los nuestros sin preguntar.
+- [ ] Su nombre para git (GUIA, paso 3), en la terminal de VS Code: `git config --global user.name "Oriol Colomer"`
+      y `git config --global user.email "138407680+ics-de@users.noreply.github.com"` (el noreply de su
+      cuenta: `gh api users/ics-de --jq .id` + `+ics-de@users.noreply.github.com`). Sin esto, el primer
+      *Confirmar* se para.
 - [ ] Live Server: **Go Live** y ve la vista previa.
 - [ ] Un cambio pequeño (una coma en el about), Confirmar → Sincronizar, y la bolita verde en GitHub.
 - [ ] El aviso: quitar una coma a propósito, subirlo, y que le llegue el correo de GitHub

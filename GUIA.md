@@ -35,7 +35,16 @@ Solo se hace una vez.
 2. Al abrirla, VS Code te propone instalar **Live Server** (abajo a la derecha):
    **Instalar**. Si no sale, búscalo en la pestaña de extensiones (los cuatro
    cuadraditos de la izquierda).
-3. Listo: abajo a la derecha aparece **Go Live**.
+3. **Dile a git quién eres** (si no, al primer *Confirmar* sale "Make sure you
+   configure your user.name and user.email"): **Terminal → Nueva terminal**, y pega
+   estas dos líneas, una cada vez, con Intro:
+   ```
+   git config --global user.name "Oriol Colomer"
+   git config --global user.email "138407680+ics-de@users.noreply.github.com"
+   ```
+   El correo es el que GitHub te da para esto: tus cambios salen a tu nombre sin
+   que se vea tu correo de verdad. Una vez por ordenador.
+4. Listo: abajo a la derecha aparece **Go Live**.
 
 ## Añadir un proyecto, paso a paso
 
