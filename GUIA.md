@@ -258,6 +258,7 @@ Lo que no cuadra también sale aquí, antes de subir:
 | `email` | El correo. En la web no va escrito: sale un botón "email" que lo enseña al clicarlo, para que no lo recojan los robots de spam. |
 | `social` | Las redes del about, la dirección entera: `"https://github.com/…"`. El texto sale solo: `@usuario` en Instagram y el nombre de la web en las demás. |
 | `autoEnter` | Segundos que espera la portada antes de entrar sola al túnel. `0` para que no entre sola. |
+| `tunnel` | El tamaño de las cartas del túnel: `{ "card": 36, "cardMobile": 76 }`. Es el % del ancho de la pantalla que ocupa una carta 16:9 cuando está delante, en ordenador y en móvil. Las de otra proporción ocupan la misma superficie: una panorámica sale más ancha y más baja, una cuadrada más estrecha y más alta. Hay topes para que no se pase: en ordenador entre 240 y 500 px, en móvil hasta 340 px, y nunca más alta que el 70 % de la pantalla. |
 | `tagline` | La frase que sale en Google y al compartir el enlace. |
 | `url` | El dominio, cuando lo haya: `"https://oriolcolomerdelgado.com"`. Hasta entonces, `null`, y Google no la indexa. |
 | `menu` | Los textos de los botones, en los tres idiomas. |

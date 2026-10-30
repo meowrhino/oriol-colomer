@@ -72,6 +72,25 @@
       "minimum": 0,
       "description": "Segundos que espera la portada antes de entrar sola. 0: no entra sola."
     },
+    "tunnel": {
+      "type": "object",
+      "description": "El tamaño de las cartas del túnel, en % del ancho de la pantalla (una carta 16:9; las demás ocupan la misma superficie). Si falta, 36 en ordenador y 76 en móvil.",
+      "additionalProperties": false,
+      "properties": {
+        "card": {
+          "type": "number",
+          "minimum": 5,
+          "maximum": 100,
+          "description": "En ordenador: % del ancho de la pantalla que ocupa una carta 16:9 cuando está delante. Nunca baja de 240 px ni pasa de 500 px."
+        },
+        "cardMobile": {
+          "type": "number",
+          "minimum": 5,
+          "maximum": 100,
+          "description": "En móvil (pantallas de hasta 820 px): lo mismo. Nunca pasa de 340 px."
+        }
+      }
+    },
     "tagline": {
       "$ref": "#/$defs/texto",
       "description": "La frase que sale en Google y al compartir la portada."

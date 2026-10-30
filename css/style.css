@@ -590,7 +590,8 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
      lado de una casi cuadrada. --ancho es el de una 16:9; las demas lo
      escalan por la raiz de su proporcion (--r, la pone tunnel.js). Sin
      sqrt() en el navegador, todas a --ancho como antes. */
-  --ancho: min(clamp(240px, 36vw, 500px), 70dvh);
+  /* el 36vw / 76vw salen de site.json → tunnel (card, cardMobile) */
+  --ancho: min(clamp(240px, var(--carta, 36vw), 500px), 70dvh);
   width: var(--ancho);
   width: min(calc(var(--ancho) * sqrt(var(--r, 1.7778) / 1.7778)), 88vw);
   aspect-ratio:16/9;                       /* hasta saber la de su portada (util.js) */
@@ -724,7 +725,7 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   .vistas button, .menu .cabeza, .opciones button{
     padding:1rem 0; margin:-1rem 0;    /* lo mismo arriba y abajo: no cambia el alto */
   }
-  .carta{ --ancho: min(340px, 76vw, 64dvh); }
+  .carta{ --ancho: min(340px, var(--carta-movil, 76vw), 64dvh); }
 }
 
 /* Pantallas bajas (movil en horizontal): la barra del tiempo se arrima al
@@ -755,7 +756,8 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   .tiempo{ left:auto; right:0; bottom: var(--edge-y); width:3rem; padding:0; }   /* top: tunnel.js */
   .barra{ height:100%; }
   .linea, .relleno{ left:50%; top:0; width:1px; height:auto; }
-  .linea{ right:auto; bottom: calc(-1 * var(--edge-y)); }
+  /* la raya sigue hasta los dos bordes de la pantalla, por arriba y por abajo */
+  .linea{ right:auto; top:-100dvh; bottom: calc(-1 * var(--edge-y)); }
   .relleno{ height:0; }                   /* la altura la pone tunnel.js */
   .marca{ left:50%; width:44px; height:30px; }
   .pomo{ left:50%; }

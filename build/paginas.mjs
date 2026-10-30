@@ -374,7 +374,7 @@ window.revelada = ${preview ? 'false' : "'onpagereveal' in window"} ? new Promis
 
   /* En github.io o sin dominio, noindex: la web aun es de prueba. Los
      proyectos ocultos, siempre. */
-  function head({ lang, title, desc, path, image, jsonld, vel, entrar, vista, auto, indexar = INDEXAR }) {
+  function head({ lang, title, desc, path, image, jsonld, vel, entrar, vista, auto, estilo, indexar = INDEXAR }) {
     const alts = LANGS.map(l =>
       `<link rel="alternate" hreflang="${l}" href="${abs(l, path)}">`
     ).join('\n  ');
@@ -412,7 +412,7 @@ window.revelada = ${preview ? 'false' : "'onpagereveal' in window"} ? new Promis
   <script>try{var s=localStorage,h=document.documentElement.classList,t=s.getItem('tema');if(s.getItem('tipo')==='wingdings')h.add('wingdings');if(t?t==='oscuro':matchMedia('(prefers-color-scheme: dark)').matches)h.add('oscuro')}catch(e){}</script>
   ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld)}</script>` : ''}
 </head>
-<body${entrar ? ` data-entrar="${entrar}"` : ''}${auto ? ` data-auto="${auto}"` : ''}${vista ? ` data-vista="${vista}"` : ''}>
+<body${entrar ? ` data-entrar="${entrar}"` : ''}${auto ? ` data-auto="${auto}"` : ''}${vista ? ` data-vista="${vista}"` : ''}${estilo ? ` style="${estilo}"` : ''}>
 <!-- El fondo se mueve en todas las paginas; la velocidad es lo unico que
      cambia entre la portada y el resto. -->
 <canvas class="dots" id="bg" data-vel="${vel ?? DENTRO}" aria-hidden="true"></canvas>
@@ -560,6 +560,9 @@ ${opciones.map(([v, l], i) => `          <button type="button" data-v="${esc(v)}
       // La vista por defecto ya viene puesta en el HTML: si la pusiera el
       // guion, la lista entera se pintaria y desapareceria al cargar.
       vista: tunel ? 'tunel' : 'lista',
+      // el tamano de las cartas, de site.json → tunnel (css/style.css lo lee)
+      estilo: tunel && site.tunnel ? [['--carta', site.tunnel.card], ['--carta-movil', site.tunnel.cardMobile]]
+        .filter(([, v]) => v > 0).map(([k, v]) => `${k}:${v}vw`).join(';') : '',
       title: `${sec} — ${site.short}`,
       desc: t(site.tagline, lang),
       image: ogImage(items[0]),

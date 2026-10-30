@@ -15,6 +15,7 @@
     "https://www.linkedin.com/in/oriolcolomerdelgado/"
   ],
   "autoEnter": 8,
+  "tunnel": { "card": 36, "cardMobile": 76 },
   "tagline": {
     "en": "Lighting design, concert visuals and music videos. Barcelona.",
     "es": "Diseño de iluminación, visuales de directo y videoclips. Barcelona.",
