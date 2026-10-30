@@ -116,8 +116,7 @@ El `project.json` de `projects/lechatelier-sala-apolo-2025/`:
     {"role": "scenography", "name": "clàudia aguiló", "link": "https://…"}
   ],
   "url": "https://youtu.be/…",
-  "cover": ["thumb"],
-  "photos": ["1", "2", "3"]
+  "cover": ["thumb"]
 }
 ```
 
@@ -131,8 +130,8 @@ El `project.json` de `projects/lechatelier-sala-apolo-2025/`:
 | `text` | El texto, en los tres idiomas: una lista de párrafos, `["primero", "segundo"]`. |
 | `credits` | Una línea por rol: `{"role": "…", "name": "…"}`. El rol sale en **negrita**. Con `"link": "https://…"` el nombre sale enlazado ahí (su web, Instagram, Vimeo, lo que sea); sin `link`, los `@handle` se enlazan solos a Instagram. El link es de toda la línea: si son dos personas con dos links, ponlas en dos líneas. |
 | `url` | Si es de **YouTube**, el vídeo sale embebido el primero, antes de las fotos. Si es otra cosa, sale como "Watch →". Se puede quitar. |
-| `cover` | La portada del túnel y de la lista: `["thumb"]` si en `img/` hay un `thumb.webp` o `thumb.webm`. Puede ser una foto, un **webp animado** o un **vídeo**, y entonces se mueve. Sale con su proporción, sin recortar. Si no lo pones, se usa la primera de `photos` (quieta, si es un vídeo: para que se mueva, ponla también aquí, `["1"]`). La portada no sale en la página del proyecto: si quieres que salga, ponla también en `photos` (`["thumb", "1", "2"]`). |
-| `photos` | Fotos y vídeos del proyecto, en orden, **por su número y sin extensión**: `"3"` es `img/3.webp` o `img/3.webm`, el que haya. También puede ir una **pieza interactiva** (ver abajo). |
+| `cover` | La portada del túnel y de la lista: `["thumb"]` si en `img/` hay un `thumb.webp` o `thumb.webm`. Puede ser una foto, un **webp animado** o un **vídeo**, y entonces se mueve. Sale con su proporción, sin recortar. Si no lo pones, se usa la primera de `photos` (quieta, si es un vídeo: para que se mueva, ponla también aquí, `["1"]`). La portada no sale en la página del proyecto: si quieres que salga, pon `photos` con ella dentro (`["thumb", "1", "2"]`). |
+| `photos` | **Normalmente no hace falta**: salen las de `img/` por su número, `1`, `2`, `3`… seguidas, hasta el primero que no esté (si falta el 4, el 5 no sale: la vista previa avisa). Ponlo solo para otro orden, para saltarte alguna, para que salga la portada (`["thumb", "1", "2"]`) o para una **pieza interactiva** (ver abajo). Van **por su número y sin extensión**: `"3"` es `img/3.webp` o `img/3.webm`, el que haya. |
 
 Cuidado con las comas: entre campo y campo va una, y **después del último no**.
 Si se te escapa una, la vista previa te dice en qué línea está.
@@ -174,16 +173,17 @@ projects/la-roda-ouineta/
     thumb.poster.webp  su fotograma
 ```
 
-- **Nombres**: `1`, `2`, `3`… sin cero delante, como salen de imgToWeb. En
-  `photos` van sin la extensión: `["1", "2", "3"]`.
+- **Nombres**: `1`, `2`, `3`… sin cero delante, como salen de imgToWeb. Salen
+  en ese orden, y seguidos: si falta el `4`, del `5` en adelante no sale ninguno.
 - **El fotograma de un vídeo** (`.poster.webp`) es lo que se ve mientras el vídeo
   carga, y lo que sale en el túnel si ese vídeo es la portada. Lo hace
   videoToWeb con la casilla "fotograma". Si no está, el vídeo funciona igual,
   pero hasta que carga hay un hueco.
 - **Si numeras las fotos y los vídeos por separado** (imgToWeb y videoToWeb
   cuentan cada uno desde `1`), cambia el nombre a mano para que no se repita:
-  un `1.webm` y un `1.webp` en la misma carpeta no pueden ir los dos en
-  `photos` (el `"1"` sería la foto).
+  con un `1.webm` y un `1.webp` en la misma carpeta solo sale la foto. Dos
+  vídeos, una foto, un vídeo y dos fotos, en ese orden: `1.webm`, `2.webm`,
+  `3.webp`, `4.webm`, `5.webp`, `6.webp` (y el `.poster.webp` de cada vídeo).
 - **La portada** (`cover`) es opcional. Puede ser una foto (`thumb.webp`), un GIF
   pasado por imgToWeb (`thumb.webp`, animado) o un vídeo corto: 3–6 s en **480p**
   (`thumb.webm` y su `thumb.poster.webp`). En el túnel se ven todas las portadas a
@@ -294,8 +294,8 @@ el fichero y qué pasa:
   falta o uno escrito de otra manera. Dice el campo y, entre paréntesis, cómo va.
 
 - **"✗ la-roda-ouineta: "5": no hay ningun 5.webp … en projects/la-roda-ouineta/img/"**
-  → en `photos` hay una foto que no está en `img/` (o con otro número). Ponla, o
-  quítala de la lista.
+  → en `photos` (o en `cover`) hay una foto que no está en `img/` (o con otro
+  número). Ponla, o quítala de la lista.
 
 Los avisos con ⚠ no paran nada: solo dicen que algo quizá no es como querías
 (una foto que pesa demasiado, un GIF, un texto que falta en un idioma).

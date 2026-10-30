@@ -102,10 +102,11 @@ async function arrancar() {
      al servidor solo se le puede preguntar de forma asincrona. Asi que se
      pinta en seco, apuntando lo que se pregunta; se pregunta todo de una
      vez al servidor, y se repite hasta que no quedan preguntas nuevas
-     (una respuesta puede abrir otra: si hay poster, ¿hay miniatura?). */
+     (una respuesta puede abrir otra: si hay poster, ¿hay miniatura?; sin
+     "photos", si esta el 5, ¿esta el 6?). */
   const montar = existe => crearSitio({ site, about, proyectos: datos, base: BASE, existe,
     peso: r => pesos.get(r), preview: true });
-  for (let vuelta = 0; vuelta < 6; vuelta++) {
+  for (let vuelta = 0; vuelta < 12; vuelta++) {
     const nuevas = new Set();
     const sitio = montar(r => (hay.has(r) ? hay.get(r) : (nuevas.add(r), false)));
     sitio.revisar();

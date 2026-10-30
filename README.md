@@ -33,7 +33,7 @@ al publicar. Oriol no instala nada.
 - **Ocultos**: `{ "project": "x", "visible": false }` en una lista: su página con
   `noindex`, fuera del índice, del túnel, del anterior/siguiente y del sitemap.
 - **Si el build falla**: lo que tiene ✗ para y no se publica nada (una coma, un
-  campo mal escrito, una foto de `photos` que no está); la vista previa lo
+  campo mal escrito, una foto de `photos` o `cover` que no está); la vista previa lo
   enseña igual. En las dos copias la Action abre un issue con el error (etiqueta
   `build`), que GitHub manda por correo, y lo cierra cuando el build vuelve a
   pasar. Cómo arreglarlo: [GUIA.md](GUIA.md#si-sale-en-rojo).
@@ -125,6 +125,14 @@ Los enlaces internos van a `?p=/ruta/`, porque Live Server solo tiene un
 
 Los 404 que salen en la consola de la vista previa son esas preguntas: ficheros
 que podrían estar (el mp4 de respaldo, un poster) y no están. No son errores.
+
+### Las fotos de un proyecto
+
+Sin `photos` en el JSON, las de `img/` por su número: `1`, `2`, `3`… hasta el
+primero que no está (`fotos()` en `paginas.mjs`; se preguntan de cinco en cinco
+para que la vista previa, que pregunta por vueltas, acabe en pocas). Si hay un
+hueco, la revisión avisa. `photos` manda cuando está: otro orden, la portada
+dentro, una pieza interactiva.
 
 ### Los ficheros de un vídeo
 

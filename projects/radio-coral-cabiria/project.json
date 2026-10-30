@@ -36,6 +36,5 @@
     {"role": "management", "name": "@booking_fee"},
     {"role": "venue", "name": "@lanaubcn"}
   ],
-  "cover": ["thumb"],
-  "photos": ["1", "2", "3", "4", "5", "6"]
+  "cover": ["thumb"]
 }

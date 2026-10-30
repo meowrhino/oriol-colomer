@@ -30,6 +30,5 @@
     {"role": "video production", "name": "@fomotrauma"},
     {"role": "photography", "name": "@armandcarrillo_"}
   ],
-  "cover": ["thumb"],
-  "photos": ["1", "2", "3", "4"]
+  "cover": ["thumb"]
 }

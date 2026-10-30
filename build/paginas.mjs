@@ -187,6 +187,23 @@ export function crearSitio({ site, about, proyectos, base = '', origen = '', ind
 
   /** Un fichero de un proyecto, con su extension. */
   const fichero = (p, m) => enCarpeta(p, m, existe);
+  /** Si en img/ hay un N.webp, N.webm… */
+  const hayNumero = (p, n) => EXTS.some(e => existe(`projects/${p.slug}/img/${n}.${e}`));
+  /** Las fotos de un proyecto: "photos" si lo trae (otro orden, la portada
+      dentro, una pieza); si no, img/1, 2, 3… seguidas, hasta el primer numero
+      que no esta. Se preguntan de cinco en cinco para que la vista previa,
+      que pregunta al servidor por vueltas, acabe en pocas. */
+  const fotos = p => {
+    if (p.photos) return p.photos;
+    const lista = [];
+    for (let n = 1; ; n += 5) {
+      const bloque = Array.from({ length: 5 }, (_, i) => String(n + i));
+      const estan = bloque.map(m => hayNumero(p, m));   // los cinco, para que la vista previa pregunte de golpe
+      const corte = estan.indexOf(false);
+      lista.push(...bloque.slice(0, corte < 0 ? 5 : corte));
+      if (corte >= 0) return lista;
+    }
+  };
   /** Un texto en un idioma, o en el del sitio si falta. Un texto que es
       igual en todos los idiomas puede ir sin ellos: "Make up & hair". */
   const t = (obj, l) => typeof obj === 'string' ? obj : (obj && (obj[l] || obj[DEF])) || '';
@@ -243,7 +260,7 @@ export function crearSitio({ site, about, proyectos, base = '', origen = '', ind
       const pj = poster(th);
       return { img: pj ? chica(pj) : '', video: fuentes(th) };
     }
-    const todo = (p.photos || []).map(x => fichero(p, x)).filter(x => !esPieza(x));
+    const todo = fotos(p).map(x => fichero(p, x)).filter(x => !esPieza(x));
     const m = todo[0];
     if (!m) return null;
     if (!esVideo(m)) return { img: chica(m), video: null };
@@ -261,7 +278,7 @@ export function crearSitio({ site, about, proyectos, base = '', origen = '', ind
       vista previa si pesa mas de 300 KB: entonces va la version chica. */
   const ogImage = p => {
     if (!p) return OG;
-    const m = (p.photos || []).map(x => fichero(p, x)).filter(x => !esPieza(x));
+    const m = fotos(p).map(x => fichero(p, x)).filter(x => !esPieza(x));
     const f = m.find(x => !esVideo(x)) || m.map(poster).find(Boolean) || cover(p)?.img;
     if (!f) return OG;
     return og(f) || (existe(f) && peso(f) > 300 * 1024 ? chica(f) : f);
@@ -608,7 +625,7 @@ ${tunel ? `<!-- Linea del tiempo: una raya de lado a lado y cada proyecto en su 
     const parrafos = [].concat(t(p.text, lang) || []);
     const desc = parrafos.join(' ');
     const sub  = t(p.subheader, lang);
-    const archivos = (p.photos || []).map(m => fichero(p, m));
+    const archivos = fotos(p).map(m => fichero(p, m));
 
     const yt = youtube(p.url);
     /* En lab la pieza manda: va arriba a pantalla entera y el resto, texto
@@ -816,8 +833,15 @@ ${LANGS.map(l => `  <p lang="${l}">${esc(t(site.menu.notFound, l))}</p>`).join('
       if (!p.published) return;             // los borradores no se revisan mas
 
       if (!t(p.text, DEF)?.length) aviso(quien, `falta el texto en "${DEF}"`);
-      if (!p.photos?.length && !p.cover?.length) aviso(quien, 'no tiene ni photos ni cover: en el tunel saldra un hueco gris');
-      const ficheros = [...(p.photos || []), ...(p.cover || [])];
+      const lasFotos = fotos(p);
+      if (!lasFotos.length && !p.cover?.length) aviso(quien, 'no tiene fotos (ni 1.webp en img/ ni "photos" ni "cover"): en el tunel saldra un hueco gris');
+      // Sin "photos" van seguidas: si falta el 4 pero hay un 5, el 5 no sale
+      if (!p.photos) {
+        const n = lasFotos.length + 1;
+        const salto = [n + 1, n + 2, n + 3].find(k => hayNumero(p, k));
+        if (salto) aviso(quien, `en img/ hay un ${salto} pero no un ${n}: a partir del ${n} no sale ninguno (renumera, o ponlos en "photos")`);
+      }
+      const ficheros = [...lasFotos, ...(p.cover || [])];
       for (const m of ficheros) {
         const f = fichero(p, m);
         if (!EXT.test(f)) aviso(quien, `"${m}": formato que la web no sabe ensenar (usa webp, jpg, png, gif, webm, mp4 o una pieza .html)`, true);

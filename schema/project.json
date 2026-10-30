@@ -99,7 +99,7 @@
       "items": {
         "type": "string"
       },
-      "description": "Fotos y vídeos, en orden, por su número y sin extensión: \"3\" es img/3.webp o img/3.webm. La primera es la que sale al compartir. Una pieza interactiva, con su ruta: \"web/index.html\"."
+      "description": "Normalmente no hace falta: salen img/1, 2, 3… seguidas, hasta el primer número que no esté. Ponlo solo para otro orden, para saltarte alguna, para que salga la portada ([\"thumb\", \"1\"]) o para una pieza interactiva, con su ruta: \"web/index.html\". Van por su número y sin extensión: \"3\" es img/3.webp o img/3.webm. La primera es la que sale al compartir."
     }
   },
   "$defs": {
