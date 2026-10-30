@@ -28,11 +28,11 @@ if (ojo && destino) {
   let meta = { x: 0, y: 0 }, pos = { x: 0, y: 0 }, vel = { x: 0, y: 0 };
   let raf = 0;
 
-  // la luz, en reposo arriba a la izquierda (32 % 28 %, como la bola de
-  // todas partes); hacia el cursor se va hasta el borde, sin salirse
+  // la luz, en reposo arriba a la izquierda (34 % 30 %, como en --bola);
+  // hacia el cursor se va hasta el borde, sin salirse
   const pintar = () => {
-    pupila.style.setProperty('--gx', (32 + pos.x * 30).toFixed(1) + '%');
-    pupila.style.setProperty('--gy', (28 + pos.y * 30).toFixed(1) + '%');
+    pupila.style.setProperty('--gx', (34 + pos.x * 30).toFixed(1) + '%');
+    pupila.style.setProperty('--gy', (30 + pos.y * 30).toFixed(1) + '%');
   };
   const paso = () => {
     raf = 0;

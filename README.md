@@ -178,7 +178,10 @@ Sin sombra: la profundidad la dicen el tamaño, el desenfoque y el color.
 Toda la pantalla mueve la cámara (rueda, arrastre, flechas, `Inicio`/`Fin`); en el
 teléfono un gesto rápido sigue un poco al soltar. Clicar una carta del fondo te
 lleva hasta ella; la de delante entra al proyecto. La línea del tiempo coloca
-cada proyecto en su fecha real; su pomo avanza con la cámara y se arrastra.
+cada proyecto en su fecha real; su pomo avanza con la cámara y se arrastra. En el
+móvil va en vertical a la derecha (el más antiguo arriba, el más reciente abajo),
+con los botones abajo a la izquierda y el nombre del proyecto abajo a la derecha
+(2026-10-30).
 
 | perilla | qué hace |
 |---|---|

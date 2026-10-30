@@ -81,6 +81,14 @@ if (zona && lista && escena) {
   const acercar = (a, b, k) => { const v = a + (b - a) * k; return Math.abs(b - v) < EPS ? b : v; };
   const dias = d => { const [y, m, x] = d.split('-').map(Number); return Date.UTC(y, m - 1, x) / 864e5; };
   const movil = () => innerWidth <= 820;
+  /* En el movil la linea del tiempo va en vertical, a la derecha: el mas
+     antiguo arriba (0) y el mas reciente abajo (1). Lo que en horizontal
+     es "left" ahi es "top"; al cambiar, se limpia el otro. */
+  const colocar = (el, t) => {
+    const v = movil();
+    el.style[v ? 'top' : 'left'] = (t * 100).toFixed(3) + '%';
+    el.style[v ? 'left' : 'top'] = '';
+  };
 
   /* ---- la linea del tiempo ----------------------------------
      T[i] = donde cae el proyecto i en la barra, de 0 (el mas antiguo, a
@@ -100,7 +108,7 @@ if (zona && lista && escena) {
     const t0 = Math.min(...f), span = Math.max(...f) - t0;
     const eq = igual();
     T = porFecha && span > 0 ? separar(f.map((v, i) => ((v - t0) / span + eq[i]) / 2)) : eq;
-    puntos.forEach((b, i) => b && (b.style.left = (T[i] * 100).toFixed(3) + '%'));
+    puntos.forEach((b, i) => b && colocar(b, T[i]));
   }
   /* Por fecha, dos proyectos de la misma semana salian con las bolas una
      encima de otra. Cada hueco entre bolas tiene un minimo en pixeles; lo
@@ -193,7 +201,7 @@ if (zona && lista && escena) {
       if (!marcas) return null;
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'marca';
-      b.style.left = (T[i] * 100).toFixed(3) + '%';
+      colocar(b, T[i]);
       b.title = `${d.rotulo} · ${d.pie}`;
       b.setAttribute('aria-label', `${d.rotulo}, ${d.pie}`);
       // solo el teclado llega aqui: los toques los resuelve la barra entera
@@ -242,7 +250,10 @@ if (zona && lista && escena) {
     if (datos.length) repartir();   // el corte movil, y el hueco minimo va en pixeles
     if (!cartas.length) return;
     const arriba = (document.querySelector('.topbar')?.offsetHeight || 0) + 8;
-    const abajo  = (document.getElementById('tiempo')?.offsetHeight || 0) + 24;
+    // en el movil la linea es alta: abajo solo estan el rotulo y los botones
+    const tiempo = document.getElementById('tiempo');
+    if (tiempo) tiempo.style.top = movil() ? arriba + 'px' : '';
+    const abajo  = (movil() ? rotulo?.offsetHeight || 0 : tiempo?.offsetHeight || 0) + 24;
     const cy = OPTICO * al;
     const banda = Math.max(0, Math.min(cy - arriba, al - abajo - cy));
     const desborde = movil() ? DESBORDE * an : 0;
@@ -299,9 +310,12 @@ if (zona && lista && escena) {
 
     // el pomo avanza a la vez que la camara, no a saltos de bola en bola
     const donde = (enBarra(prof) * 100).toFixed(3) + '%';
-    if (pomo) pomo.style.left = donde;
+    if (pomo) colocar(pomo, enBarra(prof));
     // la raya empieza en el borde de la pantalla, no en el de la barra
-    if (relleno) relleno.style.width = `calc(var(--pad) + ${donde})`;
+    if (relleno) {
+      relleno.style.width  = movil() ? '' : `calc(var(--pad) + ${donde})`;
+      relleno.style.height = movil() ? donde : '';
+    }
     situarRotulo();
 
     const cerca = lim(Math.round(prof), 0, ultimo);
@@ -323,6 +337,7 @@ if (zona && lista && escena) {
      barra para que no se salga en el primero ni en el ultimo. */
   function situarRotulo() {
     if (!rotulo || !barra || !datos.length) return;
+    if (movil()) { rotulo.style.left = ''; return; }   // abajo a la derecha, fijo (css)
     const ancho = barra.offsetWidth, propio = rotulo.offsetWidth;
     if (!ancho || !propio) return;
     const x = enBarra(prof) * ancho;
@@ -465,8 +480,8 @@ if (zona && lista && escena) {
   if (barra) {
     const desdeX = e => {
       const r = barra.getBoundingClientRect();
-      if (!r.width) return;
-      meta = enTunel(lim((e.clientX - r.left) / r.width, 0, 1));
+      if (!r.width || !r.height) return;
+      meta = enTunel(lim(movil() ? (e.clientY - r.top) / r.height : (e.clientX - r.left) / r.width, 0, 1));
       despertar();
     };
     barra.addEventListener('pointerdown', e => {

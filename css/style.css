@@ -227,30 +227,18 @@ html.wingdings .langs, html.wingdings .langs *{ font-family: Helvetica, 'Helveti
   width: clamp(120px, 11vw, 168px);
   aspect-ratio: 160 / 102;
 }
-/* La bola, con brillo: un punto blanco nitido arriba a la izquierda. Con
-   solo la bola (luz difusa) se veia muerta (Oriol, 2026-10). El fondo es
-   mas hondo que la bola para que el punto se lea.
-
-   Gira hacia el raton: welcome.js mueve la luz (--gx, --gy) con un muelle,
-   y el sombreado va 8 puntos por detras del brillo, como en reposo. Era un
-   ojo con contorno (assets/eye_shape.png) que parpadeaba; fuera desde el
-   2026-10-30, a peticion de manu: la bola sola, sin parpadeo. */
+/* La bola: la misma que el pomo de la linea del tiempo (--bola-activa,
+   luz arriba a la izquierda), solo que aqui la luz se mueve: welcome.js la
+   lleva hacia el raton (--gx, --gy) con un muelle, y asi gira. Era un ojo
+   con contorno (assets/eye_shape.png) que parpadeaba; fuera desde el
+   2026-10-30, a peticion de manu. */
 .eye .pupil{
   position:absolute; left:50%; top:50%;
   width:43.75%;                       /* 70/160, lo que medía la pupila del ojo */
   aspect-ratio:1; border-radius:50%;
   translate:-50% -50%;
-  --gx: 32%; --gy: 28%;
-  background:
-    radial-gradient(circle at var(--gx) var(--gy), #fff 0 11%, transparent 12.5%),
-    radial-gradient(circle at calc(var(--gx) + 8%) calc(var(--gy) + 8%), var(--ink-soft) 0%, var(--ink-hard) 78%);
-}
-/* En oscuro las tintas van del reves: sin esto el borde salia mas claro
-   que el centro y la bola parecia hundida. */
-html.oscuro .eye .pupil{
-  background:
-    radial-gradient(circle at var(--gx) var(--gy), #fff 0 11%, transparent 12.5%),
-    radial-gradient(circle at calc(var(--gx) + 8%) calc(var(--gy) + 8%), var(--ink-hard) 0%, var(--ink-soft) 78%);
+  --gx: 34%; --gy: 30%;
+  background: radial-gradient(circle at var(--gx) var(--gy), var(--luz) 0%, var(--ink) 82%);
 }
 
 .eye .name{
@@ -754,7 +742,26 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
 /* en la portada, abajo al centro */
 .landing .langs{ right:auto; left:50%; translate:-50% 0; }
 @media (max-width: 820px){
-  body[data-vista="tunel"] .controles .langs{ position:static; translate:none; order:-1; }
+  /* En el tunel del movil: la linea del tiempo en vertical a la derecha (el
+     mas antiguo arriba, el mas reciente abajo; tunnel.js pone top en vez de
+     left), los botones abajo a la izquierda y el nombre del proyecto abajo
+     a la derecha, junto a la linea y a la altura de los botones. */
+  body[data-vista="tunel"] .controles .langs{
+    position:fixed; left: var(--pad); bottom: var(--edge-y); translate:none; margin:0; z-index:3;
+  }
+  .tiempo{ left:auto; right:0; bottom: var(--edge-y); width:3rem; padding:0; }   /* top: tunnel.js */
+  .barra{ height:100%; }
+  .linea, .relleno{ left:50%; top:0; width:1px; height:auto; }
+  .linea{ right:auto; bottom: calc(-1 * var(--edge-y)); }
+  .relleno{ height:0; }                   /* la altura la pone tunnel.js */
+  .marca{ left:50%; width:44px; height:30px; }
+  .pomo{ left:50%; }
+  .rotulo{
+    position:fixed; left:auto; right:3.3rem; bottom: var(--edge-y); translate:none; margin:0;
+    max-width: calc(100vw - 3.3rem - var(--pad) - 7.5rem);   /* lo que dejan los botones */
+    text-align:right; line-height:1.25;
+  }
+  .rotulo i{ display:block; margin-left:0; }
   body[data-vista="lista"] .controles .langs{ display:none; }
   body[data-vista="lista"]{ display:flex; flex-direction:column; min-height:100dvh; }
   body[data-vista="lista"] .wrap{ flex:1; display:flex; flex-direction:column; padding-bottom:0; }
