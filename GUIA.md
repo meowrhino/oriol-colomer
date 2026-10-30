@@ -60,9 +60,8 @@ dirección pasa de `/lab/<slug>/` a `/work/<slug>/`).
 
 - **Esconderlo** (se puede volver a sacar): quita su slug de la lista en
   `data/site.json`. Deja de salir en la web, pero su carpeta sigue ahí (y se
-  puede ver en la vista previa). **No es privado**: el repositorio es público,
-  así que el texto y las fotos se ven en GitHub, y las fotos también en la web
-  si alguien adivina la dirección.
+  puede ver en la vista previa). En la web no queda nada suyo, ni las fotos;
+  pero si el repositorio es público, el texto y las fotos se ven en GitHub.
 - **Esconderlo, pero poder mandarlo** a alguien: en la lista, en vez del slug,
   `{ "project": "la-roda-ouineta", "visible": false }`. Tiene su página
   (`/work/la-roda-ouineta/`), pero no sale en la lista, ni en el túnel, ni en

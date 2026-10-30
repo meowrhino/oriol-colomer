@@ -218,8 +218,9 @@ for (const dir of ['css', 'js', 'assets']) {
   if (existsSync(join(ROOT, dir))) cpSync(join(ROOT, dir), join(OUT, dir), { recursive: true });
 }
 // las fotos y videos de cada proyecto, en el mismo sitio que en el repo; el
-// project.json no, que ya va dentro del HTML
-for (const slug of slugs) {
+// project.json no, que ya va dentro del HTML. Los borradores no: no tienen
+// pagina, y Workers no publica nada si un fichero pasa de 25 MiB (spacetime)
+for (const { slug } of proyectos.filter(p => p.published)) {
   const img = join(ROOT, 'projects', slug, 'img');
   if (existsSync(img)) cpSync(img, join(OUT, 'projects', slug, 'img'), { recursive: true });
 }
