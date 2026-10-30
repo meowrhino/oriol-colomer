@@ -40,10 +40,10 @@ Solo se hace una vez.
    estas dos líneas, una cada vez, con Intro:
    ```
    git config --global user.name "Oriol Colomer"
-   git config --global user.email "138407680+ics-de@users.noreply.github.com"
+   git config --global user.email "oriolcolomerdelgado@gmail.com"
    ```
-   El correo es el que GitHub te da para esto: tus cambios salen a tu nombre sin
-   que se vea tu correo de verdad. Una vez por ordenador.
+   El correo, el de tu cuenta de GitHub: así tus cambios salen a tu nombre. Una
+   vez por ordenador.
 4. Listo: abajo a la derecha aparece **Go Live**.
 
 ## Añadir un proyecto, paso a paso
