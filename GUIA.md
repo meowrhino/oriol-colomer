@@ -44,7 +44,10 @@ Solo se hace una vez.
    ```
    El correo, el de tu cuenta de GitHub: así tus cambios salen a tu nombre. Una
    vez por ordenador.
-4. Listo: abajo a la derecha aparece **Go Live**.
+4. **Que VS Code mire GitHub solo**: **Archivo → Preferencias → Configuración**,
+   busca `git.autofetch` y márcalo. Si no, cuando manu sube cambios no te enteras
+   hasta que los pides a mano (ver "Traer lo nuevo", más abajo).
+5. Listo: abajo a la derecha aparece **Go Live**.
 
 ## Añadir un proyecto, paso a paso
 
@@ -91,8 +94,16 @@ Live Server solo enseña: no sube nada. Para publicar:
    una bolita: amarilla es que está publicando, verde que ya está, roja que algo
    no cuadra (ver "Si sale en rojo", al final).
 
-**Antes de empezar a tocar**, dale también a **Sincronizar**: si has cambiado algo
-desde la web de GitHub, así lo bajas y no se pisan.
+### Traer lo nuevo: antes de empezar a tocar
+
+Si manu ha subido cambios (o tú desde la web de GitHub), primero bájalos, y así no
+se pisan: abajo a la izquierda, al lado de `main`, el botón **⟳ Sincronizar**. Si
+hay algo nuevo sale una flecha hacia abajo con un número; al pulsar, lo baja.
+
+Ojo: el ⟳ de la cabecera del **Graph** no va a GitHub, solo redibuja la lista con lo
+que ya tienes. Si con el de abajo tampoco sale nada, Ctrl+Mayús+P, escribe
+`Git: Fetch` e Intro, y después `Git: Pull`. Con `git.autofetch` marcado (ver "La
+primera vez") la flecha con el número aparece sola.
 
 ## Los campos de un proyecto
 
