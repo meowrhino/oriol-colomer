@@ -746,9 +746,12 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
      mas antiguo arriba, el mas reciente abajo; tunnel.js pone top en vez de
      left), los botones abajo a la izquierda y el nombre del proyecto abajo
      a la derecha, junto a la linea y a la altura de los botones. */
-  body[data-vista="tunel"] .controles .langs{
-    position:fixed; left: var(--pad); bottom: var(--edge-y); translate:none; margin:0; z-index:3;
+  /* Abajo van los controles enteros: tunel/lista primero y luego tema,
+     letra e idioma (los menus de orden y filtro ya no salen en el tunel). */
+  body[data-vista="tunel"] .controles{
+    position:fixed; left: var(--pad); bottom: var(--edge-y); margin:0; z-index:3; gap:.6rem;
   }
+  body[data-vista="tunel"] .controles .langs{ position:static; translate:none; margin:0; }
   .tiempo{ left:auto; right:0; bottom: var(--edge-y); width:3rem; padding:0; }   /* top: tunnel.js */
   .barra{ height:100%; }
   .linea, .relleno{ left:50%; top:0; width:1px; height:auto; }
@@ -758,7 +761,7 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   .pomo{ left:50%; }
   .rotulo{
     position:fixed; left:auto; right:3.3rem; bottom: var(--edge-y); translate:none; margin:0;
-    max-width: calc(100vw - 3.3rem - var(--pad) - 7.5rem);   /* lo que dejan los botones */
+    max-width: calc(100vw - 3.3rem - var(--pad) - 9.5rem);   /* lo que dejan los botones */
     text-align:right; line-height:1.25;
   }
   .rotulo i{ display:block; margin-left:0; }
