@@ -1,7 +1,8 @@
-# Cada push a main pasa el build y, si falla, abre un issue con el error.
-# En nuestra copia, ademas, publica en meowrhino.github.io/oriol-colomer/ (sin
-# indexar). En la de Oriol publica Cloudflare (wrangler.jsonc): aqui solo se
-# comprueba, para que el issue le llegue por correo y no se entere tarde.
+# Cada push a main pasa el build y lo publica en GitHub Pages; si falla, abre un
+# issue con el error. Corre en las dos copias (no Workers: no sirve ficheros de
+# mas de 25 MiB, y las piezas de Unity del lab pasan): en la nuestra sale en
+# meowrhino.github.io/oriol-colomer/ sin indexar; en la de Oriol, en su dominio
+# (build/build.mjs lo decide por el dueño del repo).
 name: build & deploy
 on:
   push:
@@ -30,9 +31,7 @@ jobs:
       - run: node build/build.mjs 2>&1 | tee build.log
         shell: bash
       - uses: actions/configure-pages@v5
-        if: github.repository_owner == 'meowrhino'
       - uses: actions/upload-pages-artifact@v3
-        if: github.repository_owner == 'meowrhino'
         with: { path: dist }
 
       # Si el build falla, un issue con el error: GitHub lo manda por correo y
@@ -67,7 +66,6 @@ jobs:
 
   deploy:
     needs: build
-    if: github.repository_owner == 'meowrhino'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

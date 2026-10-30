@@ -13,10 +13,8 @@ Cuando falla, la web se queda como estaba. Para arreglarlo:
    - En las dos copias (la nuestra, `meowrhino/oriol-colomer`, y la de Oriol),
      la Action abre un issue con la etiqueta `build` y el mensaje dentro:
      `gh issue list --label build` y `gh issue view <n>` (en la suya, con
-     `-R <su-usuario>/oriol-colomer`). El registro entero: `gh run list -L 3` y
+     `-R ics-de/web`). El registro entero: `gh run list -L 3` y
      `gh run view <id> --log-failed`.
-   - En la de Oriol publica Workers Builds, y su registro está en su
-     Cloudflare. No hace falta ir: el paso 2 da el mismo mensaje.
 2. **Reprodúcelo aquí**: `npm ci && node build/build.mjs`. Es el mismo build que
    en la nube y dice lo mismo: cada línea con ✗ trae el fichero y qué pasa.
 3. **Arréglalo donde dice**, casi siempre en `data/*.json` o en

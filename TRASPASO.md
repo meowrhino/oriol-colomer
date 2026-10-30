@@ -1,16 +1,15 @@
 # Traspaso: la web a la cuenta de Oriol
 
-Se le pasa una copia del repositorio a su cuenta de GitHub, y la publica su
-Cloudflare con su dominio. El de meowrhino se queda como está, de copia
-nuestra en `meowrhino.github.io/oriol-colomer/` (sin indexar). Desde el
-traspaso son dos repositorios separados: los cambios, en el suyo.
+Se le pasa una copia del repositorio a su cuenta de GitHub (`ics-de/web`), y
+la publica su GitHub Pages con su dominio. El de meowrhino se queda como está,
+de copia nuestra en `meowrhino.github.io/oriol-colomer/` (sin indexar). Desde
+el traspaso son dos repositorios separados: los cambios, en el suyo.
 
 Todo viaja dentro del repositorio: el código, los JSON, las fotos y cómo se
-publica (`wrangler.jsonc`). En su copia la Action solo comprueba el build y,
-si falla, abre un issue que le llega por correo; no publica en GitHub Pages
-(eso lleva `if: github.repository_owner == 'meowrhino'`). Quien publica es
-Cloudflare: el build, al no estar en GitHub, va a la raíz con el `url` de
-`site.json`.
+publica (la Action). Las dos copias publican con la misma Action, y el build
+decide por el dueño del repo: en `meowrhino`, `/oriol-colomer/` y `noindex`; en
+la suya, la raíz con el `url` de `site.json`. Si el build falla, abre un issue
+que le llega por correo.
 
 Tiempo: unos 20 minutos, más lo que tarden los DNS.
 
@@ -18,7 +17,7 @@ Tiempo: unos 20 minutos, más lo que tarden los DNS.
 
 - [ ] `main` está al día y sin cambios a medias (`git status` limpio).
 - [ ] Oriol tiene cuenta de GitHub. Su usuario: `<su-usuario>`.
-- [ ] Oriol tiene cuenta de Cloudflare, y el dominio (`oriolcolomerdelgado.com`, por ejemplo) a mano.
+- [ ] El dominio, `oriolcolomerdelgado.com`, en su Cloudflare (solo el DNS).
 
 ## 1. Su copia
 
@@ -34,25 +33,22 @@ Tiempo: unos 20 minutos, más lo que tarden los DNS.
 - [ ] En su copia no van `CLAUDE.md` ni `TRASPASO.md` (son nuestros; se quedan en el repo de
       meowrhino). `GUIA.md` y `README.md` sí: el README le manda a la GUIA en la primera línea.
 
-## 2. Cloudflare
+## 2. GitHub Pages, en su repo (necesita ser admin: él)
 
-- [ ] En su Cloudflare: **Workers & Pages → Create → Import a repository** → `<su-usuario>/oriol-colomer`.
-      Lo demás lo lee de `wrangler.jsonc` (instala sharp con `npm install`, build `node build/build.mjs`, sale `dist/`).
-- [ ] **Ojo, es la primera web de la receta que Workers Builds publica en vivo** (tatara va por
-      SFTP). Mirar el primer build entero antes de seguir. Si falla por la versión de Node (Workers
-      Builds no lee `engines` de `package.json`): **Settings → Build → Variables** →
-      `NODE_VERSION` = `22`, y *Retry*. Si aun así no arranca, el respaldo es GitHub Pages en **su**
-      cuenta: en su repo, Settings → Pages → Source *GitHub Actions*, y en `.github/workflows/deploy.yml`
-      quitar la guarda `if: github.repository_owner == 'meowrhino'` del paso que publica. El dominio
-      se apunta entonces a Pages (Settings → Pages → Custom domain) en vez de a Cloudflare.
-- [ ] **Settings → Domains & Routes → Add → Custom domain**: su dominio (y `www`, si lo quiere).
-- [ ] En **su** repo, `data/site.json` → `"url": "https://oriolcolomerdelgado.com"`. Commit y push
-      a su repo (no al de meowrhino). Con eso deja de llevar `noindex`.
+Las dos copias publican en GitHub Pages con la misma Action (no Workers: no sirve
+ficheros de más de 25 MiB, y el `.wasm` de spacetime pesa 47). Su repo, **público**
+(Pages gratis no publica privados).
+
+- [ ] **Settings → Pages → Source: GitHub Actions** (sin elegir ningún workflow: ya lo lleva).
+- [ ] **Custom domain**: `oriolcolomerdelgado.com`, y **Enforce HTTPS** cuando GitHub tenga el certificado.
+- [ ] En su Cloudflare, **DNS** del dominio, en *DNS only* (nube gris) hasta que salga el certificado:
+      cuatro `A` en `@` → `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`,
+      y `CNAME` `www` → `ics-de.github.io`. Si había un Worker con el dominio, quitárselo antes.
+- [ ] En su repo, pestaña **Actions**: `build & deploy` en verde.
 
 ## 3. Que nos deje entrar
 
 - [ ] GitHub, en su repo: Settings → Collaborators → `meowrhino`, con **Write** (no hace falta admin).
-- [ ] Cloudflare: Manage account → Members → nos invita. Ahí se ve el error entero de un build que falla.
 
 ## 4. Comprobar en su dominio
 

@@ -11,12 +11,11 @@ cero librerías, cero JavaScript necesario para leer la página. Node aparece en
 un único sitio: `build/build.mjs`, que lee los JSON y escribe los HTML en `dist/`
 al publicar. Oriol no instala nada.
 
-- **Publicar, uno en cada copia**: la nuestra, `.github/workflows/deploy.yml` a
-  GitHub Pages (solo en `meowrhino`); la de Oriol, Workers Builds con
-  `wrangler.jsonc`. La Action corre en las dos: en la suya solo pasa el build,
-  para avisar si falla (abajo). El build mira dónde está: con `GITHUB_ACTIONS`, base
-  `/oriol-colomer` y `noindex`; si no, la raíz y el `url` de `site.json` (con
-  `url`, se indexa). Cómo pasarle la copia: [TRASPASO.md](TRASPASO.md).
+- **Publicar, las dos copias en GitHub Pages**: la misma Action,
+  `.github/workflows/deploy.yml` (no Workers: no sirve ficheros de más de 25 MiB,
+  y las piezas de Unity del lab pasan). El build mira de quién es el repo: en la
+  Action de `meowrhino`, base `/oriol-colomer` y `noindex`; en la de Oriol (o en
+  local), la raíz y el `url` de `site.json` (con `url`, se indexa). Cómo pasarle la copia: [TRASPASO.md](TRASPASO.md).
 - **og:image y miniaturas, con sharp** (`npm ci`), fuera de git: la og, 1200×630
   JPG en `.cache/og/` → `dist/og/`; la miniatura de cada portada, 1200 px webp
   (con su animación) en `.cache/thumb1200/` → `dist/projects/<slug>/img/N.thumb.webp`,
@@ -33,18 +32,16 @@ al publicar. Oriol no instala nada.
   ella; el cambio túnel / lista es un fundido en la misma página (`.vista-cambia`).
 - **Ocultos**: `{ "project": "x", "visible": false }` en una lista: su página con
   `noindex`, fuera del índice, del túnel, del anterior/siguiente y del sitemap.
-- **Cache**: `_headers` (Cloudflare; en GitHub Pages no se puede).
 - **Si el build falla**: lo que tiene ✗ para y no se publica nada (una coma, un
   campo mal escrito, una foto de `photos` que no está); la vista previa lo
   enseña igual. En las dos copias la Action abre un issue con el error (etiqueta
   `build`), que GitHub manda por correo, y lo cierra cuando el build vuelve a
-  pasar. Sin esto, en la de Oriol el error se quedaba en su Cloudflare y él no
-  se enteraba. Cómo arreglarlo: [GUIA.md](GUIA.md#si-sale-en-rojo).
+  pasar. Cómo arreglarlo: [GUIA.md](GUIA.md#si-sale-en-rojo).
 
 ## Para desarrollo
 
 ```bash
-npm run build          # genera dist/ en la raíz, como en Cloudflare
+npm run build          # genera dist/ en la raíz, como en la copia de Oriol
 GITHUB_ACTIONS=true npm run build   # como en GitHub: /oriol-colomer/ y noindex
 npm run media          # convierte lo que haya en projects/*/img/ (necesita: brew install ffmpeg webp)
 npm run media -- --mp4 # lo mismo, y deja un mp4 de respaldo de cada video
@@ -58,7 +55,7 @@ La web ya hecha: un HTML por página y por idioma, más las fotos, el CSS y el
 JS copiados. La escribe `build/build.mjs` a partir de los JSON.
 
 **No está en GitHub** (`.gitignore`) y no hace falta guardarla: cada push la
-vuelve a hacer la Action (o Cloudflare) desde cero y la publica, y se puede rehacer igual
+vuelve a hacer la Action desde cero y la publica, y se puede rehacer igual
 desde cualquier commit. Si aparece en tu carpeta es porque alguien ha lanzado
 `npm run build` para probar; se puede borrar.
 
@@ -100,7 +97,7 @@ GUIA.md                para Oriol
 schema/                qué campos lleva cada JSON (VS Code, el build y la vista previa)
 TRASPASO.md            la lista para pasarle su copia (solo en el repo de meowrhino, como CLAUDE.md)
 build/paginas.mjs      las plantillas: todo el HTML sale de aqui
-build/build.mjs        las escribe en dist/ (Node, en la Action o en Cloudflare)
+build/build.mjs        las escribe en dist/ (Node, en la Action)
 build/preview.mjs      las pinta en el navegador (vista previa)
 build/media.mjs        fotos a WebP, videos a WebM y posters (las miniaturas, el build)
 css/style.css          toda la hoja de estilo

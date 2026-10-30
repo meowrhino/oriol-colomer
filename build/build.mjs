@@ -34,7 +34,7 @@ try {
   about = leerYMirar('data/about.json', 'about');
   proyectos = juntar(site, slugs.map(slug => ({ ...leerYMirar(`projects/${slug}/project.json`, 'project'), slug })));
 } catch (e) {
-  // Lo que sale en rojo al publicar (GitHub o Cloudflare): que se entienda
+  // Lo que sale en rojo al publicar (en la Action): que se entienda
   // sin saber programar.
   console.error('\n✗ ' + e.message + '\n');
   process.exit(1);
@@ -45,15 +45,15 @@ if (errores.length) {
   process.exit(1);
 }
 
-/* Donde se publica, segun donde se construye (JAMstack, patrones.md §5): en
-   la Action de GitHub (nuestra copia), meowrhino.github.io/oriol-colomer/ y
-   sin indexar; en cualquier otro sitio (Cloudflare, la copia de Oriol), la
-   raiz y el dominio de site.json → "url", y se indexa si lo hay. */
-const github = process.env.GITHUB_ACTIONS === 'true';
+/* Donde se publica, segun de quien es el repo (JAMstack, patrones.md §5): las
+   dos copias, en GitHub Pages con la misma Action. La nuestra (meowrhino),
+   meowrhino.github.io/oriol-colomer/ y sin indexar; la de Oriol, o en local,
+   la raiz y el dominio de site.json → "url", y se indexa si lo hay. */
 const [owner, repo] = (process.env.GITHUB_REPOSITORY || 'meowrhino/oriol-colomer').split('/');
-const base = github ? `/${repo}` : '';
-const origen = github ? `https://${owner}.github.io` : String(site.url || '').replace(/\/$/, '');
-const indexar = !github && !!site.url;
+const nuestra = process.env.GITHUB_ACTIONS === 'true' && owner === 'meowrhino';
+const base = nuestra ? `/${repo}` : '';
+const origen = nuestra ? `https://${owner}.github.io` : String(site.url || '').replace(/\/$/, '');
+const indexar = !nuestra && !!site.url;
 
 /** Ancho y alto reales de una imagen, leidos de la cabecera del fichero.
     Van al <img> para que el navegador reserve el hueco antes de que baje la
@@ -218,13 +218,11 @@ for (const dir of ['css', 'js', 'assets']) {
   if (existsSync(join(ROOT, dir))) cpSync(join(ROOT, dir), join(OUT, dir), { recursive: true });
 }
 // las fotos y videos de cada proyecto, en el mismo sitio que en el repo; el
-// project.json no, que ya va dentro del HTML. Los borradores no: no tienen
-// pagina, y Workers no publica nada si un fichero pasa de 25 MiB (spacetime)
+// project.json no, que ya va dentro del HTML. Los borradores no: no tienen pagina
 for (const { slug } of proyectos.filter(p => p.published)) {
   const img = join(ROOT, 'projects', slug, 'img');
   if (existsSync(img)) cpSync(img, join(OUT, 'projects', slug, 'img'), { recursive: true });
 }
-cpSync(join(ROOT, '_headers'), join(OUT, '_headers'));   // la cache, en Cloudflare
 mkdirSync(join(OUT, 'og'), { recursive: true });
 for (const o of ogHechas.values()) cpSync(join(ROOT, '.cache', 'og', o.slice(3)), join(OUT, o), { recursive: true });
 for (const t of thumbsHechas) cpSync(donde(t), join(OUT, t));
