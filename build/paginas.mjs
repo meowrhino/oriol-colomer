@@ -495,11 +495,10 @@ window.revelada = ${preview ? 'false' : "'onpagereveal' in window"} ? new Promis
     })
     + `<main class="landing">
   <!-- Un enlace de verdad: sin JavaScript tambien se entra, y Google y los
-       lectores de pantalla tienen algo que seguir. El parpadeo: welcome.js -->
+       lectores de pantalla tienen algo que seguir. El giro: welcome.js -->
   <a class="hero" href="${url(lang, 'work/')}">
     <div class="eye" id="eye">
       <div class="lens">
-        <span class="shape" aria-hidden="true"></span>
         <span class="pupil" id="pupil" aria-hidden="true"></span>
       </div>
       <h1 class="name">${esc(site.title)}</h1>

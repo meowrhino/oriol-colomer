@@ -1,14 +1,15 @@
 /* ============================================================
-   La portada: el ojo.
+   La portada: la bola.
    ------------------------------------------------------------
-   Clic en cualquier sitio y entras al tunel: la pupila parpadea y
-   la portada se funde. Si nadie hace nada, se entra sola a los
-   pocos segundos (data-auto, que sale de "entradaAuto" en
-   data/site.json).
+   Clic en cualquier sitio y entras al tunel: la portada se funde.
+   Si nadie hace nada, se entra sola a los pocos segundos
+   (data-auto, que sale de "entradaAuto" en data/site.json).
 
-   La pupila mira al cursor, pero no lo sigue en linea recta: va
-   con un muelle, asi que arranca despacio, acelera y frena. En un
-   telefono no hay cursor, y el ojo mira solo, de vez en cuando.
+   La bola gira hacia el cursor: su luz (el brillo y el sombreado del
+   degradado) se desplaza hacia donde esta el raton, que es lo que se
+   ve de una esfera al girar. No lo sigue en linea recta: va con un
+   muelle, asi que arranca despacio, acelera y frena. En un telefono
+   no hay cursor, y gira sola, de vez en cuando.
    ============================================================ */
 import { seco, ms } from './util.js';
 
@@ -27,10 +28,11 @@ if (ojo && destino) {
   let meta = { x: 0, y: 0 }, pos = { x: 0, y: 0 }, vel = { x: 0, y: 0 };
   let raf = 0;
 
+  // la luz, en reposo arriba a la izquierda (32 % 28 %, como la bola de
+  // todas partes); hacia el cursor se va hasta el borde, sin salirse
   const pintar = () => {
-    const r = lente.getBoundingClientRect();
-    pupila.style.translate =
-      `calc(-50% + ${(pos.x * r.width * .17).toFixed(2)}px) calc(-50% + ${(pos.y * r.height * .15).toFixed(2)}px)`;
+    pupila.style.setProperty('--gx', (32 + pos.x * 30).toFixed(1) + '%');
+    pupila.style.setProperty('--gy', (28 + pos.y * 30).toFixed(1) + '%');
   };
   const paso = () => {
     raf = 0;
@@ -56,14 +58,14 @@ if (ojo && destino) {
       const r = lente.getBoundingClientRect();
       const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
       const d = Math.hypot(dx, dy) || 1;
-      // cuanto mas lejos el cursor, mas se va la pupila al borde
+      // cuanto mas lejos el cursor, mas gira la bola
       const k = Math.min(1, d / (r.width * 2.2));
       mirar(dx / d * k, dy / d * k);
     }, { passive: true });
   }
 
-  /* En el telefono mira solo: cada pocos segundos a un sitio nuevo, y a
-     veces al frente, que un ojo siempre desviado parece bizco. */
+  /* En el telefono gira sola: cada pocos segundos hacia un sitio nuevo, y
+     a veces vuelve al frente. */
   if (!seco && pupila && tactil) {
     (function vagar() {
       if (Math.random() < .3) mirar(0, 0);
@@ -77,16 +79,16 @@ if (ojo && destino) {
 
   /* ---- entrar ---------------------------------------------- */
   let yendo = false;
-  // idiomas, letra y tema: no entran. El ojo (.hero) si, aunque sea un enlace
+  // idiomas, letra y tema: no entran. La bola (.hero) si, aunque sea un enlace
   const otroControl = e => e?.target?.closest?.('a:not(.hero), button');
   function entrar(e) {
     if (yendo || otroControl(e)) return;
     yendo = true;
     if (seco) { location.href = destino; return; }
-    document.body.classList.add('entrando');          // parpadea, y luego funde
+    document.body.classList.add('entrando');          // la portada se funde
     // work llega tapada y se destapa, como al ir de una pagina a otra (js/transicion.js)
     try { sessionStorage.setItem('transicion', '{}'); } catch {}
-    setTimeout(() => { location.href = destino; }, ms('--parpadeo') + ms('--fundido'));
+    setTimeout(() => { location.href = destino; }, ms('--fundido'));
   }
 
   // solo el boton principal y sin teclas: el derecho abre el menu del
@@ -97,13 +99,13 @@ if (ojo && destino) {
   addEventListener('keydown', e => {
     if ((e.key === 'Enter' || e.key === ' ') && !otroControl(e)) { e.preventDefault(); entrar(); }
   });
-  // El enlace del ojo navegaria ya, sin parpadeo: lo hace entrar(). Con
+  // El enlace de la bola navegaria ya, sin fundido: lo hace entrar(). Con
   // cmd/ctrl/shift se abre aparte, como cualquier enlace.
   ojo.closest('a')?.addEventListener('click', e => { if (!aparte(e)) e.preventDefault(); });
 
   /* Sin "click anywhere": pasado un rato se entra sola. El reloj se para
      con la pestana en segundo plano y vuelve a empezar al volver, para que
-     nadie se encuentre dentro de work sin haber visto el ojo. */
+     nadie se encuentre dentro de work sin haber visto la portada. */
   const espera = parseFloat(document.body.dataset.auto) * 1000;
   if (espera > 0) {
     let reloj = setTimeout(entrar, espera);
@@ -111,21 +113,5 @@ if (ojo && destino) {
       clearTimeout(reloj);
       if (!document.hidden) reloj = setTimeout(entrar, espera);
     });
-  }
-
-  /* ---- parpadeo en reposo -----------------------------------
-     Entre 4 y 9 segundos, irregular a proposito: a ritmo fijo se oye el
-     metronomo. */
-  if (!seco) {
-    const cerrado = ms('--parpadeo');
-    (function ciclo() {
-      setTimeout(() => {
-        if (!yendo) {
-          ojo.classList.add('pestanea');
-          setTimeout(() => ojo.classList.remove('pestanea'), cerrado + 40);
-        }
-        ciclo();
-      }, 4000 + Math.random() * 5000);
-    })();
   }
 }
