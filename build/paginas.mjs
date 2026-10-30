@@ -151,7 +151,7 @@ export const youtube = link => (/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:w
    ============================================================ */
 export function crearSitio({ site, about, proyectos, base = '', origen = '', indexar: INDEXAR = false,
                              existe = () => false, medidas = () => null, peso = () => null,
-                             miniaturaYT = () => null, og = () => null, preview = false }) {
+                             miniaturaYT = () => null, og = () => null, preview = false, version = '' }) {
   const LANGS = site.langs;
   const DEF   = site.lang;
   const B     = String(base).replace(/\/$/, '');
@@ -171,7 +171,9 @@ export function crearSitio({ site, about, proyectos, base = '', origen = '', ind
   const dir   = p => `${secDe(p)}/${p.slug}/`;
 
   /* ---------- rutas ---------- */
-  const raiz = p => B + (p.startsWith('/') ? p : '/' + p);
+  // css y js llevan ?v=<version>: GitHub Pages los cachea 10 min y, sin
+  // esto, al publicar un navegador puede mezclar el js nuevo con el css viejo
+  const raiz = p => B + (p.startsWith('/') ? p : '/' + p) + (version && /\.(css|js)$/.test(p) ? `?v=${version}` : '');
   // prefijo de idioma: el idioma por defecto vive en la raiz, los otros en /es/ y /cat/
   const pre  = l => (l === DEF ? '' : `/${l}`);
   /** La ruta limpia de una pagina: /es/work/slug/ */

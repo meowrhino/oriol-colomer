@@ -9,7 +9,7 @@
    ============================================================ */
 import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { dirname, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { crearSitio, leerJSON, juntar, youtube, validar } from './paginas.mjs';
 
@@ -185,8 +185,11 @@ async function hacerThumbs(rels) {
   }
 }
 
+// la version de css y js: cambia cuando cambia cualquiera de ellos
+const ficherosDe = dir => readdirSync(join(ROOT, dir)).filter(f => /\.(css|js)$/.test(f)).sort().map(f => join(ROOT, dir, f));
+const version = createHash('sha1').update([...ficherosDe('css'), ...ficherosDe('js')].map(f => readFileSync(f)).join('\n')).digest('hex').slice(0, 8);
 const opciones = {
-  site, about, proyectos, base, origen, indexar, medidas,
+  site, about, proyectos, base, origen, indexar, medidas, version,
   miniaturaYT: id => (miniaturas.has(id) ? YT(id) : null),
   existe: rel => thumbsHechas.has(rel) || existsSync(join(ROOT, rel)),
   peso: rel => statSync(donde(rel)).size,
@@ -216,6 +219,11 @@ rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
 for (const dir of ['css', 'js', 'assets']) {
   if (existsSync(join(ROOT, dir))) cpSync(join(ROOT, dir), join(OUT, dir), { recursive: true });
+}
+// los import entre ficheros js (from './util.js') llevan la misma version que el html
+for (const f of ficherosDe('js')) {
+  const out = join(OUT, 'js', basename(f));
+  writeFileSync(out, readFileSync(out, 'utf8').replace(/(from\s+['"]\.\/[^'"]+\.js)(['"])/g, `$1?v=${version}$2`));
 }
 // las fotos y videos de cada proyecto, en el mismo sitio que en el repo; el
 // project.json no, que ya va dentro del HTML. Los borradores no: no tienen pagina
