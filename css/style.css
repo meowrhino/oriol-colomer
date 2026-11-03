@@ -75,20 +75,24 @@
    La clase la pone el <head> antes de pintar (ver paginas.mjs): la que se
    eligio con el boton o, si nunca se ha tocado, la del sistema. */
 html.oscuro{
+  /* Negro del todo, a peticion de Oriol (2026-11-03; antes #151515). Los
+     grises guardan los mismos contrastes que en claro: --ink 5,9 sobre
+     negro, --ink-soft 3,4. --luz, el brillo de la bola, mas apagado: con el
+     de antes las bolitas de la linea del tiempo quedaban blancas. */
   color-scheme: dark;
-  --bg:        #151515;
-  --ink:       #929292;
-  --ink-soft:  #696969;
-  --ink-faint: #4b4b4b;
-  --ink-hard:  #ababab;
+  --bg:        #000;
+  --ink:       #8a8a8a;
+  --ink-soft:  #666;
+  --ink-faint: #444;
+  --ink-hard:  #a8a8a8;
   --btn-subtle:       rgba(255,255,255,.30);
   --btn-subtle-hover: rgba(255,255,255,.60);
-  --linea:      #252525;
-  --hueco:      #1e1e1e;
-  --caja:       #1c1c1c;
-  --caja-borde: #2b2b2b;
-  --luz:        #d6d6d6;
-  --dot-rgb:    46,46,46;
+  --linea:      #1c1c1c;
+  --hueco:      #141414;
+  --caja:       #121212;
+  --caja-borde: #262626;
+  --luz:        #a0a0a0;
+  --dot-rgb:    34,34,34;
 }
 
 *,*::before,*::after{ box-sizing:border-box; }
@@ -155,6 +159,7 @@ img{ max-width:100%; display:block; }
 .langs{
   position:fixed; right: var(--edge-x); bottom: var(--edge-y); z-index:3;
   display:flex; align-items:center; gap:.3rem;
+  user-select:none; -webkit-user-select:none;
 }
 .langs .idioma, .langs .tipo, .langs .tema{
   /* los tres (idioma, letra y tema) igual de altos; letra y tema, cuadrados */
@@ -195,16 +200,21 @@ img{ max-width:100%; display:block; }
 .langs .tema[aria-pressed="true"] .luna{ opacity:1; }
 .langs [hidden]{ display:none; }
 
-/* Wingdings en toda la web, menos en lo que hace falta para volver: los
-   idiomas y el propio boton. Todo en mayusculas: en Wingdings son los
-   simbolos que gustan (manos, signos del zodiaco...). */
-/* Wingdings pequena se emborrona: dos px mas en la letra de texto, menu y datos. */
+/* orioldings (la fuente de simbolos que ha hecho Oriol, assets/fonts/;
+   hasta el 2026-11-03 era Wingdings) en toda la web, menos en lo que hace
+   falta para volver: los idiomas y el propio boton. Todo en mayusculas. */
+@font-face{
+  font-family: orioldings;
+  src: url(../assets/fonts/orioldings.woff2) format('woff2');
+  font-display: block;
+}
+/* pequena se emborrona: dos px mas en la letra de texto, menu y datos. */
 html.wingdings{
   --fs-nav:  clamp(16px, calc(1.05vw + 2px), 19px);
   --fs-body: clamp(16px, calc(1.02vw + 2px), 18px);
   --fs-meta: clamp(14px, calc(.92vw + 2px), 16px);
 }
-html.wingdings body{ font-family: Wingdings, Helvetica, 'Helvetica Neue', Arial, sans-serif; text-transform:uppercase; }
+html.wingdings body{ font-family: orioldings, Helvetica, 'Helvetica Neue', Arial, sans-serif; text-transform:uppercase; }
 html.wingdings .langs, html.wingdings .langs *{ font-family: Helvetica, 'Helvetica Neue', Arial, sans-serif; text-transform:none; }
 
 /* ============================================================
@@ -228,7 +238,7 @@ html.wingdings .langs, html.wingdings .langs *{ font-family: Helvetica, 'Helveti
   aspect-ratio: 160 / 102;
 }
 /* La bola: la misma que el pomo de la linea del tiempo (--bola-activa,
-   luz arriba a la izquierda), solo que aqui la luz se mueve: welcome.js la
+   solo que aqui la luz parte del centro y se mueve: welcome.js la
    lleva hacia el raton (--gx, --gy) con un muelle, y asi gira. Era un ojo
    con contorno (assets/eye_shape.png) que parpadeaba; fuera desde el
    2026-10-30, a peticion de manu. */
@@ -237,7 +247,7 @@ html.wingdings .langs, html.wingdings .langs *{ font-family: Helvetica, 'Helveti
   width:43.75%;                       /* 70/160, lo que medía la pupila del ojo */
   aspect-ratio:1; border-radius:50%;
   translate:-50% -50%;
-  --gx: 34%; --gy: 30%;
+  --gx: 50%; --gy: 50%;   /* el brillo en el centro; welcome.js lo mueve */
   background: radial-gradient(circle at var(--gx) var(--gy), var(--luz) 0%, var(--ink) 82%);
 }
 
@@ -264,17 +274,38 @@ body.entrando .landing{
 .index{ list-style:none; margin:0; padding:0; }
 .index li{ border-top:1px solid var(--linea); }
 .index li:last-child{ border-bottom:1px solid var(--linea); }
-.index a{
+/* las columnas: titulo | cliente | fecha | tags; la cabecera va con la misma rejilla */
+.index a, .cabecera{
   display:grid; align-items:baseline; gap: var(--gap);
-  grid-template-columns: 1fr 14ch 6ch;
+  grid-template-columns: 2fr 1fr 14ch 6ch;
+}
+.index a{
   padding: clamp(11px,1.1vw,17px) 0;
   color: var(--ink-soft);
 }
 .index a:hover{ color: var(--ink-hard); }
 .index .t{ font-size: clamp(16px,1.5vw,22px); }
 .index .t small{ display:block; font-size: var(--fs-meta); color: var(--ink-faint); margin-top:.25em; }
-.index .c,.index .g{ font-size: var(--fs-meta); color: var(--ink-faint); }
+.index .cl,.index .c,.index .g{ font-size: var(--fs-meta); color: var(--ink-faint); }
 .index .g{ text-align:right; }
+
+/* La cabecera de la lista, como en una hoja de calculo (Oriol, 2026-11-03):
+   un triangulo delante de cada columna; project, client y date ordenan (la
+   activa, en negrita) y tags abre el desplegable del filtro. */
+.cabecera{
+  padding: 0 0 .6em; font-size: var(--fs-nav); line-height: var(--fila);
+  user-select:none; -webkit-user-select:none;
+}
+.cabecera > button, .cabecera .cabeza{ display:flex; align-items:baseline; gap:.45ch; }
+.cabecera > button::before, .cabecera .cabeza::before{
+  content:''; width:0; height:0; flex:none;
+  border:3px solid transparent; border-top-color: currentColor; translate:0 1px;
+}
+.cabecera .menu .cabeza::after{ content:none; }   /* el triangulo va delante, como en las otras */
+.cabecera > button[aria-pressed="true"]{ color: var(--ink-hard); font-weight:700; }
+.cabecera .menu{ justify-self:end; }
+.cabecera .menu .et{ color:inherit; }
+.cabecera .val:empty{ display:none; }
 
 /* miniatura flotante al hover, sigue al raton */
 .peek{ top:0; left:0;
@@ -353,13 +384,13 @@ iframe.pieza{ background: var(--bg); }
 }
 .title .at{ color: var(--ink-faint); margin:0 .12em; }   /* la @ separada, como en la ref */
 
-/* fila de metadatos: fecha | cliente | tags, justificada al ancho */
+/* fila de metadatos: fecha | cliente | tags, justificada al ancho. Mas
+   clara que el texto y la fecha sin cursiva, a peticion de Oriol (2026-11-03) */
 .meta{
   display:grid; grid-template-columns: 1fr 1fr 1fr; align-items:baseline;
-  font-size: var(--fs-meta); color: var(--ink-soft);
+  font-size: var(--fs-meta); color: var(--ink-faint);
   padding-bottom: clamp(16px,1.8vw,30px);
 }
-.meta .d{ font-style:italic; }
 .meta .c{ text-align:center; }
 .meta .g{ text-align:right; letter-spacing:.06em; }
 .meta .g a{ color:inherit; }
@@ -414,7 +445,8 @@ iframe.pieza{ background: var(--bg); }
    cada pieza. En la pagina, la pieza arriba a pantalla entera y
    texto, creditos y fotos debajo, en una columna.
    ============================================================ */
-.index--lab a{ grid-template-columns: clamp(96px, 14vw, 220px) 1fr 14ch 6ch; align-items:center; }
+.index--lab a, .cabecera--lab{ grid-template-columns: clamp(96px, 14vw, 220px) 2fr 1fr 14ch 6ch; }
+.index--lab a{ align-items:center; }
 .index--lab .mini{ display:block; aspect-ratio:16/9; overflow:hidden; background: var(--hueco); }
 .index--lab .mini img{ width:100%; height:100%; object-fit:cover; }
 
@@ -441,6 +473,7 @@ iframe.pieza{ background: var(--bg); }
 /* el correo sale como un boton con cara de enlace, y al clicarlo se cambia
    por el enlace de verdad (js/correo.js) */
 .about .correo{
+  display:inline-block;   /* el boton y el enlace que lo sustituye miden lo mismo: sin saltito */
   font:inherit; color:inherit; background:none; border:0; padding:0 0 .1em; cursor:pointer;
   border-bottom:1px solid var(--ink-faint);
 }
@@ -496,23 +529,24 @@ iframe.pieza{ background: var(--bg); }
    derecha: mismo tamano, mismos grises, la barra de separacion y el activo
    en negrita. Antes era mas pequeno y de otro gris, y la cabecera parecia
    hecha de dos piezas. Los desplegables de la lista, al mismo tamano. */
-.vistas{ display:flex; align-items:center; }
-.vistas button, .menu .cabeza, .opciones button{
+.vistas{ display:flex; align-items:center; user-select:none; -webkit-user-select:none; }
+.vistas button, .menu .cabeza, .opciones button, .cabecera > button{
   font:inherit; line-height:inherit;
   background:none; border:0; padding:0; cursor:pointer;
   color: var(--ink-soft); transition: color .2s ease;
 }
-.vistas button:hover, .menu .cabeza:hover, .opciones button:hover{ color: var(--ink-hard); }
-/* Un boton con las dos palabras en la misma casilla: se ve la de la
-   vista actual y la otra guarda el ancho, asi no baila al cambiar */
+.vistas button:hover, .menu .cabeza:hover, .opciones button:hover, .cabecera > button:hover{ color: var(--ink-hard); }
+/* Un boton con los dos iconos en la misma casilla: se ve el de la otra
+   vista (a la que lleva) y el de la actual guarda el ancho, asi no baila */
 .vistas button{ display:inline-grid; color: var(--ink-hard); font-weight:700; }
 .vistas button span{ grid-area:1/1; text-align:right; }
 /* el icono, del tamano de los de idioma, letra y tema */
 .vistas .ico{ width:1rem; height:1rem; }
 .vistas .ico[data-vista="tunel"]{ --i:url(../assets/iconos/icon_tunnel.png); }
 .vistas .ico[data-vista="lista"]{ --i:url(../assets/iconos/icon_list.png); }
-body[data-vista="tunel"] .vistas [data-vista="lista"],
-body[data-vista="lista"] .vistas [data-vista="tunel"]{ visibility:hidden; }
+/* se ensena la vista a la que VAS, no la que tienes (Oriol, 2026-11-03) */
+body[data-vista="tunel"] .vistas [data-vista="tunel"],
+body[data-vista="lista"] .vistas [data-vista="lista"]{ visibility:hidden; }
 .vistas button:focus-visible, .menu button:focus-visible{
   outline:1px solid var(--ink-hard); outline-offset:3px;
 }
@@ -547,11 +581,9 @@ body[data-vista="lista"] .vistas [data-vista="tunel"]{ visibility:hidden; }
 
 /* ---------- que se ve en cada vista ---------- */
 body[data-vista="tunel"] .index,
+body[data-vista="tunel"] .cabecera,
 body[data-vista="lista"] .escena,
 body[data-vista="lista"] .tiempo{ display:none; }
-/* Orden y filtro son cosa de la lista: el tunel es siempre la linea del
-   tiempo entera, en orden de fecha. */
-body[data-vista="tunel"] .menu{ display:none; }
 /* En work, idioma, letra y tema van arriba al centro, en las dos vistas. */
 .controles .langs{ position:absolute; left:50%; right:auto; bottom:auto; translate:-50% 0; margin:0; }
 /* Sin scroll ni rebote: en el tunel el gesto es de la camara. */
@@ -619,6 +651,9 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
 .tiempo{
   position:fixed; left:0; right:0; bottom: var(--edge-y); z-index:3;
   padding: 0 var(--pad);
+  /* la interfaz no se selecciona al arrastrar (Oriol, 2026-11-03); el texto
+     de los proyectos y del about, si */
+  user-select:none; -webkit-user-select:none;
 }
 /* La zona util es la barra entera: gana el proyecto mas cercano a donde
    sueltas. Se agranda el area, no el dibujo: el dedo tiene 48px. */
@@ -685,9 +720,9 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   .navega .langs{ padding:0; }
   .nav .aqui{ max-width:38vw; }
 
-  .index a{ grid-template-columns: 1fr auto; gap: 1.5ch; }
-  .index--lab a{ grid-template-columns: 30vw 1fr auto; }
-  .index .c{ display:none; }
+  .index a, .cabecera{ grid-template-columns: 1fr auto; gap: 1.5ch; }
+  .index--lab a, .cabecera--lab{ grid-template-columns: 30vw 1fr auto; }
+  .index .c, .index .cl, .cabecera [data-sort="client"], .cabecera [data-sort="date"]{ display:none; }
   .peek{ display:none; }
   .langs, .sig{ position:static; }
   .langs{ justify-content:flex-end; padding: 0 var(--pad) calc(var(--pad) + env(safe-area-inset-bottom, 0px)); }
@@ -695,11 +730,8 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   .meta{ grid-template-columns: 1fr; gap:.15em; }
   .meta .c, .meta .g{ text-align:left; }
 
-  /* En un telefono los cuatro grupos —nav, vista, orden y filtro— no caben
-     a su tamano natural en un solo renglon (hacen falta unos 425px y hay
-     375). Se aprieta todo un punto y se cae la etiqueta "sort": el valor y
-     la flecha ya dicen que es un desplegable, y al abrirlo la palabra esta
-     dentro. Preferimos eso a partir la cabecera en dos pisos. */
+  /* En un telefono se aprieta todo un punto para que la barra siga siendo
+     un solo renglon. */
   /* La barra va con los margenes de --pad y --pad-top, como la de about y
      la de los proyectos: con unos propios el menu saltaba de sitio al
      cambiar de pagina */
@@ -710,19 +742,12 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
      renglon, pegado a la derecha, en vez de salirse */
   .controles{ flex:0 1 auto; min-width:0; flex-wrap:wrap; justify-content:flex-end; row-gap:.3rem; }
   .topbar{ font-size: calc(var(--fs-nav) * .92); }
-  /* La palabra "sort" se va de la vista, pero no del arbol de accesibilidad:
-     con display:none el boton se anunciaria solo como "date" y no habria
-     forma de saber que es el control de orden. Se esconde como el h1. */
-  .menu[data-menu="sort"] .et{
-    position:absolute; width:1px; height:1px;
-    overflow:hidden; clip-path:inset(50%); white-space:nowrap;
-  }
   .nav--inline{ gap:.35ch; }
   .nav{ font-size:.92em; }
 
   /* 19px de alto era la mitad del objetivo tactil. El margen negativo se come
      el relleno extra, asi que la barra se ve exactamente igual. */
-  .vistas button, .menu .cabeza, .opciones button{
+  .vistas button, .menu .cabeza, .opciones button, .cabecera > button{
     padding:1rem 0; margin:-1rem 0;    /* lo mismo arriba y abajo: no cambia el alto */
   }
   .carta{ --ancho: min(340px, var(--carta-movil, 76vw), 64dvh); }
@@ -782,6 +807,13 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   .controles{ gap:.45rem; }
   .topbar{ font-size: calc(var(--fs-nav) * .86); }
   .nav{ font-size:.86em; }
+}
+
+/* El loader de la transicion (css/transicion.css) es la bola, como la del
+   pomo y la portada, latiendo (Oriol, 2026-11-03). Solo sale si la pagina
+   tarda mas de medio segundo. */
+.tapada body::after, .cargando body::after{
+  width:20px; height:20px; border-radius:50%; background: var(--bola-activa);
 }
 
 /* Entre paginas, la transicion de la casa (css/transicion.css). Al

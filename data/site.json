@@ -1,6 +1,6 @@
 {
   "$schema": "../schema/site.json",
-  "_": "Lo general de la web. «lists»: lo que sale en work y en lab, en este orden (cada nombre es una carpeta de projects/); un proyecto que no está en ninguna lista no sale en la web, pero se puede ver en la vista previa. Uno oculto, { \"project\": \"slug\", \"visible\": false }: tiene su página (para mandarla), pero no sale en la lista, ni en el túnel, ni en Google. «url»: el dominio, cuando lo haya (null hasta entonces). «social»: direcciones enteras; el texto del enlace sale solo (@usuario en Instagram, el nombre de la web en las demás). «menu»: las palabras de la web, por idioma.",
+  "_": "Lo general de la web. «lists»: lo que sale en work y en lab, en este orden (cada nombre es una carpeta de projects/); un proyecto que no está en ninguna lista no sale en la web, pero se puede ver en la vista previa. Uno oculto, { \"project\": \"slug\", \"visible\": false }: tiene su página (para mandarla), pero no sale en la lista, ni en el túnel, ni en Google. «url»: el dominio, cuando lo haya (null hasta entonces). «social»: direcciones enteras; el texto del enlace sale solo (el nombre de la web: instagram, github…). «menu»: las palabras de la web, por idioma.",
   "title": "oriol colomer delgado",
   "short": "oriol colomer",
   "url": "https://oriolcolomerdelgado.com",
@@ -14,7 +14,7 @@
     "https://www.behance.net/oriolcolomerdelgado",
     "https://www.linkedin.com/in/oriolcolomerdelgado/"
   ],
-  "autoEnter": 8,
+  "autoEnter": 8000,
   "tunnel": { "card": 36, "cardMobile": 76 },
   "tagline": {
     "en": "Lighting design, concert visuals and music videos. Barcelona.",
@@ -50,10 +50,10 @@
     "credits": {"en": "Credits", "es": "Créditos", "ca": "Crèdits"},
     "watch": {"en": "Watch", "es": "Ver", "ca": "Veure"},
     "all": {"en": "all", "es": "todo", "ca": "tot"},
-    "sort": {"en": "sort", "es": "orden", "ca": "ordre"},
+    "project": {"en": "project", "es": "proyecto", "ca": "projecte"},
     "byDate": {"en": "date", "es": "fecha", "ca": "data"},
     "byClient": {"en": "client", "es": "cliente", "ca": "client"},
-    "byTitle": {"en": "title", "es": "título", "ca": "títol"},
+    "tags": {"en": "tags", "es": "tags", "ca": "tags"},
     "tunnel": {"en": "tunnel", "es": "túnel", "ca": "túnel"},
     "list": {"en": "list", "es": "lista", "ca": "llista"},
     "aria": {
@@ -62,7 +62,7 @@
       "projects": {"en": "projects", "es": "proyectos", "ca": "projectes"}
     },
     "mail": {"en": "email", "es": "email", "ca": "email"},
-    "tipo": {"en": "switch to wingdings", "es": "cambiar a wingdings", "ca": "canviar a wingdings"},
+    "tipo": {"en": "switch to orioldings", "es": "cambiar a orioldings", "ca": "canviar a orioldings"},
     "tema": {"en": "dark mode", "es": "modo oscuro", "ca": "mode fosc"},
     "back": {"en": "back", "es": "volver", "ca": "tornar"},
     "notFound": {

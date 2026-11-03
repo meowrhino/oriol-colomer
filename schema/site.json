@@ -70,7 +70,7 @@
     "autoEnter": {
       "type": "number",
       "minimum": 0,
-      "description": "Segundos que espera la portada antes de entrar sola. 0: no entra sola."
+      "description": "Milisegundos que espera la portada antes de entrar sola (8000 = 8 segundos). 0: no entra sola."
     },
     "tunnel": {
       "type": "object",

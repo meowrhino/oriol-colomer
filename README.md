@@ -108,7 +108,7 @@ js/work.js             vista, orden y filtro de la lista
 js/tunnel.js           el tunel y la linea del tiempo
 js/media.js            videos del proyecto al verlos, YouTube, bloque de texto
 js/correo.js           el boton del correo
-js/ajustes.js          los botones de wingdings y de claro / oscuro, y el desplegable del idioma
+js/ajustes.js          los botones de orioldings (la fuente de Oriol, assets/fonts/) y de claro / oscuro, y el desplegable del idioma
 js/transicion.js       la transición entre páginas, la de la casa (con css/transicion.css)
 ```
 

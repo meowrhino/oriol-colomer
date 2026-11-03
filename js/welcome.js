@@ -28,11 +28,11 @@ if (ojo && destino) {
   let meta = { x: 0, y: 0 }, pos = { x: 0, y: 0 }, vel = { x: 0, y: 0 };
   let raf = 0;
 
-  // la luz, en reposo arriba a la izquierda (34 % 30 %, como en --bola);
+  // la luz, en reposo en el centro (a peticion de Oriol, 2026-11-03);
   // hacia el cursor se va hasta el borde, sin salirse
   const pintar = () => {
-    pupila.style.setProperty('--gx', (34 + pos.x * 30).toFixed(1) + '%');
-    pupila.style.setProperty('--gy', (30 + pos.y * 30).toFixed(1) + '%');
+    pupila.style.setProperty('--gx', (50 + pos.x * 30).toFixed(1) + '%');
+    pupila.style.setProperty('--gy', (50 + pos.y * 30).toFixed(1) + '%');
   };
   const paso = () => {
     raf = 0;
@@ -106,7 +106,7 @@ if (ojo && destino) {
   /* Sin "click anywhere": pasado un rato se entra sola. El reloj se para
      con la pestana en segundo plano y vuelve a empezar al volver, para que
      nadie se encuentre dentro de work sin haber visto la portada. */
-  const espera = parseFloat(document.body.dataset.auto) * 1000;
+  const espera = parseFloat(document.body.dataset.auto);   // milisegundos, de site.json
   if (espera > 0) {
     let reloj = setTimeout(entrar, espera);
     document.addEventListener('visibilitychange', () => {

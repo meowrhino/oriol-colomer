@@ -341,13 +341,9 @@ export function crearSitio({ site, about, proyectos, base = '', origen = '', ind
     ? `<button type="button" class="correo ${clase}" data-c="${cifrado(site.email)}">${esc(t(site.menu.mail, lang))}</button>`
     + `<noscript>${esc(site.email.replace('@', ' [at] '))}</noscript>`
     : '';
-  /** El texto de cada red sale de su direccion: @usuario en Instagram, y en
-      las demas el nombre de la web (github, soundcloud...). */
-  const etiqueta = u => {
-    const { hostname, pathname } = new URL(u);
-    const h = hostname.replace(/^www\./, '');
-    return h === 'instagram.com' ? '@' + pathname.replace(/\//g, '') : h.split('.')[0];
-  };
+  /** El texto de cada red sale de su direccion: el nombre de la web (instagram,
+      github, soundcloud...). Era @usuario en Instagram; Oriol lo quiso asi (2026-11-03). */
+  const etiqueta = u => new URL(u).hostname.replace(/^www\./, '').split('.')[0];
   const redes = () => (site.social || []).map(u =>
     `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(etiqueta(u))}</a>`).join('\n     ');
 
@@ -400,7 +396,7 @@ window.revelada = ${preview ? 'false' : "'onpagereveal' in window"} ? new Promis
   ${dim ? `<meta property="og:image:width" content="${dim.w}">\n  <meta property="og:image:height" content="${dim.h}">` : ''}
   <meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}">
   <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#151515" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
   <link rel="icon" href="${FAVICON}">
   ${headScript}
   <link rel="stylesheet" href="${raiz('/css/transicion.css')}">
@@ -463,8 +459,7 @@ window.revelada = ${preview ? 'false' : "'onpagereveal' in window"} ? new Promis
       + `<button type="button" class="tema" aria-pressed="false" title="${esc(t(site.menu.tema, lang))}" hidden>`
       + `<span class="ico sol" aria-hidden="true"></span><span class="ico luna" aria-hidden="true"></span>`
       + `<span class="sr">${esc(t(site.menu.tema, lang))}</span></button>`
-      // letra normal o wingdings. Sale escondido: js/ajustes.js lo ensena solo si
-      // el aparato tiene la fuente (Windows y Mac si, moviles no).
+      // letra normal u orioldings. Sale escondido hasta que hay JS que lo mueva.
       // Apagado, un ojo; encendido, la mano
       + `<button type="button" class="tipo" aria-pressed="false" title="${esc(t(site.menu.tipo, lang))}" hidden>`
       + `<span class="ico ojo" aria-hidden="true"></span><span class="ico mano" aria-hidden="true"></span>`
@@ -533,6 +528,7 @@ window.revelada = ${preview ? 'false' : "'onpagereveal' in window"} ? new Promis
           portada?.video ? ` data-peek-video="${portada.video.map(src).join('|')}"` : ''}>
 ${tunel ? '' : `          <span class="mini">${portada?.img ? `<img src="${src(portada.img)}" alt=""${
             d ? ` width="${d.w}" height="${d.h}"` : ''} loading="lazy" decoding="async">` : ''}</span>\n`}          <span class="t">${titleHtml(p.title)}<small>${esc(t(p.subheader, lang))}</small></span>
+          <span class="cl">${esc(p.client || '')}</span>
           <span class="c">${esc(fmtDate(p.date))}</span>
           <span class="g">${esc((p.tags || []).join(' '))}</span>
         </a>
@@ -551,9 +547,16 @@ ${opciones.map(([v, l], i) => `          <button type="button" data-v="${esc(v)}
         </div>
       </div>`;
 
-    const orden  = [['date', t(site.menu.byDate, lang)], ['client', t(site.menu.byClient, lang)],
-                    ['title', t(site.menu.byTitle, lang)]];
     const filtro = [['', t(site.menu.all, lang)], ...tags.map(g => [g, g])];
+    /* La cabecera de la lista, como en una hoja de calculo (Oriol, 2026-11-03):
+       project, client y date ordenan al clicarlos; tags abre el filtro. Antes
+       eran dos desplegables (orden y filtro) en la barra de arriba. */
+    const cabecera = `  <div class="cabecera${tunel ? '' : ' cabecera--lab'}">
+${tunel ? '' : '    <span aria-hidden="true"></span>\n'}    <button type="button" data-sort="title" aria-pressed="false">${esc(t(site.menu.project, lang))}</button>
+    <button type="button" data-sort="client" aria-pressed="false">${esc(t(site.menu.byClient, lang))}</button>
+    <button type="button" data-sort="date" aria-pressed="true">${esc(t(site.menu.byDate, lang))}</button>
+${menu('tag', t(site.menu.tags, lang), filtro)}
+  </div>`;
 
     return head({
       lang, path: `${sec}/`,
@@ -574,14 +577,10 @@ ${opciones.map(([v, l], i) => `          <button type="button" data-v="${esc(v)}
     })
     + `<div class="topbar">
   ${nav(lang, sec)}
-  <!-- Orden y filtro a la izquierda del cambio de vista: solo salen en la
-       lista, y asi el boton tunel/lista no se mueve de sitio al cambiar. -->
   <div class="controles">
-${menu('sort', t(site.menu.sort, lang), orden)}
-${menu('tag', '', filtro)}
 ${tunel ? `    <div class="vistas" role="group" aria-label="${esc(t(site.menu.aria.view, lang))}">
-      <!-- un solo boton: ensena el icono de la vista en la que estas y pulsado
-           pasa a la otra. Los dos iconos en la misma casilla -->
+      <!-- un solo boton: ensena el icono de la vista a la que lleva (en el
+           tunel, la lista; en la lista, el tunel). Los dos iconos en la misma casilla -->
       <button type="button" class="vista"><span class="ico" data-vista="tunel" aria-hidden="true"></span><span class="ico" data-vista="lista" aria-hidden="true"></span><span class="sr" data-vista="tunel">${esc(t(site.menu.tunnel, lang))}</span><span class="sr" data-vista="lista">${esc(t(site.menu.list, lang))}</span></button>
     </div>` : ''}
     <!-- idiomas, letra y tema a la derecha de tunel/lista: en el tunel la
@@ -599,11 +598,12 @@ ${tunel ? `  <!-- vista tunel -->
   </div>
 ` : ''}
   <!-- vista lista -->
+${cabecera}
   <ul class="index${tunel ? '' : ' index--lab'}" id="index">
 ${rows}
   </ul>
   <!-- en el movil, en la lista, idioma, letra y tema van aqui, al final
-       del scroll, y no arriba: la barra ya lleva orden y filtro -->
+       del scroll, y no arriba -->
   <div class="pie-lista">${langs(lang, `${sec}/`)}</div>
 </main>
 

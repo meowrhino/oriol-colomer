@@ -1,5 +1,5 @@
 /* ============================================================
-   Controles de work: vista, orden y filtro.
+   Controles de work: vista, y la cabecera de la lista (orden y filtro).
    ------------------------------------------------------------
    La lista es el <ul class="index"> del HTML: aqui se reordena y
    se ocultan elementos. El orden y el filtro son solo de la lista;
@@ -30,9 +30,11 @@ if (lista) {
     const val    = m.querySelector('.val');
     const opts   = [...caja.querySelectorAll('button')];
 
+    // el valor solo se ensena si no es el primero ("all"): la cabecera dice "tags" a secas
+    const texto = b => b === opts[0] ? '' : b.textContent.trim();
     const poner = b => {
       opts.forEach(o => o.setAttribute('aria-pressed', String(o === b)));
-      val.textContent = b.textContent.trim();
+      val.textContent = texto(b);
       caja.hidden = true;
       cabeza.setAttribute('aria-expanded', 'false');
       alElegir(b.dataset.v);
@@ -52,7 +54,7 @@ if (lista) {
     });
 
     // valor de arranque: el que viene marcado del generador
-    val.textContent = opts.find(o => o.getAttribute('aria-pressed') === 'true').textContent.trim();
+    val.textContent = texto(opts.find(o => o.getAttribute('aria-pressed') === 'true'));
   }
 
   addEventListener('pointerdown', e => { if (!e.target.closest('.menu')) cerrarTodos(null); });
@@ -64,11 +66,13 @@ if (lista) {
     client: (a, b) => a.dataset.client.localeCompare(b.dataset.client, 'es'),
     title:  (a, b) => a.dataset.title.localeCompare(b.dataset.title, 'es'),
   };
-  const mSort = document.querySelector('[data-menu="sort"]');
-  if (mSort) montar(mSort, v => {
-    [...items].sort(cmp[v]).forEach(li => lista.append(li));
+  // los botones de la cabecera (project, client, date): el pulsado ordena
+  const botones = [...document.querySelectorAll('.cabecera [data-sort]')];
+  botones.forEach(b => b.addEventListener('click', () => {
+    botones.forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+    [...items].sort(cmp[b.dataset.sort]).forEach(li => lista.append(li));
     avisar();
-  });
+  }));
 
   /* ---- filtro --------------------------------------------- */
   const mTag = document.querySelector('[data-menu="tag"]');
