@@ -812,6 +812,7 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
 /* El loader de la transicion (css/transicion.css) es la bola, como la del
    pomo y la portada, latiendo (Oriol, 2026-11-03). Solo sale si la pagina
    tarda mas de medio segundo. */
+:root{ --carga-anim: latir 1.6s ease-in-out .5s infinite; }   /* un latido suave, no a golpes (Oriol, 2026-11-04) */
 .tapada body::after, .cargando body::after{
   width:20px; height:20px; border-radius:50%; background: var(--bola-activa);
 }
