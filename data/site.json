@@ -15,11 +15,11 @@
     "https://www.linkedin.com/in/oriolcolomerdelgado/"
   ],
   "autoEnter": 8000,
-  "tunnel": { "card": 36, "cardMobile": 76 },
+  "tunnel": { "card": 39, "cardMobile": 76 },
   "tagline": {
-    "en": "Lighting design, concert visuals and music videos. Barcelona.",
-    "es": "Diseño de iluminación, visuales de directo y videoclips. Barcelona.",
-    "ca": "Disseny d'il·luminació, visuals de directe i videoclips. Barcelona."
+    "en": "lighting design, concert visuals and music videos. barcelona.",
+    "es": "diseño de iluminación, visuales de directo y videoclips. barcelona.",
+    "ca": "disseny d'il·luminació, visuals de directe i videoclips. barcelona."
   },
   "lists": {
     "work": {
@@ -28,13 +28,16 @@
         "liquid-latex-rmx-llum",
         "el-nino-bola-mori",
         "la-roda-ouineta",
-        "listen-xicu-lighting",
-        "listen-xicu-promo",
-        "listen-xicu-visualizers",
-        "u-n-me-bby-xicu",
+        "raly-a0-tour",
+        "xicu-listen-lighting",
+        "xicu-listen-promo",
+        "xicu-listen-visualizers",
+        "gavinamp3-sempre-instint-tour",
+        "xicu-listen-u-n-me-bby",
         "lechatelier-sala-apolo-2025",
         "radio-coral-cabiria",
         "arxiu-archive",
+        "ballet-electronic",
         "estat-dalarma-merce",
         "amore-razzmatazz-2",
         "gradients",
@@ -47,8 +50,8 @@
     }
   },
   "menu": {
-    "credits": {"en": "Credits", "es": "Créditos", "ca": "Crèdits"},
-    "watch": {"en": "Watch", "es": "Ver", "ca": "Veure"},
+    "credits": {"en": "credits", "es": "créditos", "ca": "crèdits"},
+    "watch": {"en": "watch", "es": "ver", "ca": "veure"},
     "all": {"en": "all", "es": "todo", "ca": "tot"},
     "project": {"en": "project", "es": "proyecto", "ca": "projecte"},
     "byDate": {"en": "date", "es": "fecha", "ca": "data"},

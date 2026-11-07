@@ -1,0 +1,26 @@
+{
+  "$schema": "../../schema/project.json",
+  "title": "A0 TOUR – RALY",
+  "date": "2026-04-09",
+  "client": "RALY",
+  "tags": ["lx,xy"],
+  "subheader": {"en": "Lighting design & operation", "es": "Diseño y operación de iluminación", "ca": "Disseny i operació de la il·luminació"},
+  "text": {
+    "en": [
+      "Lighting design and operation for RALY's A0 tour, inspired in nightlife in the city."
+    ],
+    "es": [
+      "Diseño y operación de la iluminación para la gira A0 de RALY, inspirada en la vida nocturna de la ciudad."
+    ],
+    "ca": [
+      "Disseny i operació de la il·luminació per a la gira A0 de RALY, inspirada en la vida nocturna de la ciutat."
+    ]
+  },
+  "credits": [
+    {"role": "lighting design", "name": "oriol colomer @oriolonbass"},
+    {"role": "scenography", "name": "clàudia aguiló @claguilo & oriol colomer @oriolonbass"},
+    {"role": "music", "name": "RALY @raly______"},
+    {"role": "creative direction", "name": "unconjuro @unconjuro & pau bosque @paubossque"}
+  ],
+  "cover": ["1"]
+}

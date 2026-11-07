@@ -1,0 +1,38 @@
+{
+  "$schema": "../../schema/project.json",
+  "title": "ballet electrònic",
+  "date": "2025-04-12",
+  "client": "Personal project",
+  "tags": ["rs"],
+  "subheader": {
+    "en": "Postgrau en Escena i Tecnologia Digital @ Institut del Teatre",
+    "es": "Posgrado en Escena y Tecnología Digital @ Institut del Teatre",
+    "ca": "Postgrau en Escena i Tecnologia Digital @ Institut del Teatre"
+  },
+  "text": {
+    "en": [
+      "Artistic residency at El Graner: Centre de creació de dansa i arts vives (Barcelona) as part of the Postgraduate degree in technology applied to scene of Institut del Teatre (2025).",
+      "The piece consists of four diminute ballerina figures rotating on their vertical axis, lit from above by a spotlight and accompanied by the sound of a music box. As the audience tries to get closer to them, they stop dancing, the light gets dimmer and the music slows down progressively. This creates a counterintuitive dialog between the audience and the piece, in which the ballerinas have to be observed from far away, making them harder to see. The whole process was recorded using a wide-angled webcam to convey the contrast in scales that we were playing with.",
+      "The ballerinas are mounted on a servo motor each, which remains hidden under a spotlight iris piece. The servo motors are controlled by an Arduino Uno and driven by an ultrasound proximity sensor. The Arduino sends serial info to a laptop with a Processing sketch in which the light is controlled via DMX and the music is regulated."
+    ],
+    "es": [
+      "Residencia artística en El Graner: Centre de creació de dansa i arts vives (Barcelona) como parte del Posgrado en tecnologia aplicada a la escena del Institut del Teatre (2025).",
+      "La pieza consiste en cuatro diminutas figuras de bailarinas que giran sobre su eje vertical, iluminadas desde arriba por un foco y acompañadas por el sonido de una caja de música. Cuando el público intenta acercarse a ellas, las bailarinas dejan de bailar, la luz se atenúa y la música se ralentiza progresivamente. Esto crea un diálogo contraintuitivo entre el público y la pieza, en el que las bailarinas deben observarse desde lejos, lo que dificulta verlas. Todo el proceso se grabó con una cámara web de gran angular para transmitir el contraste de escalas con el que estábamos jugando.",
+      "Cada bailarina está montada sobre un servomotor, que permanece oculto bajo una pieza de iris de foco. Los servomotores están controlados por un Arduino Uno y activados por un sensor de proximidad por ultrasonidos. El Arduino envía información por puerto serie a un portátil con un sketch de Processing, desde el cual se controla la luz mediante DMX y se regula la música."
+    ],
+    "ca": [
+      "Residència artística a El Graner: centre de creació de dansa i arts vives (Barcelona) com a part del Postgrau en tecnologia aplicada a l'escena de l'Institut del Teatre (2025).",
+      "La peça consisteix en quatre diminutes figures de ballarines que giren sobre el seu eix vertical, il·luminades des de dalt per un focus i acompanyades pel so d’una caixa de música. Quan el públic intenta apropar-s’hi, les ballarines deixen de ballar, la llum s’afebleix i la música es va alentint progressivament. Això crea un diàleg contraintuïtiu entre el públic i la peça, en què les ballarines s’han d’observar des de lluny, cosa que dificulta veure-les. Tot el procés es va enregistrar amb una càmera web de gran angular per transmetre el contrast d’escales amb què estàvem jugant.",
+      "Cada ballarina està muntada sobre un servomotor, que queda amagat sota una peça d’iris de focus. Els servomotors són controlats per un Arduino Uno i activats per un sensor de proximitat per ultrasons. L’Arduino envia informació per port sèrie a un portàtil amb un sketch de Processing, des del qual es controla la llum mitjançant DMX i es regula la música."
+    ]
+  },
+  "credits": [
+    {"role": "", "name": "Oriol Colomer @oriolonbass"},
+    {"role": "", "name": "Clàudia Aguiló @claguilo"},
+    {"role": "", "name": "Miguel Pintre @miguelpintre"},
+    {"role": "", "name": "Júlia Vives @julialanglei"},
+    {"role": "residency location", "name": "El Graner - centre de creació de dansa i arts vives (Barcelona) @granerbcn"},
+    {"role": "management", "name": "Institut del Teatre (Barcelona) @postgrau_escena_tecnologia"}
+  ],
+  "cover": ["1"]
+}

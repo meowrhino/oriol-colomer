@@ -3,7 +3,9 @@
   "title": "El Niño Bola – mori",
   "date": "2026-05-21",
   "client": "mori",
-  "tags": ["lx"],
+  "tags": [
+    "lx"
+  ],
   "subheader": {
     "en": "Lighting design & operation",
     "es": "Diseño y operación de iluminación",
@@ -21,8 +23,17 @@
     ]
   },
   "credits": [
-    {"role": "lighting design", "name": "oriol colomer & clàudia aguiló"},
-    {"role": "video", "name": "rafa castells"}
+    {
+      "role": "lighting design",
+      "name": "oriol colomer & clàudia aguiló"
+    },
+    {
+      "role": "video",
+      "name": "rafa castells"
+    }
   ],
-  "url": "https://www.youtube.com/watch?v=WEkgPxdjCYE"
+  "url": "https://www.youtube.com/watch?v=WEkgPxdjCYE",
+  "cover": [
+    "1"
+  ]
 }
