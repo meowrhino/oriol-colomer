@@ -99,18 +99,17 @@ if (lista) {
       vt.finished.finally(() => html.classList.remove('vista-cambia'));
     } else aplicar(otra);
   });
-  // lab no tiene tunel: se queda en la lista que trae el HTML, y sin tocar
-  // la vista guardada, que es la de work
-  if (document.querySelector('.vistas')) {
-    let guardada = 'tunel';
-    try { guardada = localStorage.getItem('vista') || 'tunel'; } catch {}
-    aplicar(guardada);
-  }
+  // la vista guardada, la misma en work y en lab
+  let guardada = 'tunel';
+  try { guardada = localStorage.getItem('vista') || 'tunel'; } catch {}
+  aplicar(guardada);
 
   /* ---- miniatura al pasar por la lista -------------------- */
   // En pantalla tactil no hay hover, asi que la miniatura no se monta.
   // Puede ser una foto, un webp animado o un video: la pinta portada().
-  const peek = matchMedia('(hover: none)').matches ? null : document.getElementById('peek');
+  // En lab tampoco: su lista ya lleva la portada al lado.
+  const peek = matchMedia('(hover: none)').matches || lista.classList.contains('index--lab')
+    ? null : document.getElementById('peek');
   if (peek) {
     let actual = null;
 

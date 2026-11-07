@@ -36,7 +36,12 @@
   /* La bola: el punto de la linea del tiempo, el pomo, la pupila del ojo
      y el favicon son la misma pieza. Luz arriba a la izquierda. */
   --bola:        radial-gradient(circle at 34% 30%, var(--luz) 0%, var(--ink-soft) 80%);
-  --bola-activa: radial-gradient(circle at 34% 30%, var(--luz) 0%, var(--ink) 82%);
+  --bola-activa: radial-gradient(circle at 34% 30%, var(--luz-bola) 0%, var(--tono-bola) 82%);
+  /* La bola grande (portada, pomo, loader): su brillo y su tono. En claro,
+     los de siempre; el modo oscuro los cambia. Las bolitas de la linea del
+     tiempo (--bola) siguen con --luz. */
+  --luz-bola:  var(--luz);
+  --tono-bola: var(--ink);
 
   --pad:   clamp(20px, 3.2vw, 52px);   /* margen exterior */
   /* Arriba la cabecera va mas pegada que a los lados: con --pad tambien
@@ -92,6 +97,9 @@ html.oscuro{
   --caja:       #121212;
   --caja-borde: #262626;
   --luz:        #a0a0a0;
+  /* la bola grande: el tono mas bajo y el brillo mas alto (Oriol, 2026-11-07) */
+  --luz-bola:   #d4d4d4;
+  --tono-bola:  #555;
   --dot-rgb:    34,34,34;
 }
 
@@ -248,7 +256,7 @@ html.wingdings .langs, html.wingdings .langs *{ font-family: Helvetica, 'Helveti
   aspect-ratio:1; border-radius:50%;
   translate:-50% -50%;
   --gx: 50%; --gy: 50%;   /* el brillo en el centro; welcome.js lo mueve */
-  background: radial-gradient(circle at var(--gx) var(--gy), var(--luz) 0%, var(--ink) 82%);
+  background: radial-gradient(circle at var(--gx) var(--gy), var(--luz-bola) 0%, var(--tono-bola) 82%);
 }
 
 .eye .name{
