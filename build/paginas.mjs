@@ -510,8 +510,9 @@ window.revelada = ${preview ? 'false' : "'onpagereveal' in window"} ? new Promis
   /** El indice de una seccion: el tunel y la lista. */
   function indice(lang, sec) {
     const items = de(sec);
-    /* Lab, como work, con tunel y lista (el tunel volvio el 2026-11-07,
-       a peticion de manu); su lista lleva ademas la portada de cada pieza al lado. */
+    /* Lab, como work, con tunel (volvio el 2026-11-07, a peticion de manu);
+       pero en vez de la lista, una rejilla de portadas (Oriol, 2026-11-08):
+       el mismo <ul>, que el tunel lee igual, sin cliente, tags ni cabecera. */
     const lab = sec === 'lab';
     const tags = [...new Set(items.flatMap(p => p.tags || []))];
 
@@ -528,9 +529,8 @@ window.revelada = ${preview ? 'false' : "'onpagereveal' in window"} ? new Promis
           portada?.video ? ` data-peek-video="${portada.video.map(src).join('|')}"` : ''}>
 ${!lab ? '' : `          <span class="mini">${portada?.img ? `<img src="${src(portada.img)}" alt=""${
             d ? ` width="${d.w}" height="${d.h}"` : ''} loading="lazy" decoding="async">` : ''}</span>\n`}          <span class="t">${titleHtml(p.title)}<small>${esc(t(p.subheader, lang))}</small></span>
-          <span class="cl">${esc(p.client || '')}</span>
-          <span class="c">${esc(fmtDate(p.date))}</span>
-          <span class="g">${esc((p.tags || []).join(' '))}</span>
+${lab ? '' : `          <span class="cl">${esc(p.client || '')}</span>\n`}          <span class="c">${esc(fmtDate(p.date))}</span>
+${lab ? '' : `          <span class="g">${esc((p.tags || []).join(' '))}</span>\n`}
         </a>
       </li>`;
     }).join('\n');
@@ -551,8 +551,8 @@ ${opciones.map(([v, l], i) => `          <button type="button" data-v="${esc(v)}
     /* La cabecera de la lista, como en una hoja de calculo (Oriol, 2026-11-03):
        project, client y date ordenan al clicarlos; tags abre el filtro. Antes
        eran dos desplegables (orden y filtro) en la barra de arriba. */
-    const cabecera = `  <div class="cabecera${lab ? ' cabecera--lab' : ''}">
-${lab ? '    <span aria-hidden="true"></span>\n' : ''}    <button type="button" data-sort="title" aria-pressed="false">${esc(t(site.menu.project, lang))}</button>
+    const cabecera = lab ? '' : `  <div class="cabecera">
+    <button type="button" data-sort="title" aria-pressed="false">${esc(t(site.menu.project, lang))}</button>
     <button type="button" data-sort="client" aria-pressed="false">${esc(t(site.menu.byClient, lang))}</button>
     <button type="button" data-sort="date" aria-pressed="true">${esc(t(site.menu.byDate, lang))}</button>
 ${menu('tag', t(site.menu.tags, lang), filtro)}

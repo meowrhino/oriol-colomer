@@ -449,14 +449,25 @@ iframe.pieza{ background: var(--bg); }
 
 /* ============================================================
    LAB
-   Un parque: todo a la vista. En la lista, la portada al lado de
-   cada pieza. En la pagina, la pieza arriba a pantalla entera y
-   texto, creditos y fotos debajo, en una columna.
+   Un parque: todo a la vista. En vez de la lista, una rejilla de
+   portadas (Oriol, 2026-11-08): 4 columnas, 2 en el movil. En la
+   pagina, la pieza arriba a pantalla entera y texto, creditos y
+   fotos debajo, en una columna.
    ============================================================ */
-.index--lab a, .cabecera--lab{ grid-template-columns: clamp(96px, 14vw, 220px) 2fr 1fr 14ch 6ch; }
-.index--lab a{ align-items:center; }
-.index--lab .mini{ display:block; aspect-ratio:16/9; overflow:hidden; background: var(--hueco); }
-.index--lab .mini img{ width:100%; height:100%; object-fit:cover; }
+.index--lab{
+  display:grid; gap: clamp(12px, 1.2vw, 20px);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.index--lab li, .index--lab li:last-child{ border:0; }
+.index--lab a{ display:flex; flex-direction:column; gap:.5em; padding:0; }
+.index--lab .mini{ display:block; aspect-ratio:3/2; overflow:hidden; background: var(--hueco); }
+.index--lab .mini img{ width:100%; height:100%; object-fit:cover; transition: transform .6s ease; }
+.index--lab a:hover .mini img{ transform: scale(1.03); }
+.index--lab .t{ font-size: var(--fs-nav); }
+/* en el lab, el boton de vista lleva a la rejilla: el icono, cuatro cuadros */
+body:has(.index--lab) .vistas .ico[data-vista="lista"]{
+  --i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M1 1h6v6H1zM9 1h6v6H9zM1 9h6v6H1zM9 9h6v6H9z'/%3E%3C/svg%3E");
+}
 
 .project--lab{ display:flex; flex-direction:column; align-items:stretch; gap: var(--aire); }
 .project--lab .side{ display:contents; }
@@ -729,7 +740,7 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   .nav .aqui{ max-width:38vw; }
 
   .index a, .cabecera{ grid-template-columns: 1fr auto; gap: 1.5ch; }
-  .index--lab a, .cabecera--lab{ grid-template-columns: 30vw 1fr auto; }
+  .index--lab{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .index .c, .index .cl, .cabecera [data-sort="client"], .cabecera [data-sort="date"]{ display:none; }
   .peek{ display:none; }
   .langs, .sig{ position:static; }
