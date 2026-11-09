@@ -510,9 +510,9 @@ window.revelada = ${preview ? 'false' : "'onpagereveal' in window"} ? new Promis
   /** El indice de una seccion: el tunel y la lista. */
   function indice(lang, sec) {
     const items = de(sec);
-    /* Lab, como work, con tunel (volvio el 2026-11-07, a peticion de manu);
-       pero en vez de la lista, una rejilla de portadas (Oriol, 2026-11-08):
-       el mismo <ul>, que el tunel lee igual, sin cliente, tags ni cabecera. */
+    /* Lab: solo una rejilla de portadas (Oriol, 2026-11-08), sin tunel ni
+       linea del tiempo (2026-11-09: para simplificar), y sin cliente, tags
+       ni cabecera. Es el mismo <ul> que la lista de work. */
     const lab = sec === 'lab';
     const tags = [...new Set(items.flatMap(p => p.tags || []))];
 
@@ -562,9 +562,9 @@ ${menu('tag', t(site.menu.tags, lang), filtro)}
       lang, path: `${sec}/`,
       // La vista por defecto ya viene puesta en el HTML: si la pusiera el
       // guion, la lista entera se pintaria y desapareceria al cargar.
-      vista: 'tunel',
+      vista: lab ? 'lista' : 'tunel',
       // el tamano de las cartas, de site.json → tunnel (css/style.css lo lee)
-      estilo: site.tunnel ? [['--carta', site.tunnel.card], ['--carta-movil', site.tunnel.cardMobile]]
+      estilo: !lab && site.tunnel ? [['--carta', site.tunnel.card], ['--carta-movil', site.tunnel.cardMobile]]
         .filter(([, v]) => v > 0).map(([k, v]) => `${k}:${v}vw`).join(';') : '',
       title: `${sec} — ${site.short}`,
       desc: t(site.tagline, lang),
@@ -578,12 +578,12 @@ ${menu('tag', t(site.menu.tags, lang), filtro)}
     + `<div class="topbar">
   ${nav(lang, sec)}
   <div class="controles">
-    <div class="vistas" role="group" aria-label="${esc(t(site.menu.aria.view, lang))}">
+${lab ? '' : `    <div class="vistas" role="group" aria-label="${esc(t(site.menu.aria.view, lang))}">
       <!-- un solo boton: ensena el icono de la vista a la que lleva (en el
            tunel, la lista; en la lista, el tunel). Los dos iconos en la misma casilla -->
       <button type="button" class="vista"><span class="ico" data-vista="tunel" aria-hidden="true"></span><span class="ico" data-vista="lista" aria-hidden="true"></span><span class="sr" data-vista="tunel">${esc(t(site.menu.tunnel, lang))}</span><span class="sr" data-vista="lista">${esc(t(site.menu.list, lang))}</span></button>
     </div>
-    <!-- idiomas, letra y tema a la derecha de tunel/lista: en el tunel la
+`}    <!-- idiomas, letra y tema a la derecha de tunel/lista: en el tunel la
          pagina no scrollea y el pie no se veria nunca -->
     ${langs(lang, `${sec}/`)}
   </div>
@@ -592,11 +592,11 @@ ${menu('tag', t(site.menu.tags, lang), filtro)}
 <main class="wrap">
   <h1 class="sr">${sec}</h1>
 
-  <!-- vista tunel -->
+${lab ? '' : `  <!-- vista tunel -->
   <div class="escena" id="escena">
     <div class="tunel" id="tunel"></div>
   </div>
-
+`}
   <!-- vista lista -->
 ${cabecera}
   <ul class="index${lab ? ' index--lab' : ''}" id="index">
@@ -607,7 +607,7 @@ ${rows}
   <div class="pie-lista">${langs(lang, `${sec}/`)}</div>
 </main>
 
-<!-- Linea del tiempo: una raya de lado a lado y cada proyecto en su fecha.
+${lab ? '' : `<!-- Linea del tiempo: una raya de lado a lado y cada proyecto en su fecha.
      El pomo avanza con el tunel y se puede arrastrar. -->
 <footer class="tiempo" id="tiempo">
   <div class="barra" id="barra">
@@ -618,10 +618,9 @@ ${rows}
   </div>
   <a class="rotulo" id="rotulo" href=""></a>
 </footer>
-
+`}
 <div class="peek" id="peek" aria-hidden="true"></div>
-<script type="module" src="${raiz('/js/tunnel.js')}"></script>
-<script type="module" src="${raiz('/js/work.js')}"></script>`
+${lab ? '' : `<script type="module" src="${raiz('/js/tunnel.js')}"></script>\n`}<script type="module" src="${raiz('/js/work.js')}"></script>`
     + foot();
   }
 

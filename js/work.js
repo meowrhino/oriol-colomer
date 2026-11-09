@@ -99,10 +99,10 @@ if (lista) {
       vt.finished.finally(() => html.classList.remove('vista-cambia'));
     } else aplicar(otra);
   });
-  // la vista guardada, la misma en work y en lab
+  // la vista guardada; el lab no tiene boton (solo la rejilla) y se queda como viene
   let guardada = 'tunel';
   try { guardada = localStorage.getItem('vista') || 'tunel'; } catch {}
-  aplicar(guardada);
+  if (document.querySelector('.vistas .vista')) aplicar(guardada);
 
   /* ---- miniatura al pasar por la lista -------------------- */
   // En pantalla tactil no hay hover, asi que la miniatura no se monta.
