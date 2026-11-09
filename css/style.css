@@ -461,8 +461,7 @@ iframe.pieza{ background: var(--bg); }
 .index--lab li, .index--lab li:last-child{ border:0; }
 .index--lab a{ display:flex; flex-direction:column; gap:.5em; padding:0; }
 .index--lab .mini{ display:block; aspect-ratio:3/2; overflow:hidden; background: var(--hueco); }
-.index--lab .mini img{ width:100%; height:100%; object-fit:cover; transition: transform .6s ease; }
-.index--lab a:hover .mini img{ transform: scale(1.03); }
+.index--lab .mini img{ width:100%; height:100%; object-fit:cover; }
 .index--lab .t{ font-size: var(--fs-nav); }
 
 .project--lab{ display:flex; flex-direction:column; align-items:stretch; gap: var(--aire); }
