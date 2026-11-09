@@ -10,7 +10,7 @@
    distingue. De paso la pagina no baja ni un byte de tipografia. */
 
 :root{
-  --bg:        #fafafa;
+  --bg:        #ffffff;
   --ink:       #737373;   /* cuerpo de texto: 4,5 sobre --bg, el minimo AA */
   --ink-soft:  #919191;   /* titulos, secundario: 3 sobre --bg */
   --ink-faint: #c4c4c4;   /* inactivo, lab */

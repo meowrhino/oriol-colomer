@@ -224,6 +224,9 @@ En lab, la pieza arranca sola en un ordenador; en el móvil sale un play y solo
 se carga al darle: una build de Unity son decenas de megas. Desde Unity, exporta con
 *Publishing Settings → Compression Format: Brotli* y **"Decompression Fallback"
 activado**: sin eso, el servidor no sabe servir los `.br` y la build no arranca.
+Para comprobarlo antes de subirla, mira la carpeta `Build/`: si hay ficheros que
+acaban en **`.br`**, el fallback está apagado (vuelve a exportar); con él, acaban en
+`.unityweb`.
 
 Cada vez que se sube una build nueva, la anterior se queda guardada para siempre
 en el historial de git: unos 60 MB por versión. No pasa nada por unas pocas,

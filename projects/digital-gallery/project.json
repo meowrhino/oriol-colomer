@@ -9,13 +9,23 @@
   },
   "text": {
     "en": [
-      "interactive piece made in unity. it runs right here in the browser: click on it and explore."
+      "interactive digital gallery. it runs right here in the browser: click on it and explore."
     ],
     "es": [
-      "pieza interactiva hecha en unity. funciona aquí mismo, en el navegador: haz clic y explora."
+      "galería digital interactiva. funciona aquí mismo, en el navegador: haz clic y explora."
     ],
-    "ca": ["peça interactiva feta amb unity. funciona aquí mateix, al navegador: fes clic i explora."]
+    "ca": [
+      "galeria digital interactiva. funciona aquí mateix, al navegador: fes clic i explora.",
+      "Controls:",
+      "WASD: move",
+      "Scroll: Z transform",
+      "← → ↑ ↓: X/Y transform"
+    ]
   },
-  "cover": ["thumb"],
-  "photos": ["web/index.html"]
+  "cover": [
+    "thumb"
+  ],
+  "photos": [
+    "web/index.html"
+  ]
 }

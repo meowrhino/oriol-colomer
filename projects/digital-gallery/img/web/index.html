@@ -1,64 +1,44 @@
 <!DOCTYPE html>
-<!--
-  digital gallery — build de Unity WebGL (v0.2).
-  Va dentro de un <iframe> en la pagina del proyecto, y solo se carga al
-  darle al play. Cambios respecto al index.html que exporta Unity:
-  - el canvas llena el marco en vez de medir 1920x1080 fijos;
-  - mientras carga toma el fondo de la web (claro u oscuro), no negro;
-  - los ficheros van descomprimidos (.data, .wasm, .framework.js) y no en
-    .br: GitHub Pages no manda la cabecera Content-Encoding que Unity pide
-    para los .br, y sin "Decompression Fallback" la build no arrancaba.
-  Para actualizarla: exportar desde Unity con Publishing Settings >
-  Compression Format: Brotli y "Decompression Fallback" activado, y
-  sustituir la carpeta Build (entonces los nombres llevan .unityweb).
--->
 <html lang="en-us">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>digital gallery</title>
-    <style>
-      html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
-      #unity-canvas { display: block; width: 100%; height: 100%; background: transparent; }
-      #aviso { position: absolute; inset: 0; display: grid; place-items: center;
-               color: #7d7d7d; font: 13px/1.4 Helvetica, Arial, sans-serif; pointer-events: none; }
-    </style>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity Web Player | digital gallery</title>
   </head>
-  <body>
-    <canvas id="unity-canvas" tabindex="-1"></canvas>
-    <div id="aviso">loading…</div>
-    <script src="Build/dg-0_2.loader.js"></script>
+  <body style="text-align: center; padding: 0; border: 0; margin: 0;">
+    <canvas id="unity-canvas" width=1920 height=1080 tabindex="-1" style="width: 1920px; height: 1080px; background: #231F20"></canvas>
+    <script src="Build/digital_gallery-Web_v0_4.loader.js"></script>
     <script>
-      var aviso = document.getElementById('aviso');
-      /* mientras carga, el fondo y el gris de la web (claro u oscuro): se
-         leen de la pagina que la contiene. Abierta suelta, se queda en negro. */
-      function paleta() {
-        try {
-          var css = parent.getComputedStyle(parent.document.documentElement);
-          var bg = css.getPropertyValue('--bg').trim();
-          if (!bg || parent === window) return;
-          document.body.style.background = bg;
-          aviso.style.color = css.getPropertyValue('--ink-soft').trim();
-        } catch (e) {}
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        // Mobile device style: fill the whole browser client area with the game canvas:
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+
+        var canvas = document.querySelector("#unity-canvas");
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+        canvas.style.position = "fixed";
+
+        document.body.style.textAlign = "left";
+
       }
-      paleta();
-      createUnityInstance(document.querySelector('#unity-canvas'), {
+
+      createUnityInstance(document.querySelector("#unity-canvas"), {
         arguments: [],
-        dataUrl: 'Build/dg-0_2.data',
-        frameworkUrl: 'Build/dg-0_2.framework.js',
-        codeUrl: 'Build/dg-0_2.wasm',
-        streamingAssetsUrl: 'StreamingAssets',
-        companyName: 'oriol colomer delgado',
-        productName: 'digital gallery',
-        productVersion: '0.2.0',
-      }, function (p) {
-        paleta();   // por si se cambia de tema mientras carga
-        aviso.textContent = 'loading… ' + Math.round(p * 100) + '%';
-      }).then(function () {
-        aviso.remove();
-        document.body.style.background = '';   // ya en marcha, negro como antes
-      }).catch(function (message) {
-        aviso.textContent = message;
+        dataUrl: "Build/digital_gallery-Web_v0_4.data",
+        frameworkUrl: "Build/digital_gallery-Web_v0_4.framework.js",
+        codeUrl: "Build/digital_gallery-Web_v0_4.wasm",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "oriol colomer delgado",
+        productName: "digital gallery",
+        productVersion: "0.1.0",
+        // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
+        // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
+      }).then((unityInstance) => {
+      }).catch((message) => {
+        alert(message);
       });
     </script>
   </body>

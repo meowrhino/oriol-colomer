@@ -15,11 +15,11 @@
     "https://www.linkedin.com/in/oriolcolomerdelgado/"
   ],
   "autoEnter": 8000,
-  "tunnel": { "card": 39, "cardMobile": 76 },
+  "tunnel": { "card": 42, "cardMobile": 76 },
   "tagline": {
-    "en": "lighting design, concert visuals and music videos. barcelona.",
-    "es": "diseño de iluminación, visuales de directo y videoclips. barcelona.",
-    "ca": "disseny d'il·luminació, visuals de directe i videoclips. barcelona."
+    "en": "lighting design, visuals and creative direction. barcelona.",
+    "es": "diseño de iluminación, visuales y dirección creativa. barcelona.",
+    "ca": "disseny d'il·luminació, visuals i direcció creativa. barcelona."
   },
   "lists": {
     "work": {
@@ -46,7 +46,7 @@
     },
     "lab": {
       "name": "lab",
-      "projects": ["digital-gallery", "spacetime"]
+      "projects": ["digital-gallery", "commexp"]
     }
   },
   "menu": {
