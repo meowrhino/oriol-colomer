@@ -36,3 +36,20 @@ manu. No borres fotos ni proyectos.
 
 Commit y push solo cuando te lo pidan: mensaje en castellano diciendo qué se
 arregla. Cuando el build vuelve a pasar, la Action cierra el issue sola.
+
+## Lo que nuestra copia tiene distinto de la de Oriol
+
+Las dos copias son iguales salvo esto. Al traer sus cambios a la nuestra
+(«Al día con la copia de Oriol»), no lo pises:
+
+- **Solo nuestros**: `CLAUDE.md`, `TRASPASO.md` y el `README.md` (el suyo es
+  otro).
+- **7 animaciones en webm** (2026-11-10, una prueba nuestra): en la suya son
+  webp animados (181 MB entre las siete); en la nuestra, `N.webm` +
+  `N.poster.webp` (18 MB): `ballet-electronic/img/1`,
+  `liquid-latex-rmx-llum/img/1, 3, 4, 5, 6` y `el-nino-bola-mori/img/2`. Si en
+  la suya cambian esas carpetas, trae lo demás pero no vuelvas a meter esos
+  `N.webp` (con un `N.webm` y un `N.webp` a la vez, solo sale la foto). Si
+  Oriol cambia una de esas animaciones, conviértela otra vez (sharp saca los
+  fotogramas, ffmpeg a VP9 `-crf 30`, el primer fotograma de póster). Si
+  decidimos pasárselo, esta sección sobra.

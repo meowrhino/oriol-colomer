@@ -450,7 +450,7 @@ iframe.pieza{ background: var(--bg); }
 /* ============================================================
    LAB
    Un parque: todo a la vista. Solo una rejilla de portadas, sin
-   tunel (Oriol, 2026-11-08 y 09): 4 columnas, 2 en el movil. En la
+   tunel (Oriol, 2026-11-08 y 09): 4 columnas, 1 en el movil. En la
    pagina, la pieza arriba a pantalla entera y texto, creditos y
    fotos debajo, en una columna.
    ============================================================ */
@@ -735,7 +735,7 @@ body[data-vista="lista"] .wrap{ padding-top: calc(var(--pad) * .9); }
   .nav .aqui{ max-width:38vw; }
 
   .index a, .cabecera{ grid-template-columns: 1fr auto; gap: 1.5ch; }
-  .index--lab{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .index--lab{ grid-template-columns: minmax(0, 1fr); }
   .index .c, .index .cl, .cabecera [data-sort="client"], .cabecera [data-sort="date"]{ display:none; }
   .peek{ display:none; }
   .langs, .sig{ position:static; }
